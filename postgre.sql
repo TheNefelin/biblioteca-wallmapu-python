@@ -27,7 +27,7 @@ CREATE TABLE wm_user_role (
 );
 
 CREATE TABLE wm_users (
-  id_user INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  id_user UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email VARCHAR(100),
   name VARCHAR(45),
   lastname VARCHAR(45),

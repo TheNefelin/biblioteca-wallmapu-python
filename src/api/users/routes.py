@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
+from uuid import UUID
 from sqlalchemy.orm import Session
 from typing import List
 from src.core.database import get_db
@@ -12,7 +13,7 @@ def get_all_users(db: Session = Depends(get_db)):
   return res
 
 @router.get("/{id}", response_model=dtos.UserDTO)
-def get_by_id_user(id: int, db: Session = Depends(get_db)):
+def get_by_id_user(id: UUID, db: Session = Depends(get_db)):
   res = repository.get_by_id(db, id)
   if not res:
     raise HTTPException(status_code=404, detail="Usuario no encontrado")
@@ -35,7 +36,7 @@ def create_user(user: dtos.CreateUserDTO, db: Session = Depends(get_db)):
     )
   
 @router.put("/{id}", response_model=dtos.UserDTO)
-def update_user(id: int, user: dtos.UpdateUserDTO, db: Session = Depends(get_db)):
+def update_user(id: UUID, user: dtos.UpdateUserDTO, db: Session = Depends(get_db)):
   try:
     updated_user = repository.update(db, id, user)
     

@@ -1,7 +1,7 @@
 from datetime import datetime
 import re
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import UUID4, BaseModel, ConfigDict, field_validator
 
 class CreateUserDTO(BaseModel):
   email: str
@@ -59,7 +59,7 @@ class UpdateUserDTO(BaseModel):
     return v
 
 class UserDTO(BaseModel): 
-  id_user: int
+  id_user: UUID4
   email: str
   name: Optional[str] = None
   lastname: Optional[str] = None

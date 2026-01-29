@@ -1,4 +1,5 @@
 from sqlite3 import IntegrityError
+from sqlalchemy import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from . import models, dtos
@@ -9,7 +10,7 @@ def get_all(db: Session):
   except SQLAlchemyError as e:
     raise e
   
-def get_by_id(db: Session, id_user: int):
+def get_by_id(db: Session, id_user: UUID):
   try:
     return db.query(models.User).filter(models.User.id_user == id_user).first()
   except SQLAlchemyError as e:
@@ -36,7 +37,7 @@ def create(db: Session, user_data: dtos.CreateUserDTO):
     db.rollback()
     raise e
   
-def update(db: Session, id_user: int, user_data: dtos.UpdateUserDTO):
+def update(db: Session, id_user: UUID, user_data: dtos.UpdateUserDTO):
   try:
     # Buscar usuario existente
     user = db.query(models.User).filter(models.User.id_user == id_user).first()

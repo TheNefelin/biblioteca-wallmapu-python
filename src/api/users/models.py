@@ -1,10 +1,11 @@
+import uuid
 from src.core.database import Base
-from sqlalchemy import Column, Integer, String,DateTime, func, text
+from sqlalchemy import Column, Integer, String,DateTime, func, text, UUID
 
 class User(Base):
   __tablename__ = "wm_users"
 
-  id_user = Column(Integer, primary_key=True, autoincrement=True)
+  id_user = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
   email = Column(String(100), nullable=False, unique=True)
   name = Column(String(100))
   lastname = Column(String(100))
