@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.api.auth.routes import router as auth_router
 from src.api.users.routes import router as users_router
 
-app = FastAPI(title="Kartax API", description="In development", version="1.0")
+app = FastAPI(title="Wallmapu API", description="In development", version="1.0")
 
 app.add_middleware(
   CORSMiddleware,
