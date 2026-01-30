@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from uuid import UUID
 from sqlalchemy.orm import Session
+from uuid import UUID
 from typing import List
 from src.core.database import get_db
 from . import repository, dtos

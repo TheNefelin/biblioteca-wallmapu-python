@@ -11,9 +11,11 @@ py -m venv .venv
 ### Install Dependencies
 ```sh
 pip install fastapi uvicorn sqlalchemy psycopg2-binary python-dotenv pydantic pydantic-settings
+pip install google-auth google-auth-oauthlib google-auth-httplib2
+pip install python-jose[cryptography]
+pip install pydantic[email]
 pip freeze > requirements.txt
 ```
-pip install fastapi uvicorn sqlalchemy "psycopg[binary]" python-dotenv pydantic 
 
 ### Deploy
 [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
@@ -22,6 +24,11 @@ pip install fastapi uvicorn sqlalchemy "psycopg[binary]" python-dotenv pydantic
 py run.py
 # or 
 uvicorn app.main:app --reload
+```
+
+### Generate SECRET_KEY
+```sh
+python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
 ### Structure
