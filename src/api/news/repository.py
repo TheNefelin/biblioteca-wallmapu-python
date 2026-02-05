@@ -1,7 +1,44 @@
+from math import ceil
+from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from src.api.news import dtos, models
+
+def get_all_pagination(page: int, page_size: int, search: str | None, db: Session):
+  try:
+    # Query base
+    query = db.query(models.News)
+    
+    # Aplicar filtro de búsqueda si existe
+    if search:
+      search_filter = or_(
+        models.News.title.ilike(f"%{search}%"),
+        models.News.subtitle.ilike(f"%{search}%")
+      )
+      query = query.filter(search_filter)
+    
+    # Total de registros (con filtro aplicado)
+    count = query.count()
+    
+    # Total de páginas
+    pages = ceil(count / page_size) if count > 0 else 0
+    
+    # Calcular offset
+    skip = (page - 1) * page_size
+    
+    # Obtener registros paginados ordenados por fecha de creación descendente
+    result = (
+      query
+      .order_by(models.News.created_at.desc())
+      .offset(skip)
+      .limit(page_size)
+      .all()
+    )
+    
+    return count, pages, result
+  except SQLAlchemyError as e:
+    raise e
 
 def get_all(db: Session):
   try:
