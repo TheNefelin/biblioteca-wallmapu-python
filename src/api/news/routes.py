@@ -9,7 +9,7 @@ from src.core.database import get_db
 
 router = APIRouter(prefix="/news", tags=["news"])
 
-@router.get("/", response_model=PaginationResponseDTO[List[dtos.NewsDTO]])
+@router.get("/", response_model=PaginationResponseDTO[List[dtos.NewsWithGalleryDTO]])
 def get_all_pagination(
   page: int = Query(default=1, ge=1, description="Número de página"),
   page_size: int = Query(default=10, ge=1, le=100, description="Elementos por página"),
@@ -19,10 +19,9 @@ def get_all_pagination(
   try:
     count, pages, result = repository.get_all_pagination(page, page_size, search, db)
     
-    # AJUSTE AUTOMÁTICO: Si la página solicitada excede el total de páginas, ajustar
+    # Ajuste automático de página
     if page > pages and pages > 0:
       page = pages
-      # Volver a consultar con la página ajustada
       count, pages, result = repository.get_all_pagination(page, page_size, search, db)
     
     # Construir URLs next/prev

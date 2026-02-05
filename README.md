@@ -84,7 +84,6 @@ backend/
 └── vercel.json
 ```
 
-
 ## /auth/google
 - GET
 - GET BY ID

@@ -1,14 +1,14 @@
 from math import ceil
 from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from src.api.news import dtos, models
 
 def get_all_pagination(page: int, page_size: int, search: str | None, db: Session):
   try:
-    # Query base
-    query = db.query(models.News)
+    # Query base con eager loading de imágenes
+    query = db.query(models.News).options(joinedload(models.News.images))
     
     # Aplicar filtro de búsqueda si existe
     if search:
@@ -18,16 +18,16 @@ def get_all_pagination(page: int, page_size: int, search: str | None, db: Sessio
       )
       query = query.filter(search_filter)
     
-    # Total de registros (con filtro aplicado)
+    # Total de registros
     count = query.count()
     
     # Total de páginas
     pages = ceil(count / page_size) if count > 0 else 0
     
-    # Calcular offset 
+    # Calcular offset
     skip = (page - 1) * page_size
     
-    # Obtener registros paginados ordenados por fecha de creación descendente
+    # Obtener registros paginados
     result = (
       query
       .order_by(models.News.created_at.desc())

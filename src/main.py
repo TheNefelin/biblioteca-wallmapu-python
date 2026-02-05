@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,7 +25,10 @@ async def root():
     "swagger": "/docs",
   }
 
-app.mount("/static", StaticFiles(directory="src/static"), name="static")
+static_path = os.path.join(os.path.dirname(__file__), "static")
+app.mount("/static", StaticFiles(directory=static_path), name="static")
+# print(static_path)
+# app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
 app.include_router(auth_router)
 app.include_router(users_router)
