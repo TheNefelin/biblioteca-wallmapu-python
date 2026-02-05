@@ -24,7 +24,7 @@ def get_all_pagination(page: int, page_size: int, search: str | None, db: Sessio
     # Total de páginas
     pages = ceil(count / page_size) if count > 0 else 0
     
-    # Calcular offset
+    # Calcular offset 
     skip = (page - 1) * page_size
     
     # Obtener registros paginados ordenados por fecha de creación descendente

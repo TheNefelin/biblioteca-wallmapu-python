@@ -19,11 +19,16 @@ def get_all_pagination(
   try:
     count, pages, result = repository.get_all_pagination(page, page_size, search, db)
     
+    # AJUSTE AUTOMÁTICO: Si la página solicitada excede el total de páginas, ajustar
+    if page > pages and pages > 0:
+      page = pages
+      # Volver a consultar con la página ajustada
+      count, pages, result = repository.get_all_pagination(page, page_size, search, db)
+    
     # Construir URLs next/prev
     base_url = "/news"
     search_param = f"&search={search}" if search else ""
     
-    # CORRECCIÓN: page + 1 para next, page - 1 para prev (sin duplicar)
     next_url = None
     prev_url = None
     
