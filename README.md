@@ -37,8 +37,21 @@ backend/
 ├── src/
 │   ├── api/
 │   │   ├── auth/
+│   │   │   ├── dtos.py
+│   │   │   ├── google_service.py
+│   │   │   ├── repository.py
+│   │   │   └── routes.py
+│   │   ├── news/
+│   │   │   ├── dtos.py
+│   │   │   ├── models.py
+│   │   │   ├── repository.py
+│   │   │   └── routes.py
+│   │   ├── news_gallery/
+│   │   │   ├── dtos.py
+│   │   │   ├── models.py
+│   │   │   ├── repository.py
+│   │   │   └── routes.py
 │   │   └── users/
-│   │       ├── __init__.py
 │   │       ├── dtos.py
 │   │       ├── models.py
 │   │       ├── repository.py
@@ -47,9 +60,11 @@ backend/
 │   ├── core/
 │   │   ├── __init__.py
 │   │   ├── config.py
-│   │   └── database.py
+│   │   ├── database.py
+│   │   └── jwt_service.py
 │   │
 │   ├── shared/
+│   │   └── dtos.py
 │   │
 │   ├── static/
 │   │   ├── img/
@@ -67,4 +82,44 @@ backend/
 ├── requirements.txt
 ├── run.py
 └── vercel.json
+```
+
+
+## /auth/google
+- GET
+- GET BY ID
+```json
+id:int
+```
+- POST
+```json
+{
+  "email": "string",
+  "name": "string",
+  "lastname": "string",
+  "rut": "string",
+  "address": "string",
+  "phone": "string",
+  "commune_id": 0
+}
+```
+PUT
+- header
+```json
+{
+  "id": "nume"
+}
+```
+- Body
+```json
+{
+  "id": "num"
+  "email": "string",
+  "name": "string",
+  "lastname": "string",
+  "rut": "string",
+  "address": "string",
+  "phone": "string",
+  "commune_id": 0
+}
 ```

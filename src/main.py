@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.auth.routes import router as auth_router
 from src.api.users.routes import router as users_router
+from src.api.news.routes import router as news_router
+from src.api.news_gallery.routes import router as news_gallery_router
 
 app = FastAPI(title="Wallmapu API", description="In development", version="1.0")
 
@@ -19,10 +21,12 @@ app.add_middleware(
 async def root():
   return {
     "status": "Api Running",
-    "swagger": "/docs"
+    "swagger": "/docs",
   }
 
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(news_router)
+app.include_router(news_gallery_router)
