@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
 from src.api.news import dtos, repository
-from src.core.url_helper import get_base_url, get_static_url
+from src.core.url_helper import get_base_url, get_static_news_url
 from src.shared.dtos import PaginationResponseDTO
 from src.core.database import get_db
 
@@ -27,7 +27,7 @@ def get_all_pagination(
       count, pages, result = repository.get_all_pagination(page, page_size, search, db)
     
     base_url = get_base_url(request)
-    static_url = get_static_url(request)
+    static_url = get_static_news_url(request)
 
     # Construir URLs next/prev
     search_param = f"&search={search}" if search else ""
@@ -68,8 +68,8 @@ def get_by_id(
   res = repository.get_by_id(id, db)
 
   if res:
-    static_url = get_static_url(request)
-
+    static_url = get_static_news_url(request)
+    
     for image in res.images:
       image.img = f"{static_url}{image.img}"
   else:
