@@ -9,7 +9,7 @@ def get_all(db: Session):
   except SQLAlchemyError as e:
     raise e
 
-def get_by_id(db: Session, id: int):
+def get_by_id(id: int, db: Session):
   try:
     return db.query(models.NewsGallery).filter(models.NewsGallery.id_news_gallery == id).first()
   except SQLAlchemyError as e:

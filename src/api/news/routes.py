@@ -59,16 +59,16 @@ def get_all_pagination(
       detail=f"Error: {str(e)}"
     )
 
+@router.get("/{id}", response_model=dtos.NewsWithGalleryDTO)
+def get_by_id(id: int, db: Session = Depends(get_db)):
+  res = repository.get_by_id(id, db)
+  if not res:
+    raise HTTPException(status_code=404, detail="Noticia no encontrado")
+  return res    
+
 @router.get("/all", response_model=List[dtos.NewsDTO])
 def get_all(db: Session = Depends(get_db)):
   res = repository.get_all(db)
-  return res
-
-@router.get("/{id}", response_model=dtos.NewsDTO)
-def get_by_id(id: int, db: Session = Depends(get_db)):
-  res = repository.get_by_id(db, id)
-  if not res:
-    raise HTTPException(status_code=404, detail="Noticia no encontrado")
   return res
   
 @router.post("/", response_model=dtos.NewsDTO, status_code=status.HTTP_201_CREATED)

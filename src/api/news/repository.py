@@ -40,6 +40,12 @@ def get_all_pagination(page: int, page_size: int, search: str | None, db: Sessio
   except SQLAlchemyError as e:
     raise e
 
+def get_by_id(id: int, db: Session):
+  try:
+    return db.query(models.News).filter(models.News.id_news == id).first()
+  except SQLAlchemyError as e:
+    raise e
+
 def get_all(db: Session):
   try:
     return db.query(models.News).all()
