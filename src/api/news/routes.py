@@ -60,9 +60,19 @@ def get_all_pagination(
     )
 
 @router.get("/{id}", response_model=dtos.NewsWithGalleryDTO)
-def get_by_id(id: int, db: Session = Depends(get_db)):
+def get_by_id(
+  request: Request,
+  id: int, 
+  db: Session = Depends(get_db)
+):
   res = repository.get_by_id(id, db)
-  if not res:
+
+  if res:
+    static_url = get_static_url(request)
+
+    for image in res.images:
+      image.img = f"{static_url}{image.img}"
+  else:
     raise HTTPException(status_code=404, detail="Noticia no encontrado")
   return res    
 
