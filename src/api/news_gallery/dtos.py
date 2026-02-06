@@ -1,5 +1,4 @@
-from typing import Optional
-from pydantic import BaseModel, ConfigDict, computed_field
+from pydantic import BaseModel, ConfigDict
 
 class CreateGalleryDTO(BaseModel): 
   alt: str
