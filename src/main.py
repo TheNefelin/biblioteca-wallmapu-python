@@ -8,14 +8,14 @@ from src.api.users.routes import router as users_router
 from src.api.news.routes import router as news_router
 from src.api.news_gallery.routes import router as news_gallery_router
 
-app = FastAPI(title="Wallmapu API", description="In development", version="1.0")
+app = FastAPI(title="Biblioteca  Wallmapu API", description="In development", version="1.0")
 
 app.add_middleware(
   CORSMiddleware,
   allow_origins=["*"],
+  allow_credentials=True,
   allow_methods=["*"],
   allow_headers=["*"],
-  allow_credentials=True,
 )
 
 @app.get("/")
