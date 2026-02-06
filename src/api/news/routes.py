@@ -44,7 +44,7 @@ def get_all_pagination(
     # Añadir base_url a las imágenes de cada noticia
     for news in result:
       for image in news.images:
-        image.img = f"{static_url}{image.img}"
+        image.img = f"{static_url}/{image.img}"
 
     return PaginationResponseDTO(
       count=count,
@@ -69,9 +69,9 @@ def get_by_id(
 
   if res:
     static_url = get_static_news_url(request)
-    
+
     for image in res.images:
-      image.img = f"{static_url}{image.img}"
+      image.img = f"{static_url}/{image.img}"
   else:
     raise HTTPException(status_code=404, detail="Noticia no encontrado")
   return res    
