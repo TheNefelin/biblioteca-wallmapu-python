@@ -15,17 +15,17 @@ router = APIRouter(prefix="/news", tags=["news"])
 def get_all_pagination(
   request: Request,
   page: int = Query(default=1, ge=1, description="Número de página"),
-  page_size: int = Query(default=10, ge=1, le=100, description="Elementos por página"),
+  items: int = Query(default=10, ge=1, le=100, description="Elementos por página"),
   search: Optional[str] = Query(default=None, description="Buscar en título o subtítulo"),
   db: Session = Depends(get_db)
 ):
   try:
-    count, pages, result = repository.get_all_pagination(page, page_size, search, db)
+    count, pages, result = repository.get_all_pagination(page, items, search, db)
     
     # Ajuste automático de página
     if page > pages and pages > 0:
       page = pages
-      count, pages, result = repository.get_all_pagination(page, page_size, search, db)
+      count, pages, result = repository.get_all_pagination(page, items, search, db)
     
     base_url = get_base_url(request)
     static_url = get_static_news_url(request)
@@ -37,10 +37,10 @@ def get_all_pagination(
     prev_url = None
     
     if page < pages:
-      next_url = f"{base_url}?page={page + 1}&page_size={page_size}{search_param}"
+      next_url = f"{base_url}?page={page + 1}&page_size={items}{search_param}"
     
     if page > 1:
-      prev_url = f"{base_url}?page={page - 1}&page_size={page_size}{search_param}"
+      prev_url = f"{base_url}?page={page - 1}&page_size={items}{search_param}"
     
     # Añadir base_url a las imágenes de cada noticia
     for news in result:
@@ -48,7 +48,7 @@ def get_all_pagination(
         image.img = f"{static_url}/{image.img}"
 
     paginationResult = PaginationResponseDTO(  
-      count=count,
+      items=count,
       pages=pages,
       next=next_url,
       prev=prev_url,

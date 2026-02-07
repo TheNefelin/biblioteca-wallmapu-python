@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from src.api.news import dtos, models
 
-def get_all_pagination(page: int, page_size: int, search: str | None, db: Session):
+def get_all_pagination(page: int, items: int, search: str | None, db: Session):
   try:
     # Query base con eager loading de imágenes
     query = db.query(models.News).options(joinedload(models.News.images))
@@ -22,17 +22,17 @@ def get_all_pagination(page: int, page_size: int, search: str | None, db: Sessio
     count = query.count()
     
     # Total de páginas
-    pages = ceil(count / page_size) if count > 0 else 0
+    pages = ceil(count / items) if count > 0 else 0
     
     # Calcular offset
-    skip = (page - 1) * page_size
+    skip = (page - 1) * items
     
     # Obtener registros paginados
     result = (
       query
       .order_by(models.News.created_at.desc())
       .offset(skip)
-      .limit(page_size)
+      .limit(items)
       .all()
     )
     
@@ -67,6 +67,12 @@ def create(db: Session, data: dtos.CreateNewsDTO):
   except SQLAlchemyError as e:
     db.rollback()
     raise e
+
+
+
+
+
+
 
 def update(db: Session, id: int, data: dtos.UpdateNewsDTO):
   try:

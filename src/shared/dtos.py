@@ -5,17 +5,17 @@ from pydantic import BaseModel
 T = TypeVar('T')
 
 class PaginationResponseDTO(BaseModel, Generic[T]): 
-  count: int
   pages: int
+  items: int
   next: Optional[str] = None
   prev: Optional[str] = None
-  result: T
+  result: Optional[T]
 
 class ApiResponse(BaseModel, Generic[T]):
   isSuccess: bool
   statusCode: int
   message: str
-  data: Optional[T] 
+  result: Optional[T]
 
   @classmethod
   def success(cls, data: Optional[T] = None, message: str = "Operación exitosa") -> 'ApiResponse[T]':
@@ -23,7 +23,7 @@ class ApiResponse(BaseModel, Generic[T]):
       isSuccess=True, 
       statusCode=status.HTTP_200_OK, 
       message=message, 
-      data=data
+      result=data
     )  
 
   @classmethod
@@ -32,7 +32,7 @@ class ApiResponse(BaseModel, Generic[T]):
       isSuccess=True, 
       statusCode=status.HTTP_201_CREATED, 
       message=message, 
-      data=data
+      result=data
     )
 
   @classmethod
@@ -41,7 +41,7 @@ class ApiResponse(BaseModel, Generic[T]):
       isSuccess=True, 
       statusCode=status.HTTP_200_OK, 
       message=message, 
-      data=data
+      result=data
     )
 
   @classmethod
@@ -50,7 +50,7 @@ class ApiResponse(BaseModel, Generic[T]):
       isSuccess=True, 
       statusCode=status.HTTP_204_NO_CONTENT, 
       message=message, 
-      data=None
+      result=None
     )    
 
   @classmethod
@@ -59,7 +59,7 @@ class ApiResponse(BaseModel, Generic[T]):
       isSuccess=False, 
       statusCode=status.HTTP_404_NOT_FOUND, 
       message=message, 
-      data=None
+      result=None
     )
 
   @classmethod
@@ -68,7 +68,7 @@ class ApiResponse(BaseModel, Generic[T]):
       isSuccess=False, 
       statusCode=status.HTTP_400_BAD_REQUEST, 
       message=message, 
-      data=None
+      result=None
     )
 
   @classmethod
@@ -77,7 +77,7 @@ class ApiResponse(BaseModel, Generic[T]):
       isSuccess=False, 
       statusCode=status.HTTP_500_INTERNAL_SERVER_ERROR, 
       message=message, 
-      data=None
+      result=None
     )
 
   @classmethod
@@ -86,7 +86,7 @@ class ApiResponse(BaseModel, Generic[T]):
       isSuccess=is_success, 
       statusCode=status_code, 
       message=message, 
-      data=data
+      result=data
     )
 
   
