@@ -2,7 +2,10 @@ from PIL import Image
 import os
 from io import BytesIO
 
-STATIC_DIR = "src/static/news"
+BASE_DIR = os.getcwd()
+STATIC_NEWS_PATH = os.path.join(BASE_DIR, "static", "news")
+
+os.makedirs(STATIC_NEWS_PATH, exist_ok=True)
 
 def save_image_webp(file_bytes: bytes, filename: str) -> str:
   """
@@ -12,13 +15,10 @@ def save_image_webp(file_bytes: bytes, filename: str) -> str:
   # Abrir imagen desde bytes
   img = Image.open(BytesIO(file_bytes)).convert("RGB")
 
-  # Asegurarse que la carpeta exista
-  os.makedirs(STATIC_DIR, exist_ok=True)
-
   # Generar ruta final
   base_name = os.path.splitext(filename)[0]
   webp_filename = f"{base_name}.webp"
-  save_path = os.path.join(STATIC_DIR, webp_filename)
+  save_path = os.path.join(STATIC_NEWS_PATH, webp_filename)
 
   # Guardar en webp
   img.save(save_path, "WEBP")

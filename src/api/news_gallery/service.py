@@ -3,11 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List
 import uuid
 
-from src.api.news_gallery.dtos import CreateNewsGalleryDTO
 from src.api.news_gallery.models import NewsGallery
-from src.api.news_gallery.repository import create
 from src.services.image_service import save_image_webp
-
 
 STATIC_PATH = "static/news"
 
