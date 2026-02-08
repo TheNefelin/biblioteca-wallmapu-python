@@ -51,15 +51,25 @@ def create(news: CreateNewsGalleryDTO, db: Session = Depends(get_db)):
     return ApiResponse.server_error(str(e))
 
 @router.post("/image/{news_id}", response_model=ApiResponse[object])
-def upload_image(news_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
+def upload_image(
+  news_id: int, 
+  files: List[UploadFile] = File(...), 
+  db: Session = Depends(get_db)
+):
   try:
-    # Leer contenido de la imagen
-    file_bytes = file.file.read()
-    webp_filename = f"{news_id}_{uuid.uuid4().hex}.webp"
+    if len(files) > 3:
+      return ApiResponse.bad_request(message="Solo se permiten hasta 3 imágenes por noticia")
 
-    # Convertir y guardar en WebP
-    saved_filename = save_image_webp(file_bytes, webp_filename)
+    created_images = []
+    
+    for file in files:
+      file_bytes = file.file.read()
 
-    return ApiResponse.created(message="Imagen subida correctamente")
+      webp_filename = f"{news_id}_{uuid.uuid4().hex}.webp"
+      saved_filename = save_image_webp(file_bytes, webp_filename)
+
+      created_images.append(saved_filename)
+
+    return ApiResponse.created(message="Imagen subida correctamente", data=created_images)
   except Exception as e:
     return ApiResponse.server_error(str(e))  
