@@ -1,12 +1,12 @@
-
-import stat
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session, session
+import uuid
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from sqlalchemy.orm import Session
 
 from src.api.news_gallery import repository
 from src.api.news_gallery.dtos import CreateNewsGalleryDTO, NewsGalleryDTO
 from src.core.database import get_db
+from src.services.image_service import save_image_webp
 from src.shared.dtos import ApiResponse
 
 router = APIRouter(prefix="/news-gallery", tags=["news-gallery"])
@@ -49,3 +49,17 @@ def create(news: CreateNewsGalleryDTO, db: Session = Depends(get_db)):
     return ApiResponse.bad_request(message=str(e))
   except Exception as e:
     return ApiResponse.server_error(str(e))
+
+@router.post("/image/{news_id}", response_model=ApiResponse[object])
+def upload_image(news_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
+  try:
+    # Leer contenido de la imagen
+    file_bytes = file.file.read()
+    webp_filename = f"{news_id}_{uuid.uuid4().hex}.webp"
+
+    # Convertir y guardar en WebP
+    saved_filename = save_image_webp(file_bytes, webp_filename)
+
+    return ApiResponse.created(message="Imagen subida correctamente")
+  except Exception as e:
+    return ApiResponse.server_error(str(e))  

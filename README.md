@@ -23,6 +23,8 @@ pip install fastapi uvicorn sqlalchemy psycopg2-binary python-dotenv pydantic py
 pip install google-auth google-auth-oauthlib google-auth-httplib2
 pip install python-jose[cryptography]
 pip install pydantic[email]
+pip install pillow
+pip install python-multipart
 ```
 ```sh
 pip freeze > requirements.txt
