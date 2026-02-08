@@ -3,7 +3,6 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.a01.routes import router as ai_router
 from src.api.auth.routes import router as auth_router
 from src.api.users.routes import router as users_router
 from src.api.news.routes import router as news_router
@@ -31,7 +30,6 @@ app.mount("/static", StaticFiles(directory=static_path), name="static")
 # print(static_path)
 # app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
-app.include_router(ai_router)
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(news_router)
