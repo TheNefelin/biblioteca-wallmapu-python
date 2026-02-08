@@ -85,15 +85,15 @@ def create_gallery(
   alts: list[str] = Form(...),
   db: Session = Depends(get_db)
 ):
+  # 🔥 normalización
+  if len(alts) == 1 and "," in alts[0]:
+    alts = [a.strip() for a in alts[0].split(",")]
+
   if len(files) != len(alts):
-    return ApiResponse.bad_request(
-      "La cantidad de imágenes y textos alt no coincide"
-    )
+    return ApiResponse.bad_request("La cantidad de imágenes y textos alt no coincide")
 
   if len(files) > 3:
-    return ApiResponse.bad_request(
-      "Solo se permiten hasta 3 imágenes"
-    )
+    return ApiResponse.bad_request("Solo se permiten hasta 3 imágenes")
 
   try:
     result = service.create_news_gallery(
