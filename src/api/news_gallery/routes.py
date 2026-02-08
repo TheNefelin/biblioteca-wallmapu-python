@@ -96,7 +96,7 @@ def create_gallery(
     return ApiResponse.bad_request("Solo se permiten hasta 3 imágenes")
 
   try:
-    result = service.create_news_gallery(
+    result = service.create_news_gallery_with_images(
       news_id=news_id,
       files=files,
       alts=alts,
