@@ -19,12 +19,14 @@ app.add_middleware(
   allow_headers=["*"],
 )
 
-static_path = os.path.join(os.path.dirname(__file__), "static")
-app.mount("/static", StaticFiles(directory=static_path), name="static")
+BASE_DIR = os.getcwd()  # raíz del proyecto
+STATIC_PATH = os.path.join(BASE_DIR, "static") 
+
+app.mount("/static", StaticFiles(directory=STATIC_PATH), name="static")
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
-  return FileResponse(os.path.join(static_path, "favicon.ico"))
+  return FileResponse(os.path.join(STATIC_PATH, "favicon.ico"))
 
 @app.get("/")
 async def root():

@@ -1,7 +1,7 @@
 from fastapi import Request
 
 def get_base_url(request: Request) -> str:
-  return f"{request.url.scheme}://{request.url.netloc}{request.url.path}"
+  return f"{request.url.scheme}://{request.url.netloc}"
 
 def get_static_news_url(request: Request) -> str:
-  return f"{request.url.scheme}://{request.url.netloc}/static/news"
+  return f"{get_base_url(request)}/static/news"
