@@ -1,30 +1,36 @@
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from src.api.news_gallery import dtos, models
+from src.api.news.models import News
+from src.api.news_gallery.dtos import CreateNewsGalleryDTO
+from src.api.news_gallery.models import NewsGallery
 
 def get_all(db: Session):
   try:
-    return db.query(models.NewsGallery).all()
+    return db.query(NewsGallery).all()
   except SQLAlchemyError as e:
     raise e
 
 def get_by_id(id: int, db: Session):
   try:
-    return db.query(models.NewsGallery).filter(models.NewsGallery.id_news_gallery == id).first()
+    return db.query(NewsGallery).filter(NewsGallery.id_news_gallery == id).first()
   except SQLAlchemyError as e:
     raise e
 
-def get_by_news_id(db: Session, id_news: int):
+def get_by_news_id(id_news: int, db: Session):
   try:
-    return db.query(models.NewsGallery).filter(models.NewsGallery.news_id == id_news).all()
+    return db.query(NewsGallery).filter(NewsGallery.news_id == id_news).all()
   except SQLAlchemyError as e:
     raise e
 
-def create(db: Session, data: dtos.CreateGalleryDTO):
+def create(data: CreateNewsGalleryDTO, db: Session):
   try:
-    new_item = models.News(**data.model_dump())
-    
+    # Verificar que la noticia exista
+    news_exists = db.query(News).filter(News.id_news == data.news_id).first()
+    if not news_exists:
+        raise ValueError(f"La noticia con id {data.news_id} no existe")
+
+    new_item = NewsGallery(**data.model_dump())
     db.add(new_item)
     db.commit()
     db.refresh(new_item)
@@ -37,5 +43,3 @@ def create(db: Session, data: dtos.CreateGalleryDTO):
     db.rollback()
     raise e
 
-def delete(db: Session, id: int):
-  return db.query(models.NewsGallery).filter(models.NewsGallery.id_news_gallery == id).delete()

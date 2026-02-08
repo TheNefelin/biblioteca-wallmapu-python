@@ -88,23 +88,23 @@ VALUES
 ('Título Noticia 2', 
  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 
  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 
- '2026-02-02', '2026-02-02'),
+ '2026-01-02', '2026-01-02'),
 ('Título Noticia 3', 
  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 
  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 
- '2026-03-03', '2026-03-03'),
+ '2026-01-03', '2026-01-03'),
 ('Título Noticia 4', 
  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 
  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 
- '2026-04-04', '2026-04-04'),
+ '2026-01-04', '2026-01-04'),
 ('Título Noticia 5', 
  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 
  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 
- '2026-05-05', '2026-05-05'),
+ '2026-01-05', '2026-01-05'),
 ('Título Noticia 6', 
  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 
  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 
- '2026-06-06', '2026-06-06');
+ '2026-01-06', '2026-01-06');
 
 INSERT INTO wm_news_gallery (alt, img, news_id)
 VALUES 

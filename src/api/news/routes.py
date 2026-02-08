@@ -58,10 +58,6 @@ def get_all_pagination(
     return ApiResponse.success(paginationResult)
   except Exception as e:
     return ApiResponse.server_error(str(e))
-    #raise HTTPException(
-    #  status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-    #  detail=f"Error: {str(e)}"
-    #)
 
 @router.get("/{id}", response_model=ApiResponse[NewsWithGalleryDTO])
 def get_by_id(
@@ -83,48 +79,30 @@ def get_by_id(
   except Exception as e:
     return ApiResponse.server_error(str(e))
   
-
-
-
-
-
-
-@router.post("/", response_model=NewsDTO, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ApiResponse[NewsDTO], status_code=status.HTTP_201_CREATED)
 def create(news: CreateNewsDTO, db: Session = Depends(get_db)):
   try:
-    created = repository.create(db, news)
+    created = repository.create(news, db)
 
-    return created
+    return ApiResponse.created(created)
   except ValueError as e:
-    raise HTTPException(
-      status_code=status.HTTP_400_BAD_REQUEST,
-      detail=str(e)
-    )
+    return ApiResponse.bad_request(message=str(e))
   except Exception as e:
-    raise HTTPException(
-      status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-      detail=f"Error interno del servidor: {e}"
-    )
+    return ApiResponse.server_error(str(e))
 
-@router.put("/{id}", response_model=NewsDTO)
+@router.put("/{id}", response_model=ApiResponse[NewsDTO])
 def update(id: int, news: UpdateNewsDTO, db: Session = Depends(get_db)):
   try:
-    updated = repository.update(db, id, news)
+    if (id != news.id_news):
+      return ApiResponse.bad_request(message=f"El id: {id} no coincide")
+
+    updated = repository.update(id, news, db)
     
     if not updated:
-      raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"Noticia con id {id} no encontrado"
-      )
+      return ApiResponse.not_found(message=f"El id: {id} no se encontró")
     
-    return updated
+    return ApiResponse.updated(updated)
   except ValueError as e:
-    raise HTTPException(
-      status_code=status.HTTP_400_BAD_REQUEST,
-      detail=str(e)
-    )
+    return ApiResponse.bad_request(message=str(e))
   except Exception as e:
-    raise HTTPException(
-      status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-      detail="Error interno del servidor"
-    )
+    return ApiResponse.server_error(str(e))

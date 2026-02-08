@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 
-class CreateGalleryDTO(BaseModel): 
+class CreateNewsGalleryDTO(BaseModel): 
   alt: str
   img: str
   news_id: int
