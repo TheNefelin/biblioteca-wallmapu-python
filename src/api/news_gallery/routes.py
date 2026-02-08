@@ -1,9 +1,9 @@
 from typing import List
 import uuid
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from sqlalchemy.orm import Session
 
-from src.api.news_gallery import repository
+from src.api.news_gallery import repository, service
 from src.api.news_gallery.dtos import CreateNewsGalleryDTO, NewsGalleryDTO
 from src.core.database import get_db
 from src.services.image_service import save_image_webp
@@ -72,4 +72,39 @@ def upload_image(
 
     return ApiResponse.created(message="Imagen subida correctamente", data=created_images)
   except Exception as e:
-    return ApiResponse.server_error(str(e))  
+    return ApiResponse.server_error(str(e))
+
+@router.post(
+  "/news/{news_id}/gallery",
+  response_model=ApiResponse[list[NewsGalleryDTO]],
+  status_code=status.HTTP_201_CREATED
+)
+def create_gallery(
+  news_id: int,
+  files: list[UploadFile] = File(...),
+  alts: list[str] = Form(...),
+  db: Session = Depends(get_db)
+):
+  if len(files) != len(alts):
+    return ApiResponse.bad_request(
+      "La cantidad de imágenes y textos alt no coincide"
+    )
+
+  if len(files) > 3:
+    return ApiResponse.bad_request(
+      "Solo se permiten hasta 3 imágenes"
+    )
+
+  try:
+    result = service.create_news_gallery(
+      news_id=news_id,
+      files=files,
+      alts=alts,
+      db=db
+    )
+      
+    return ApiResponse.created(result)
+  except ValueError as e:
+    return ApiResponse.bad_request(str(e))
+  except Exception as e:
+    return ApiResponse.server_error(str(e))
