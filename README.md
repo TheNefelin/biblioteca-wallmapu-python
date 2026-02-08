@@ -59,24 +59,29 @@ backend/
 │   │       ├── repository.py
 │   │       └── routes.py
 │   │
+│   ├── services/
+│   │   └── image_service.py
+│   │
 │   ├── core/
 │   │   ├── __init__.py
 │   │   ├── config.py
 │   │   ├── database.py
-│   │   └── jwt_service.py
+│   │   ├── jwt_service.py
+│   │   └── url_helper.py
 │   │
 │   ├── shared/
 │   │   └── dtos.py
 │   │
 │   ├── static/
-│   │   ├── img/
+│   │   ├── book/
+│   │   ├── news/
 │   │   └── favicon.ico
 │   │
 │   ├── __init__.py
 │   └── main.py
 │
 ├── .env
-├── .env.local
+├── .env.demo
 ├── .gitignore
 ├── LICENSE.txt
 ├── postgre.sql
