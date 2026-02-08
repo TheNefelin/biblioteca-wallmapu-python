@@ -1,5 +1,14 @@
 # Biblioteca Wallmapu Python 3.12.x + PostgreSQL
 
+### Deploy and run App
+[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+```sh
+.venv\Scripts\activate
+py run.py
+# or 
+uvicorn app.main:app --reload
+```
+
 ### Check Python Version & Installed Packages
 ```sh
 py --version
@@ -17,15 +26,6 @@ pip install pydantic[email]
 ```
 ```sh
 pip freeze > requirements.txt
-```
-
-### Deploy
-[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-```sh
-.venv\Scripts\activate
-py run.py
-# or 
-uvicorn app.main:app --reload
 ```
 
 ### Generate SECRET_KEY
