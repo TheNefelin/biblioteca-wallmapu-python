@@ -8,7 +8,12 @@ from src.api.news_gallery.models import NewsGallery
 
 def get_by_news_id(news_id: int, db: Session):
   try:
-    return db.query(NewsGallery).filter(NewsGallery.news_id == news_id).all()
+    return (db
+      .query(NewsGallery)
+      .filter(NewsGallery.news_id == news_id)
+      .order_by(NewsGallery.id_news_gallery.desc())
+      .all()
+    )
   except SQLAlchemyError as e:
     raise e
 
