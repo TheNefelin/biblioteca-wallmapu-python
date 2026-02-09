@@ -13,5 +13,5 @@ class News(Base):
   updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
   # Relationship with gallery images
-  images = relationship("NewsGallery", back_populates="news")
+  images = relationship("NewsGallery", back_populates="news",  order_by="NewsGallery.id_news_gallery")
   
