@@ -14,8 +14,8 @@ router = APIRouter(prefix="/news", tags=["news"])
 @router.get("/", response_model=ApiResponse[PaginationResponseDTO[List[NewsWithGalleryDTO]]])
 def get_all_pagination(
   request: Request,
-  page: int = Query(default=1, ge=1, description="Número de página"),
-  items: int = Query(default=10, ge=1, le=100, description="Elementos por página"),
+  page: int = Query(default=1, ge=1, description="Número de página a mostrar"),
+  items: int = Query(default=10, ge=1, le=100, description="Cantidad de elementos por página"),
   search: Optional[str] = Query(default=None, description="Buscar en título o subtítulo"),
   db: Session = Depends(get_db)
 ):

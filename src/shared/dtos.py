@@ -1,15 +1,15 @@
 from typing import Generic, Optional, TypeVar
 from fastapi import status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 T = TypeVar('T')
 
 class PaginationResponseDTO(BaseModel, Generic[T]): 
-  pages: int
-  items: int
-  next: Optional[str] = None
-  prev: Optional[str] = None
-  result: Optional[T]
+  pages: int= Field(..., description="Cantidad total de páginas disponibles")
+  items: int = Field(..., description="Cantidad total de páginas disponibles")
+  next: Optional[str] = Field(None, description="URL de la siguiente página, si existe")
+  prev: Optional[str] = Field(None, description="URL de la página anterior, si existe")
+  result: Optional[T] = Field(None, description="Lista de resultados de la página actual")
 
 class ApiResponse(BaseModel, Generic[T]):
   isSuccess: bool
