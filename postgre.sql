@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS wm_news (
 CREATE TABLE IF NOT EXISTS wm_news_gallery (
   id_news_gallery INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY (INCREMENT 1),
   alt VARCHAR(45) NOT NULL,
-  img VARCHAR(45) NOT NULL,
+  url VARCHAR(256) NOT NULL,
   news_id INTEGER,
   CONSTRAINT news_gallery_fk FOREIGN KEY (news_id) REFERENCES wm_news(id_news)
 );

@@ -9,6 +9,9 @@ py run.py
 uvicorn app.main:app --reload
 ```
 
+### Dependencies
+- 
+
 ### Check Python Version & Installed Packages
 ```sh
 py --version
@@ -25,6 +28,7 @@ pip install python-jose[cryptography]
 pip install pydantic[email]
 pip install pillow
 pip install python-multipart
+pip install cloudinary
 ```
 ```sh
 pip freeze > requirements.txt

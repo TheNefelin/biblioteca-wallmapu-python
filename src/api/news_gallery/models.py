@@ -9,7 +9,7 @@ class NewsGallery(Base):
 
   id_news_gallery = Column(Integer, primary_key=True, autoincrement=True)
   alt = Column(String(45), nullable=False)
-  img = Column(String(255), nullable=False)
+  url = Column(String(255), nullable=False)
   news_id = Column(Integer, ForeignKey('wm_news.id_news'))
 
   news = relationship("News", back_populates="images")

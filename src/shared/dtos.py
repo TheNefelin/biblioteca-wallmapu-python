@@ -6,16 +6,16 @@ T = TypeVar('T')
 
 class PaginationResponseDTO(BaseModel, Generic[T]): 
   pages: int= Field(..., description="Cantidad total de páginas disponibles")
-  items: int = Field(..., description="Cantidad total de páginas disponibles")
+  items: int = Field(..., description="Cantidad total de registros disponibles")
   next: Optional[str] = Field(None, description="URL de la siguiente página, si existe")
   prev: Optional[str] = Field(None, description="URL de la página anterior, si existe")
   result: Optional[T] = Field(None, description="Lista de resultados de la página actual")
 
 class ApiResponse(BaseModel, Generic[T]):
-  isSuccess: bool
-  statusCode: int
-  message: str
-  result: Optional[T]
+  isSuccess: bool = Field(..., description="Indica si la operación fue exitosa")
+  statusCode: int = Field(..., description="Código HTTP de la respuesta")
+  message: str = Field(..., description="Mensaje descriptivo de la operación")
+  result: Optional[T] = Field(None, description="Datos devueltos por la operación")
 
   @classmethod
   def success(cls, data: Optional[T] = None, message: str = "Operación exitosa") -> 'ApiResponse[T]':

@@ -26,9 +26,6 @@ def get_all_pagination(
     if page > pages and pages > 0:
       page = pages
       count, pages, result = repository.get_all_pagination(page, items, search, db)
-    
-    base_url = get_base_url(request)
-    static_url = get_static_news_url(request)
 
     # Construir URLs next/prev
     search_param = f"&search={search}" if search else ""
@@ -36,6 +33,8 @@ def get_all_pagination(
     next_url = None
     prev_url = None
     
+    base_url = get_base_url(request)
+  
     if page < pages:
       next_url = f"{base_url}?page={page + 1}&page_size={items}{search_param}"
     
@@ -43,9 +42,10 @@ def get_all_pagination(
       prev_url = f"{base_url}?page={page - 1}&page_size={items}{search_param}"
     
     # Añadir base_url a las imágenes de cada noticia
-    for news in result:
-      for image in news.images:
-        image.img = f"{static_url}/{image.img}"
+    #static_url = get_static_news_url(request)
+    #for news in result:
+    #  for image in news.images:
+    #    image.img = f"{static_url}/{image.img}"
 
     paginationResult = PaginationResponseDTO(  
       items=count,
@@ -68,13 +68,14 @@ def get_by_id(
   try:
     result = repository.get_by_id(id, db)
 
-    if result:
-      static_url = get_static_news_url(request)
-
-      for image in result.images:
-        image.img = f"{static_url}/{image.img}"
-    else:
+    if not result:
       return ApiResponse.not_found()
+
+    #static_url = get_static_news_url(request)
+
+    #for image in result.images:
+    #  image.img = f"{static_url}/{image.img}"
+
     return ApiResponse.success(result)  
   except Exception as e:
     return ApiResponse.server_error(str(e))
