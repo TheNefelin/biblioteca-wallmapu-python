@@ -45,13 +45,13 @@ class ApiResponse(BaseModel, Generic[T]):
     )
 
   @classmethod
-  def deleted(cls, message: str = "Recurso eliminado") -> 'ApiResponse[T]':
+  def deleted(cls, data: Optional[T] = None, message: str = "Recurso eliminado") -> 'ApiResponse[T]':
     return cls(
       isSuccess=True, 
       statusCode=status.HTTP_204_NO_CONTENT, 
       message=message, 
-      result=None
-    )    
+      result=data
+    )
 
   @classmethod
   def not_found(cls, message: str = "Recurso no encontrado") -> 'ApiResponse[T]':

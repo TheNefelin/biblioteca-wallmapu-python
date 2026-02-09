@@ -53,17 +53,17 @@ def create_gallery(
 @router.delete("/news/{news_id}", response_model=ApiResponse[object])
 def get_by_news_id(news_id: int, db: Session = Depends(get_db)):
   try:
-    res = repository.delete_by_news_id(news_id, db)
+    res = service.delete_news_gallery_by_news_id(news_id, db)
   
-    return ApiResponse.deleted()
+    return ApiResponse.deleted(data=res)
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
 @router.delete("/{id}", response_model=ApiResponse[object])
 def delete(id: int, db: Session = Depends(get_db)):
   try:
-    res = repository.delete(id, db)
+    res = service.delete_news_gallery(id, db)
   
-    return ApiResponse.deleted()
+    return ApiResponse.deleted(data=res)
   except Exception as e:
     return ApiResponse.server_error(str(e))

@@ -4,9 +4,10 @@ from typing import List
 
 from src.api.news_gallery.models import NewsGallery
 #from src.services.image_service import save_image_webp
-from src.services.cloudinary_service import upload_image_16_9
+from src.services.cloudinary_service import delete_image, upload_image_16_9
 
-STATIC_PATH = "static/news"
+#STATIC_PATH = "static/news"
+PATH = "news"
 
 def create_news_gallery_with_images(
     news_id: int,
@@ -14,7 +15,8 @@ def create_news_gallery_with_images(
     alts: List,
     db: Session
 ):
-  saved_files = []
+  #saved_files = []
+  uploaded_public_ids = []
   created_items = []
 
   try:
@@ -22,9 +24,9 @@ def create_news_gallery_with_images(
       #filename = f"{news_id}_{uuid.uuid4().hex}.webp"
       #save_image_webp(file.file.read(), filename)
 
-      url = upload_image_16_9(
+      url, public_id = upload_image_16_9(
         file_bytes=file.file.read(),
-        folder=f"news/{news_id}"
+        folder=f"{PATH}/{news_id}"
       )
 
       gallery = NewsGallery(
@@ -34,7 +36,8 @@ def create_news_gallery_with_images(
       )
       db.add(gallery)
 
-      saved_files.append(url)
+      #saved_files.append(url)
+      uploaded_public_ids.append(public_id)
       created_items.append(gallery)
 
     db.commit()
@@ -46,10 +49,78 @@ def create_news_gallery_with_images(
   except Exception as e:
     db.rollback()
 
+    # 🔥 rollback físico en Cloudinary
+    for public_id in uploaded_public_ids:
+      try:
+        delete_image(public_id)
+      except Exception:
+        pass  # opcional: loggear error    
+
+    raise e
+    
     # 🔥 rollback físico
     #for filename in saved_files:
     #  path = os.path.join(STATIC_PATH, filename)
     #  if os.path.exists(path):
     #    os.remove(path)
         
+def delete_news_gallery_by_news_id(
+  news_id: int,
+  db: Session
+) -> int:
+  try:
+    items = db.query(NewsGallery).filter(
+      NewsGallery.news_id == news_id
+    ).all()
+
+    for item in items:
+      public_id = extract_public_id(item.url)
+
+      if public_id:
+        delete_image(public_id)
+
+      db.delete(item)
+
+    db.commit()
+    return len(items)
+  except Exception as e:
+    db.rollback()
     raise e
+
+def delete_news_gallery(
+    id: int,
+    db: Session
+) -> int:
+  try:
+    item = db.query(NewsGallery).filter(NewsGallery.id_news_gallery == id).first()
+
+    if not item:
+      return 0
+
+    # 1️⃣ borrar imagen en Cloudinary
+    # extraemos public_id desde la URL
+    public_id = extract_public_id(item.url)
+
+    if public_id:
+      delete_image(public_id)
+
+    # 2️⃣ borrar registro DB
+    db.delete(item)
+    db.commit()
+    
+    return 1
+  except Exception as e:
+    db.rollback()
+    raise e
+
+def extract_public_id(url: str) -> str | None:
+  """
+  https://res.cloudinary.com/demo/image/upload/v123/news/5/abc.webp
+  → news/5/abc
+  """
+  try:
+    parts = url.split(f"/{PATH}/")[1]
+    parts = parts.split(".")[0]
+    return parts.split("/", 1)[1]
+  except Exception:
+    return None

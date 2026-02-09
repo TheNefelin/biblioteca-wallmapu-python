@@ -58,7 +58,8 @@ backend/
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
 │   │   │   ├── repository.py
-│   │   │   └── routes.py
+│   │   │   ├── routes.py
+│   │   │   └── service.py
 │   │   └── users/
 │   │       ├── dtos.py
 │   │       ├── models.py
@@ -66,6 +67,7 @@ backend/
 │   │       └── routes.py
 │   │
 │   ├── services/
+│   │   ├── cloudinary_service.py
 │   │   └── image_service.py
 │   │
 │   ├── core/
@@ -78,13 +80,12 @@ backend/
 │   ├── shared/
 │   │   └── dtos.py
 │   │
-│   ├── static/
-│   │   ├── book/
-│   │   ├── news/
-│   │   └── favicon.ico
 │   │
 │   ├── __init__.py
 │   └── main.py
+│
+├── static/
+│   └── favicon.ico
 │
 ├── .env
 ├── .env.demo
