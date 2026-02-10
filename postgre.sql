@@ -122,15 +122,14 @@ VALUES
  'La agencia espacial anunció el lanzamiento de una misión para estudiar la superficie de Marte, buscando información sobre su geología, clima y posibilidad de vida pasada.', 
  '2026-02-10', '2026-02-10');
 
-
-INSERT INTO wm_news_gallery (alt, img, news_id)
+INSERT INTO wm_news_gallery (alt, url, news_id)
 VALUES 
-('Dragón', '20_8036d44c515147b1971e61c966e6b428.webp', 20),
-('Guerrero', '20_9996661e3e0c496583c46b904aad0933.webp', 20),
-('Guerrera', '20_7ed2ef64872749e88accadc704548884.webp', 20),
-('Guerrero', '20_9996661e3e0c496583c46b904aad0933.webp', 19),
-('Guerrera', '20_7ed2ef64872749e88accadc704548884.webp', 19),
-('Dragón', '20_8036d44c515147b1971e61c966e6b428.webp', 19),
-('Guerrera', '20_7ed2ef64872749e88accadc704548884.webp', 18),
-('Dragón', '20_8036d44c515147b1971e61c966e6b428.webp', 18),
-('Guerrero', '20_9996661e3e0c496583c46b904aad0933.webp', 18);
+('Aloy', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770755820/news/10/iptngzwqcnmzwwctixdr.webp', 10),
+('Aloy', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770755824/news/10/xlo7y52h1yu6jlf2feoi.webp', 10),
+('Background', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770755825/news/10/idglq6qf4d8ltxikgzgq.webp', 10),
+('Cyberpunk', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770756117/news/9/erpl1agny5zvfdblfajl.webp', 9),
+('Dragon', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770756119/news/9/bdixdijekbtqbqbj28xc.webp', 9),
+('Background', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770756121/news/9/o6md6byxzpbnygtak05j.webp', 9),
+('Warrior 1', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770756206/news/8/pqlcbfftxeokyuys6db5.webp', 8),
+('Warrior 1', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770756207/news/8/y5hr7zeaeiyiyngk7y52.webp', 8),
+('Warrior 1', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770756208/news/8/gi0igeflf7g2vncohau2.webp', 8);

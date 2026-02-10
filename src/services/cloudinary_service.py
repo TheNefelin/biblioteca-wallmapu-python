@@ -14,7 +14,7 @@ def upload_image_16_9(
   file_bytes: bytes,
   folder: str,
   public_id: str | None = None
-) -> str:
+) -> tuple[str, str]:
   """
   Sube una imagen a Cloudinary y la convierte a WebP.
   Retorna la URL pública.
@@ -37,7 +37,7 @@ def upload_image_16_9(
     ]
   )
   
-  return result["secure_url"]
+  return result["secure_url"], result["public_id"]
 
 def delete_image(public_id: str):
   cloudinary.uploader.destroy(
