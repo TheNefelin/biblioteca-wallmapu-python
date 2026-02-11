@@ -20,12 +20,6 @@ def get_all_pagination(
   db: Session = Depends(get_db)
 ):
   try:
-    if (page <=0):
-      return ApiResponse.bad_request(message="La cantidad de paginas no puede ser inferior a 1")
-    
-    if (items <=0):
-      return ApiResponse.bad_request(message="La cantidad de items no puede ser inferior a 1")
-
     count, pages, result = repository.get_all_pagination(page, items, search, db)
     
     # Ajuste automático de página
