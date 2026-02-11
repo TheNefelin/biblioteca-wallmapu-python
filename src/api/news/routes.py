@@ -1,11 +1,11 @@
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.orm import Session
 
 from src.api.news import repository
 from src.api.news.dtos import CreateNewsDTO, NewsDTO, NewsWithGalleryDTO, UpdateNewsDTO
-from src.core.url_helper import get_base_url, get_static_news_url
+from src.core.url_helper import get_base_url
 from src.shared.dtos import ApiResponse, PaginationResponseDTO
 from src.core.database import get_db
 
