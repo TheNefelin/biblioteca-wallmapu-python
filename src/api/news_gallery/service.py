@@ -25,7 +25,7 @@ def create_news_gallery_with_images(
 
       url, public_id = upload_image_16_9(
         file_bytes=file.file.read(),
-        folder=f"{PATH}/{news_id}"
+        folder=f"{PATH}"
       )
 
       gallery = NewsGallery(
@@ -106,7 +106,6 @@ def delete_news_gallery(
     # 2️⃣ borrar registro DB
     db.delete(item)
     db.commit()
-    
     return 1
   except Exception as e:
     db.rollback()
@@ -114,12 +113,21 @@ def delete_news_gallery(
 
 def extract_public_id(url: str) -> str | None:
   """
-  https://res.cloudinary.com/demo/image/upload/v123/news/5/abc.webp
-  → news/5/abc
+  Extrae:
+  news/9/o6md6byxzpbnygtak05j
+  desde:
+  https://res.cloudinary.com/.../upload/v1770756121/news/9/o6md6byxzpbnygtak05j.webp
   """
   try:
-    parts = url.split(f"/{PATH}/")[1]
-    parts = parts.split(".")[0]
-    return parts.split("/", 1)[1]
+    # Quitar todo antes de /upload/
+    after_upload = url.split("/upload/")[1]
+    # Quitar la versión (v1770756121)
+    parts = after_upload.split("/", 1)[1]
+    # Quitar extensión
+    public_id = parts.rsplit(".", 1)[0]
+
+    return public_id
   except Exception:
     return None
+
+#news/osfdnhmsd5dq7q6ngcgx
