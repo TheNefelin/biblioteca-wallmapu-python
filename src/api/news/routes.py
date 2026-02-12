@@ -2,6 +2,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.orm import Session
+from starlette.status import HTTP_200_OK, HTTP_202_ACCEPTED, HTTP_204_NO_CONTENT
 
 from src.api.news import repository
 from src.api.news.dtos import CreateNewsDTO, NewsDTO, NewsWithGalleryDTO, UpdateNewsDTO
@@ -11,7 +12,8 @@ from src.core.database import get_db
 
 router = APIRouter(prefix="/news", tags=["news"])
 
-@router.get("/", response_model=ApiResponse[PaginationResponseDTO[List[NewsWithGalleryDTO]]])
+# GET ALL Pagination
+@router.get("/", response_model=ApiResponse[PaginationResponseDTO[List[NewsWithGalleryDTO]]], status_code=HTTP_200_OK)
 def get_all_pagination(
   request: Request,
   page: int = Query(default=1, ge=1, description="Número de página a mostrar"),
@@ -58,7 +60,9 @@ def get_all_pagination(
     return ApiResponse.success(paginationResult)
   except Exception as e:
     return ApiResponse.server_error(str(e))
-@router.get("/{id}", response_model=ApiResponse[NewsWithGalleryDTO])
+
+# GET BY ID Pagination    
+@router.get("/{id}", response_model=ApiResponse[NewsWithGalleryDTO], status_code=HTTP_200_OK)
 def get_by_id(
   request: Request,
   id: int, 
@@ -78,7 +82,8 @@ def get_by_id(
     return ApiResponse.success(result)  
   except Exception as e:
     return ApiResponse.server_error(str(e))
-  
+
+# CREATE
 @router.post("/", response_model=ApiResponse[NewsDTO], status_code=status.HTTP_201_CREATED)
 def create(news: CreateNewsDTO, db: Session = Depends(get_db)):
   try:
@@ -90,7 +95,8 @@ def create(news: CreateNewsDTO, db: Session = Depends(get_db)):
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
-@router.put("/{id}", response_model=ApiResponse[NewsDTO])
+# UPDATE
+@router.put("/{id}", response_model=ApiResponse[NewsDTO], status_code=HTTP_202_ACCEPTED)
 def update(id: int, news: UpdateNewsDTO, db: Session = Depends(get_db)):
   try:
     if (id != news.id_news):
@@ -106,3 +112,15 @@ def update(id: int, news: UpdateNewsDTO, db: Session = Depends(get_db)):
     return ApiResponse.bad_request(message=str(e))
   except Exception as e:
     return ApiResponse.server_error(str(e))
+
+# DELETE
+@router.delete("/{id}", response_model=ApiResponse[NewsDTO], status_code=HTTP_202_ACCEPTED)
+def delete(id: int, db: Session = Depends(get_db)):
+  try:
+    updated = repository.delete(id, db)
+
+    return ApiResponse.deleted()
+  except ValueError as e:
+    return ApiResponse.bad_request(message=str(e))
+  except Exception as e:
+    return ApiResponse.server_error(str(e))   
