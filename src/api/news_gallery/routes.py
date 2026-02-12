@@ -16,7 +16,7 @@ def get_by_news_id(news_id: int, db: Session = Depends(get_db)):
   except Exception as e:
     return ApiResponse.server_error(str(e))  
 
-@router.post("/news/{news_id}/gallery",
+@router.post("/news/{news_id}",
   response_model=ApiResponse[list[dtos.NewsGalleryDTO]],
   status_code=status.HTTP_201_CREATED
 )
