@@ -35,7 +35,7 @@ async def root():
     "swagger": "/docs",
   }
 
-app.include_router(auth_router)
-app.include_router(users_router)
-app.include_router(news_router)
-app.include_router(news_gallery_router)
+app.include_router(auth_router, prefix="/api")
+app.include_router(users_router, prefix="/api")
+app.include_router(news_router, prefix="/api")
+app.include_router(news_gallery_router, prefix="/api")
