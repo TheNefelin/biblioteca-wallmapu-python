@@ -124,12 +124,12 @@ VALUES
 
 INSERT INTO wm_news_gallery (alt, url, news_id)
 VALUES 
-('Aloy', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770755820/news/10/iptngzwqcnmzwwctixdr.webp', 10),
-('Aloy', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770755824/news/10/xlo7y52h1yu6jlf2feoi.webp', 10),
-('Background', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770755825/news/10/idglq6qf4d8ltxikgzgq.webp', 10),
-('Cyberpunk', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770756117/news/9/erpl1agny5zvfdblfajl.webp', 9),
-('Dragon', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770756119/news/9/bdixdijekbtqbqbj28xc.webp', 9),
-('Background', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770756121/news/9/o6md6byxzpbnygtak05j.webp', 9),
-('Warrior 1', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770756206/news/8/pqlcbfftxeokyuys6db5.webp', 8),
-('Warrior 1', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770756207/news/8/y5hr7zeaeiyiyngk7y52.webp', 8),
-('Warrior 1', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770756208/news/8/gi0igeflf7g2vncohau2.webp', 8);
+('Aloy', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770860243/news/ruatveggaye123paqwbv.webp', 10),
+('Aloy', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770860244/news/uquhnjg0defxet7vawkl.webp', 10),
+('Dragon', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770860245/news/xvjx03svzsctiotaftyb.webp', 10),
+('Cyberpunk', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770860393/news/ib5ijb2eqvlwlriqt5dt.webp', 9),
+('Cyberpunk', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770860394/news/muic3sun26nyhyvkyinw.webp', 9),
+('Background', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770860395/news/nlvkwmvuevwpsbgqmclk.webp', 9),
+('Warrior 1', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770860511/news/veijqx6hkmrjeiaep38i.webp', 8),
+('Warrior 2', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770860512/news/ifd5hha9slht66wjq1yo.webp', 8),
+('Warrior 3', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1770860512/news/osmixxxzacglli8iikhb.webp', 8);
