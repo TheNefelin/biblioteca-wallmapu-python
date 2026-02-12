@@ -51,7 +51,7 @@ def create_gallery(
     return ApiResponse.server_error(str(e))
 
 @router.delete("/news/{news_id}", response_model=ApiResponse[object])
-def get_by_news_id(news_id: int, db: Session = Depends(get_db)):
+def delete_by_news_id(news_id: int, db: Session = Depends(get_db)):
   try:
     res = service.delete_news_gallery_by_news_id(news_id, db)
   
