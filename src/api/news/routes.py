@@ -114,7 +114,7 @@ def update(id: int, news: UpdateNewsDTO, db: Session = Depends(get_db)):
     return ApiResponse.server_error(str(e))
 
 # DELETE
-@router.delete("/{id}", response_model=ApiResponse[NewsDTO], status_code=HTTP_202_ACCEPTED)
+@router.delete("/{id}", response_model=ApiResponse[object], status_code=HTTP_202_ACCEPTED)
 def delete(id: int, db: Session = Depends(get_db)):
   try:
     updated = repository.delete(id, db)

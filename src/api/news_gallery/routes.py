@@ -55,7 +55,7 @@ def delete_by_news_id(news_id: int, db: Session = Depends(get_db)):
   try:
     res = service.delete_news_gallery_by_news_id(news_id, db)
   
-    return ApiResponse.deleted(data=res)
+    return ApiResponse.deleted()
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
@@ -64,6 +64,6 @@ def delete(id: int, db: Session = Depends(get_db)):
   try:
     res = service.delete_news_gallery(id, db)
   
-    return ApiResponse.deleted(data=res)
+    return ApiResponse.deleted()
   except Exception as e:
     return ApiResponse.server_error(str(e))
