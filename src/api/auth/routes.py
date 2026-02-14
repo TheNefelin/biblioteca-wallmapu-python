@@ -1,33 +1,27 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from src.core.database import get_db
-from src.core.jwt_service import create_access_token
+from starlette.status import HTTP_200_OK
+
+from src.shared.dtos import ApiResponse
+from src.core import jwt_service, database
 from . import dtos, repository, google_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-@router.post("/google", response_model=dtos.AuthGoogleResponse)
-def auth_google(auth_data: dtos.AuthGoogleRequest, db: Session = Depends(get_db)):
+@router.post("/google", response_model=ApiResponse[dtos.AuthGoogleResponse], status_code=HTTP_200_OK)
+def auth_google(auth_data: dtos.AuthGoogleRequest, db: Session = Depends(database.get_db)):
   try:
     # 1. Validar Access Token con Google
-    google_user = google_service.verify_google_token(auth_data.googleToken)
+    google_user_info = google_service.verify_google_token(auth_data.googleToken)
     
-    if not google_user.email_verified:
-      raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        detail="Email no verificado en Google"
-      )
+    if not google_user_info.email_verified:
+      return ApiResponse.bad_request(message="Email no verificado en Google")
     
     # 2. Obtener o crear usuario (sin picture)
-    user, is_new = repository.get_or_create_user_from_google(
-      db,
-      email=google_user.email,
-      name=google_user.name,
-      google_id=google_user.google_id  # ✅ Sin picture
-    )
+    user = repository.get_or_create_user(google_user_info, db)
     
     # 3. Generar JWT de tu backend
-    token = create_access_token(user.id_user)
+    token = jwt_service.create_access_token(user.id_user)
     
     # 4. Verificar si el perfil está completo
     profile_complete = bool(
@@ -35,27 +29,22 @@ def auth_google(auth_data: dtos.AuthGoogleRequest, db: Session = Depends(get_db)
       user.lastname and 
       user.rut
     )
+
+    auth_user = dtos.AuthUser (
+      id_user = user.id_user,
+      email = user.email,
+      name = user.name,
+      picture = google_user_info.picture,
+      profileComplete = profile_complete
+    )
     
-    # 5. Retornar respuesta (picture viene de Google, no de BD)
-    return dtos.AuthGoogleResponse(
+    auth_google_response = dtos.AuthGoogleResponse(
       token=token,
-      user=dtos.AuthUser(
-        id_user=user.id_user,
-        email=google_user.email,
-        name=user.name,
-        picture=google_user.picture,  # ✅ Viene de Google, no de BD
-        profileComplete=profile_complete,
-        user_role_id=user.user_role_id
-      )
+      user=auth_user
     )
-    
+
+    return ApiResponse.success(data=auth_google_response)
   except ValueError as e:
-    raise HTTPException(
-      status_code=status.HTTP_401_UNAUTHORIZED,
-      detail=str(e)
-    )
+    return ApiResponse.unauthorized(message=str(e))
   except Exception as e:
-    raise HTTPException(
-      status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-      detail=f"Error en autenticación: {str(e)}"
-    )
+    return ApiResponse.server_error(message=str(e))

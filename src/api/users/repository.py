@@ -2,6 +2,7 @@ from sqlite3 import IntegrityError
 from sqlalchemy import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+
 from . import models, dtos
 
 def get_all(db: Session):

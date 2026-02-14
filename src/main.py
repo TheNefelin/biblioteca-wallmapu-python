@@ -5,6 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import FileResponse
 
 from src.api.auth.routes import router as auth_router
+from src.api.regions.routes import router as regions_router
+from src.api.user_role.routes import router as users_role_router
+from src.api.user_status.routes import router as users_status_router
 from src.api.users.routes import router as users_router
 from src.api.news.routes import router as news_router
 from src.api.news_gallery.routes import router as news_gallery_router
@@ -13,9 +16,13 @@ app = FastAPI(title="Biblioteca Wallmapu API", description="In development", ver
 
 app.add_middleware(
   CORSMiddleware,
-  allow_origins=["*"],
+  allow_origins=[
+    "http://localhost:4200",
+    "https://biblioteca-wallmapu-angular.vercel.app",
+    "https://wallmapumesana.cl"
+  ],
   allow_credentials=True,
-  allow_methods=["*"],
+  allow_methods=["GET", "POST", "PUT", "DELETE"],
   allow_headers=["*"],
 )
 
@@ -36,6 +43,9 @@ async def root():
   }
 
 app.include_router(auth_router, prefix="/api")
+app.include_router(regions_router, prefix="/api")
+app.include_router(users_role_router, prefix="/api")
+app.include_router(users_status_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
 app.include_router(news_router, prefix="/api")
 app.include_router(news_gallery_router, prefix="/api")

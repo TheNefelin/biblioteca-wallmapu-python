@@ -1,0 +1,17 @@
+from typing import List
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from src.api.user_status.dtos import UserStatusDTO
+from src.api.user_status.repository import get_all
+from src.core.database import get_db
+from src.shared.dtos import ApiResponse
+
+
+router = APIRouter(prefix="/user-status", tags=["user-status"])
+
+# GET ALL
+@router.get("/", response_model=ApiResponse[List[UserStatusDTO]])
+def get_all_status(db: Session = Depends(get_db)):
+  res = get_all(db)
+  return ApiResponse.success(data=res)

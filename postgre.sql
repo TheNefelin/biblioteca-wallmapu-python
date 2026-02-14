@@ -1,35 +1,41 @@
-DROP TABLE IF EXISTS wm_communes;
-DROP TABLE IF EXISTS wm_user_status;
-DROP TABLE IF EXISTS wm_user_role;
-DROP TABLE IF EXISTS wm_users;
 
-DROP TABLE wm_news;
-DROP TABLE wm_news_gallery;
+CREATE TABLE IF NOT EXISTS wm_regions (
+  id_region INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  region VARCHAR(100),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  
+);
 
-SELECT * FROM wm_communes;
-SELECT * FROM wm_user_status;
-SELECT * FROM wm_user_role;
-SELECT * FROM wm_users;
-
-SELECT * FROM wm_news;
-SELECT * FROM wm_news_gallery;
+CREATE TABLE IF NOT EXISTS wm_provinces (
+  id_province INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  province VARCHAR(100),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  region_id INTEGER NOT NULL,
+  CONSTRAINT provinces_regions_fk FOREIGN KEY (region_id) REFERENCES wm_regions(id_region)
+);
 
 CREATE TABLE IF NOT EXISTS wm_communes (
   id_commune INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  commune VARCHAR(45),
+  commune VARCHAR(100),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  
   province_id INTEGER,
-  CONSTRAINT wm_communs_wm_provinces_fk
-    FOREIGN KEY (province_id) REFERENCES wm_provinces(id_province)
+  CONSTRAINT communes_provinces_fk FOREIGN KEY (province_id) REFERENCES wm_provinces(id_province)
 );
 
 CREATE TABLE IF NOT EXISTS wm_user_status (
   id_user_status INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  status VARCHAR(45)
+  status VARCHAR(45),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  
 );
 
 CREATE TABLE IF NOT EXISTS wm_user_role (
   id_user_role INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  role VARCHAR(45) NOT NULL
+  role VARCHAR(45) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS wm_users (
@@ -43,9 +49,9 @@ CREATE TABLE IF NOT EXISTS wm_users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  
   commune_id INTEGER,
-  user_role_id INTEGER,
-  user_status_id INTEGER,
-  -- CONSTRAINT users_commune_fk FOREIGN KEY (commune_id) REFERENCES wm_communs(id_commun),
+  user_role_id INTEGER NOT NULL,
+  user_status_id INTEGER NOT NULL,
+  CONSTRAINT users_commune_fk FOREIGN KEY (commune_id) REFERENCES wm_communes(id_commune),
   CONSTRAINT users_types_fk FOREIGN KEY (user_role_id) REFERENCES wm_user_role(id_user_role),
   CONSTRAINT users_status_fk FOREIGN KEY (user_status_id) REFERENCES wm_user_status(id_user_status)
 );
@@ -67,50 +73,238 @@ CREATE TABLE IF NOT EXISTS wm_news_gallery (
   CONSTRAINT news_gallery_fk FOREIGN KEY (news_id) REFERENCES wm_news(id_news)
 );
 
+INSERT INTO wm_regions (region) VALUES
+('Región de Arica y Parinacota'),
+('Región de Tarapacá'),
+('Región de Antofagasta'),
+('Región de Atacama'),
+('Región de Coquimbo'),
+('Región de Valparaíso'),
+('Región Metropolitana de Santiago'),
+('Región del Libertador General Bernardo O''Higgins'),
+('Región del Maule'),
+('Región de Ñuble'),
+('Región del Biobío'),
+('Región de La Araucanía'),
+('Región de Los Ríos'),
+('Región de Los Lagos'),
+('Región de Aysén del General Carlos Ibáñez del Campo'),
+('Región de Magallanes y de la Antártica Chilena');
+
+INSERT INTO wm_provinces (province, region_id) VALUES
+('Arica', 1),
+('Parinacota', 1),
+('Iquique', 2),
+('Tamarugal', 2),
+('Antofagasta', 3),
+('El Loa', 3),
+('Tocopilla', 3),
+('Chañaral', 4),
+('Copiapó', 4),
+('Huasco', 4),
+('Elqui', 5),
+('Limarí', 5),
+('Choapa', 5),
+('Valparaíso', 6),
+('Isla de Pascua', 6),
+('Los Andes', 6),
+('Petorca', 6),
+('San Antonio', 6),
+('San Felipe de Aconcagua', 6),
+('Quillota', 6),
+('Marga Marga', 6),
+('Santiago', 7),
+('Cordillera', 7),
+('Chacabuco', 7),
+('Maipo', 7),
+('Melipilla', 7),
+('Talagante', 7),
+('Cachapoal', 8),
+('Cardenal Caro', 8),
+('Colchagua', 8),
+('Talca', 9),
+('Curicó', 9),
+('Linares', 9),
+('Cauquenes', 9),
+('Diguillín', 10),
+('Itata', 10),
+('Punilla', 10),
+('Concepción', 11),
+('Biobío', 11),
+('Arauco', 11),
+('Cautín', 12),
+('Malleco', 12),
+('Valdivia', 13),
+('Ranco', 13),
+('Llanquihue', 14),
+('Chiloé', 14),
+('Osorno', 14),
+('Palena', 14),
+('Coyhaique', 15),
+('Aysén', 15),
+('General Carrera', 15),
+('Capitán Prat', 15),
+('Magallanes', 16),
+('Última Esperanza', 16),
+('Tierra del Fuego', 16),
+('Antártica Chilena', 16);
+
+INSERT INTO wm_communes (commune, province_id) VALUES
+('Arica', 1),
+('Camarones', 2),
+('Putre', 2),
+('General Lagos', 2),
+('Iquique', 3),
+('Alto Hospicio', 3),
+('Pozo Almonte', 4),
+('Camiña', 4),
+('Colchane', 4),
+('Huara', 4),
+('Pica', 4),
+('Antofagasta', 5),
+('Mejillones', 5),
+('Sierra Gorda', 5),
+('Taltal', 5),
+('Calama', 6),
+('Ollagüe', 6),
+('San Pedro de Atacama', 6),
+('Tocopilla', 7),
+('María Elena', 7),
+('Chañaral', 8),
+('Diego de Almagro', 8),
+('Copiapó', 9),
+('Caldera', 9),
+('Tierra Amarilla', 9),
+('Vallenar', 10),
+('Alto del Carmen', 10),
+('Freirina', 10),
+('Huasco', 10),
+('La Serena', 11),
+('Coquimbo', 11),
+('Andacollo', 11),
+('Vicuña', 11),
+('Illapel', 12),
+('Canela', 12),
+('Los Vilos', 13),
+('Salamanca', 13),
+('Valparaíso', 14),
+('Viña del Mar', 14),
+('Isla de Pascua', 15),
+('Los Andes', 16),
+('San Esteban', 16),
+('Petorca', 17),
+('La Ligua', 17),
+('San Antonio', 18),
+('Cartagena', 18),
+('San Felipe', 19),
+('Putaendo', 19),
+('Quillota', 20),
+('La Calera', 20),
+('Villa Alemana', 21),
+('Limache', 21),
+('Santiago', 22),
+('Providencia', 22),
+('Ñuñoa', 22),
+('Puente Alto', 23),
+('Pirque', 23),
+('Colina', 24),
+('Lampa', 24),
+('San Bernardo', 25),
+('Buin', 25),
+('Melipilla', 26),
+('Alhué', 26),
+('Talagante', 27),
+('Peñaflor', 27),
+('Rancagua', 28),
+('Machalí', 28),
+('San Fernando', 30),
+('Santa Cruz', 30),
+('Pichilemu', 29),
+('La Estrella', 29),
+('Talca', 31),
+('Maule', 31),
+('Curicó', 32),
+('Hualañé', 32),
+('Linares', 33),
+('San Javier', 33),
+('Cauquenes', 34),
+('Chanco', 34),
+('Chillán', 35),
+('Chillán Viejo', 35),
+('Quirihue', 36),
+('Cobquecura', 36),
+('Pinto', 37),
+('Concepción', 38),
+('Talcahuano', 38),
+('Hualpén', 38),
+('Los Ángeles', 39),
+('Mulchén', 39),
+('Lebu', 40),
+('Cañete', 40),
+('Arauco', 40),
+('Temuco', 41),
+('Villarrica', 41),
+('Loncoche', 41),
+('Angol', 42),
+('Renaico', 42),
+('Collipulli', 42),
+('Valdivia', 43),
+('Corral', 43),
+('La Unión', 44),
+('Río Bueno', 44),
+('Puerto Montt', 45),
+('Puerto Varas', 45),
+('Castro', 46),
+('Ancud', 46),
+('Osorno', 47),
+('Purranque', 47),
+('Chaitén', 48),
+('Futaleufú', 48),
+('Coyhaique', 49),
+('Lago Verde', 49),
+('Aysén', 50),
+('Cisnes', 50),
+('Chile Chico', 51),
+('Río Ibáñez', 51),
+('Tortel', 52),
+('Punta Arenas', 53),
+('Puerto Natales', 54),
+('Porvenir', 55),
+('Cabo de Hornos', 55),
+('Antártica', 56);
+
 INSERT INTO wm_user_status (status)
 VALUES 
 ('Activo/a'),
-('Activo/a'),
-('Bloqueado/a')
+('Deudor/a'),
+('Bloqueado/a');
 
 INSERT INTO wm_user_role (role)
 VALUES 
 ('Super Admin'),
 ('Admin'),
-('Lector')
+('Lector');
 
-INSERT INTO wm_news (title, subtitle, body, created_at, updated_at)
+INSERT INTO wm_news (title, subtitle, body)
 VALUES 
 ('Assassin’s Creed Valhalla, aventura vikinga',
  'Explora Inglaterra como un vikingo',
- 'Assassin’s Creed Valhalla transporta a los jugadores al siglo IX, donde encarnan a Eivor, un guerrero vikingo. Con un mundo abierto lleno de exploración, combates y decisiones que afectan la historia, el juego busca combinar acción y narrativa histórica para los fanáticos de la saga.',
- '2026-02-08 00:00:00',
- '2026-02-13 02:06:15.28171'),
+ 'Assassin’s Creed Valhalla transporta a los jugadores al siglo IX, donde encarnan a Eivor, un guerrero vikingo. Con un mundo abierto lleno de exploración, combates y decisiones que afectan la historia, el juego busca combinar acción y narrativa histórica para los fanáticos de la saga.'),
 ('Cyberpunk 2077 sigue evolucionando',
  'Night City recibe mejoras y nuevas historias',
- 'Cyberpunk 2077 ha logrado reinventarse tras su lanzamiento inicial, ofreciendo una experiencia más pulida y profunda en la icónica Night City. Con gráficos mejorados, misiones ampliadas y correcciones de bugs, los jugadores pueden sumergirse en un mundo futurista lleno de intrigas, tecnología avanzada y decisiones que afectan la historia. Cada actualización refuerza la narrativa y la libertad de exploración, manteniendo a Cyberpunk como un referente del RPG de mundo abierto en un entorno distópico y vibrante.',
- '2026-02-09 00:00:00',
- '2026-02-12 23:40:34.208908'),
+ 'Cyberpunk 2077 ha logrado reinventarse tras su lanzamiento inicial, ofreciendo una experiencia más pulida y profunda en la icónica Night City. Con gráficos mejorados, misiones ampliadas y correcciones de bugs, los jugadores pueden sumergirse en un mundo futurista lleno de intrigas, tecnología avanzada y decisiones que afectan la historia. Cada actualización refuerza la narrativa y la libertad de exploración, manteniendo a Cyberpunk como un referente del RPG de mundo abierto en un entorno distópico y vibrante.'),
 ('Horizon continúa su aventura épica',
  'La saga de Aloy evoluciona con nuevos horizontes',
- 'Horizon sigue cautivando a los jugadores con su mezcla de acción, exploración y narrativa envolvente. Con impresionantes paisajes y máquinas robóticas que desafían la imaginación, la saga ofrece una experiencia inmersiva única. Cada entrega expande la historia de Aloy, introduciendo nuevos territorios, enemigos y desafíos, manteniendo la esencia de aventura y descubrimiento que convirtió a Horizon en un referente de los RPG de mundo abierto modernos.',
- '2026-02-10 00:00:00',
- '2026-02-12 22:49:55.064783'),
+ 'Horizon sigue cautivando a los jugadores con su mezcla de acción, exploración y narrativa envolvente. Con impresionantes paisajes y máquinas robóticas que desafían la imaginación, la saga ofrece una experiencia inmersiva única. Cada entrega expande la historia de Aloy, introduciendo nuevos territorios, enemigos y desafíos, manteniendo la esencia de aventura y descubrimiento que convirtió a Horizon en un referente de los RPG de mundo abierto modernos.'),
 ('Assassin’s Creed celebra su legado',
  'La franquicia que cambió los videojuegos de acción y aventuras',
- 'La saga Assassin’s Creed, lanzada por primera vez en 2007, ha marcado un antes y un después en los videojuegos de mundo abierto. Con sus historias de conspiraciones históricas y exploración detallada de diferentes épocas, se ha ganado un lugar en el corazón de millones de jugadores alrededor del mundo. Cada entrega combina acción, sigilo y narrativa, manteniendo viva la esencia de la hermandad de asesinos a lo largo de los años.',
- '2026-02-12 17:24:59.223391',
- '2026-02-12 22:46:04.764426'),
+ 'La saga Assassin’s Creed, lanzada por primera vez en 2007, ha marcado un antes y un después en los videojuegos de mundo abierto. Con sus historias de conspiraciones históricas y exploración detallada de diferentes épocas, se ha ganado un lugar en el corazón de millones de jugadores alrededor del mundo. Cada entrega combina acción, sigilo y narrativa, manteniendo viva la esencia de la hermandad de asesinos a lo largo de los años.'),
 ('Oblivion regresa con HowardLegacy',
  'Una nueva versión que revitaliza el clásico RPG',
- 'El remake Oblivion: HowardLegacy trae de vuelta la magia del clásico RPG de mundo abierto. Con gráficos actualizados y mejoras en la jugabilidad, los jugadores pueden explorar Tamriel con un nivel de detalle nunca antes visto. Esta versión conserva la narrativa rica y las misiones envolventes que hicieron famoso al título, ofreciendo tanto a fans antiguos como a nuevos jugadores la oportunidad de redescubrir la aventura épica en la tierra de los elfos, humanos y criaturas míticas.',
- '2026-02-12 21:25:00.774789',
- '2026-02-12 22:48:44.682428'),
+ 'El remake Oblivion: HowardLegacy trae de vuelta la magia del clásico RPG de mundo abierto. Con gráficos actualizados y mejoras en la jugabilidad, los jugadores pueden explorar Tamriel con un nivel de detalle nunca antes visto. Esta versión conserva la narrativa rica y las misiones envolventes que hicieron famoso al título, ofreciendo tanto a fans antiguos como a nuevos jugadores la oportunidad de redescubrir la aventura épica en la tierra de los elfos, humanos y criaturas míticas.'),
 ('Hunter x Hunter sigue cautivando generaciones',
  'Aventuras, amistad, desafíos sin fin y el poder del NEN',
- 'Hunter x Hunter es una saga que combina acción, estrategia y narrativa profunda, llevando a los espectadores a un mundo donde cazadores profesionales exploran territorios desconocidos y enfrentan desafíos únicos. Con personajes memorables, giros inesperados y una constante evolución de las habilidades de los protagonistas, la serie mantiene a los fans al borde del asiento. Cada arco amplía la historia, explorando la amistad, la ambición y los límites humanos, consolidando a Hunter x Hunter como un referente del anime moderno.',
- '2026-02-12 23:53:09.153767',
- '2026-02-12 23:54:01.869003');
+ 'Hunter x Hunter es una saga que combina acción, estrategia y narrativa profunda, llevando a los espectadores a un mundo donde cazadores profesionales exploran territorios desconocidos y enfrentan desafíos únicos. Con personajes memorables, giros inesperados y una constante evolución de las habilidades de los protagonistas, la serie mantiene a los fans al borde del asiento. Cada arco amplía la historia, explorando la amistad, la ambición y los límites humanos, consolidando a Hunter x Hunter como un referente del anime moderno.');
 
 INSERT INTO wm_news_gallery (alt, url, news_id)
 VALUES

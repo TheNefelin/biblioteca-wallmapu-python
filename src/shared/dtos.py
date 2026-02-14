@@ -43,6 +43,15 @@ class ApiResponse(BaseModel, Generic[T]):
       message=message, 
       result=data
     )
+    
+  @classmethod
+  def accepted(cls, data: Optional[T] = None, message: str = "Solicitud aceptada para procesamiento") -> 'ApiResponse[T]':
+    return cls(
+      isSuccess=True,
+      statusCode=status.HTTP_202_ACCEPTED,
+      message=message,
+      result=data
+    )
 
   @classmethod
   def deleted(cls, data: Optional[T] = None, message: str = "Recurso eliminado") -> 'ApiResponse[T]':
@@ -81,12 +90,21 @@ class ApiResponse(BaseModel, Generic[T]):
     )
 
   @classmethod
-  def custom(cls, status_code: int, is_success: bool, message: str, data: Optional[T] = None) -> 'ApiResponse[T]':
+  def unauthorized(cls, message: str = "No autorizado") -> 'ApiResponse[T]':
     return cls(
-      isSuccess=is_success, 
-      statusCode=status_code, 
-      message=message, 
-      result=data
+      isSuccess=False,
+      statusCode=status.HTTP_401_UNAUTHORIZED,
+      message=message,
+      result=None
+    )
+
+  @classmethod
+  def forbidden(cls, message: str = "Acceso prohibido") -> 'ApiResponse[T]':
+    return cls(
+      isSuccess=False,
+      statusCode=status.HTTP_403_FORBIDDEN,
+      message=message,
+      result=None
     )
 
   

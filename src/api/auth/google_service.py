@@ -1,13 +1,6 @@
 import requests
-from typing import Optional
-from pydantic import BaseModel
 
-class GoogleUserInfo(BaseModel):
-  google_id: str
-  email: str
-  name: Optional[str] = None
-  picture: Optional[str] = None
-  email_verified: bool
+from src.api.auth.dtos import GoogleUserInfo
 
 def verify_google_token(access_token: str) -> GoogleUserInfo:
   """
@@ -33,7 +26,6 @@ def verify_google_token(access_token: str) -> GoogleUserInfo:
       picture=data.get('picture'),
       email_verified=data.get('verified_email', False)
     )
-    
   except requests.RequestException as e:
     raise ValueError(f"Error al validar token de Google: {str(e)}")
   except KeyError as e:
