@@ -2,13 +2,20 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import List
+
+from src.core.jwt_service import get_current_user
+from src.core.roles import UserRole
 from src.core.database import get_db
 from . import repository, dtos
 
-router = APIRouter(prefix="/users", tags=["users"])
+admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN, UserRole.LECTOR]))
+
+router = APIRouter(prefix="/users", tags=["users"], dependencies=[admin_required])
 
 @router.get("/", response_model=List[dtos.UserDTO])
-def get_all_users(db: Session = Depends(get_db)):
+def get_all_users(
+  db: Session = Depends(get_db)
+):
   res = repository.get_all(db)
   return res
 

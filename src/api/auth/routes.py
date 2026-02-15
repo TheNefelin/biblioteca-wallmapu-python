@@ -21,7 +21,7 @@ def auth_google(auth_data: dtos.AuthGoogleRequest, db: Session = Depends(databas
     user = repository.get_or_create_user(google_user_info, db)
     
     # 3. Generar JWT de tu backend
-    token = jwt_service.create_access_token(user.id_user)
+    token = jwt_service.create_access_token(user.id_user, user.user_role.role)
     
     # 4. Verificar si el perfil está completo
     profile_complete = bool(

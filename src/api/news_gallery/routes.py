@@ -1,9 +1,13 @@
 from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from sqlalchemy.orm import Session
 
+from src.core.jwt_service import get_current_user
+from src.core.roles import UserRole
 from src.api.news_gallery import dtos, repository, service
 from src.core.database import get_db
 from src.shared.dtos import ApiResponse
+
+admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
 router = APIRouter(prefix="/news-gallery", tags=["news-gallery"])
 
@@ -24,7 +28,8 @@ def create_gallery(
   news_id: int,
   files: list[UploadFile] = File(...),
   alts: list[str] = Form(...),
-  db: Session = Depends(get_db)
+  db: Session = Depends(get_db),
+  current_user: dict = admin_required
 ):
   # 🔥 normalización
   if len(alts) == 1 and "," in alts[0]:
@@ -51,7 +56,7 @@ def create_gallery(
     return ApiResponse.server_error(str(e))
 
 @router.delete("/news/{news_id}", response_model=ApiResponse[object])
-def delete_by_news_id(news_id: int, db: Session = Depends(get_db)):
+def delete_by_news_id(news_id: int, db: Session = Depends(get_db), current_user: dict = admin_required):
   try:
     res = service.delete_news_gallery_by_news_id(news_id, db)
   
@@ -60,7 +65,7 @@ def delete_by_news_id(news_id: int, db: Session = Depends(get_db)):
     return ApiResponse.server_error(str(e))
 
 @router.delete("/{id}", response_model=ApiResponse[object])
-def delete(id: int, db: Session = Depends(get_db)):
+def delete(id: int, db: Session = Depends(get_db), current_user: dict = admin_required):
   try:
     res = service.delete_news_gallery(id, db)
   

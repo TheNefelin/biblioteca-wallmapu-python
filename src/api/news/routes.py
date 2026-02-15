@@ -4,11 +4,15 @@ from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_200_OK, HTTP_202_ACCEPTED, HTTP_204_NO_CONTENT
 
+from src.core.jwt_service import get_current_user
+from src.core.roles import UserRole
 from src.api.news import repository
 from src.api.news.dtos import CreateNewsDTO, NewsDTO, NewsWithGalleryDTO, UpdateNewsDTO
 from src.core.url_helper import get_base_url
 from src.shared.dtos import ApiResponse, PaginationResponseDTO
 from src.core.database import get_db
+
+admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
 router = APIRouter(prefix="/news", tags=["news"])
 
@@ -85,7 +89,7 @@ def get_by_id(
 
 # CREATE
 @router.post("/", response_model=ApiResponse[NewsDTO], status_code=status.HTTP_201_CREATED)
-def create(news: CreateNewsDTO, db: Session = Depends(get_db)):
+def create(news: CreateNewsDTO, db: Session = Depends(get_db), current_user: dict = admin_required):
   try:
     created = repository.create(news, db)
 
@@ -97,7 +101,7 @@ def create(news: CreateNewsDTO, db: Session = Depends(get_db)):
 
 # UPDATE
 @router.put("/{id}", response_model=ApiResponse[NewsDTO], status_code=HTTP_202_ACCEPTED)
-def update(id: int, news: UpdateNewsDTO, db: Session = Depends(get_db)):
+def update(id: int, news: UpdateNewsDTO, db: Session = Depends(get_db), current_user: dict = admin_required):
   try:
     if (id != news.id_news):
       return ApiResponse.bad_request(message=f"El id: {id} no coincide")
@@ -115,7 +119,7 @@ def update(id: int, news: UpdateNewsDTO, db: Session = Depends(get_db)):
 
 # DELETE
 @router.delete("/{id}", response_model=ApiResponse[object], status_code=HTTP_202_ACCEPTED)
-def delete(id: int, db: Session = Depends(get_db)):
+def delete(id: int, db: Session = Depends(get_db), current_user: dict = admin_required):
   try:
     updated = repository.delete(id, db)
 
