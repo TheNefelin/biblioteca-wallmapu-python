@@ -35,7 +35,8 @@ def auth_google(auth_data: dtos.AuthGoogleRequest, db: Session = Depends(databas
       email = user.email,
       name = user.name,
       picture = google_user_info.picture,
-      profileComplete = profile_complete
+      profileComplete = profile_complete,
+      role=user.user_role.role
     )
     
     auth_google_response = dtos.AuthGoogleResponse(

@@ -1,6 +1,8 @@
 import uuid
+from sqlalchemy.orm import relationship
+from sqlalchemy import Column, ForeignKey, Integer, String,DateTime, func, text, UUID
+
 from src.core.database import Base
-from sqlalchemy import Column, Integer, String,DateTime, func, text, UUID
 
 class User(Base):
   __tablename__ = "wm_users"
@@ -15,5 +17,7 @@ class User(Base):
   created_at = Column(DateTime, server_default=func.now())
   updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())  
   commune_id = Column(Integer)
-  user_role_id = Column(Integer, server_default=text('3'))
+  user_role_id = Column(Integer, ForeignKey('wm_user_role.id_user_role'), server_default=text('3'))
   user_status_id = Column(Integer, server_default=text('1'))
+
+  user_role = relationship("UserRole", back_populates="users")

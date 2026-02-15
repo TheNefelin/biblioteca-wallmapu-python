@@ -10,7 +10,7 @@ class AuthUser(BaseModel):
   name: Optional[str] = None
   picture: Optional[str] = None
   profileComplete: bool
-  user_role_id: Optional[int] = None
+  role: str
 
 class GoogleUserInfo(BaseModel):
   google_id: str

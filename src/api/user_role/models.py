@@ -1,4 +1,5 @@
 from sqlalchemy import Column, DateTime, Integer, String, func
+from sqlalchemy.orm import relationship
 
 from src.core.database import Base
 
@@ -10,3 +11,4 @@ class UserRole(Base):
   created_at = Column(DateTime, server_default=func.now())
   updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
+  users = relationship("User", back_populates="user_role")
