@@ -1,29 +1,27 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import List
 
 from src.shared.dtos import ApiResponse
-from src.core.jwt_service import get_current_user
-from src.core.roles import UserRole
-from src.core.database import get_db
+from src.core import jwt_service, roles, database
 from . import repository, dtos
 
-admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN, UserRole.LECTOR]))
+admin_required = Depends(jwt_service.get_current_user(required_roles=[roles.UserRole.ADMIN, roles.UserRole.LECTOR]))
 
 router = APIRouter(prefix="/users", tags=["users"], dependencies=[admin_required])
 
 # -----------------------------------------------------------------
 # GET ALL
 @router.get("/", response_model=ApiResponse[List[dtos.UserDTO]])
-def get_all_users(db: Session = Depends(get_db)):
+def get_all_users(db: Session = Depends(database.get_db)):
   res = repository.get_all(db)
   return ApiResponse.success(data=res)
 
 # -----------------------------------------------------------------
 # GET BY ID
 @router.get("/{id}", response_model=ApiResponse[dtos.UserDTO])
-def get_by_id_user(id: UUID, db: Session = Depends(get_db)):
+def get_by_id_user(id: UUID, db: Session = Depends(database.get_db)):
   res = repository.get_by_id(id, db)
 
   if not res:
@@ -34,7 +32,7 @@ def get_by_id_user(id: UUID, db: Session = Depends(get_db)):
 # -----------------------------------------------------------------
 # CREATE
 @router.post("/", response_model=ApiResponse[dtos.UserDTO])
-def create_user(create_dto: dtos.CreateUserDTO, db: Session = Depends(get_db)):
+def create_user(create_dto: dtos.CreateUserDTO, db: Session = Depends(database.get_db)):
   try:
     created_dto = repository.create(create_dto, db)
 
@@ -47,7 +45,7 @@ def create_user(create_dto: dtos.CreateUserDTO, db: Session = Depends(get_db)):
 # -----------------------------------------------------------------
 # UPDATE
 @router.put("/{id}", response_model=ApiResponse[dtos.UserDTO])
-def update_user(id: UUID, update_dto: dtos.UpdateUserDTO, db: Session = Depends(get_db)):
+def update_user(id: UUID, update_dto: dtos.UpdateUserDTO, db: Session = Depends(database.get_db)):
   try:
     updated_dto = repository.update(db, id, update_dto)
     
