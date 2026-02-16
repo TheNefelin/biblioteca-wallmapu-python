@@ -5,26 +5,39 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from . import models, dtos
 
+# -----------------------------------------------------------------
+# GET ALL
 def get_all(db: Session):
   try:
-    return db.query(models.User).all()
+    entities = db.query(models.User).all()
+    dtos =  [dtos.UserDTO.model_validate(entity) for entity in entities]
+
+    return dtos
   except SQLAlchemyError as e:
     raise e
-  
-def get_by_id(db: Session, id_user: UUID):
+
+# GET BY ID
+def get_by_id(id_user: UUID, db: Session):
   try:
-    return db.query(models.User).filter(models.User.id_user == id_user).first()
+    entity = db.query(models.User).filter(models.User.id_user == id_user).first()
+    dto = dtos.UserDTO.model_validate(entity)
+    
+    return dto
   except SQLAlchemyError as e:
     raise e
-  
-def create(db: Session, user_data: dtos.CreateUserDTO):
+
+# -----------------------------------------------------------------
+# CREATE
+def create(create_dto: dtos.CreateUserDTO, db: Session):
   try:
-    # Convertir DTO a dict y crear modelo
-    new_user = models.User(**user_data.model_dump())
-    db.add(new_user)
+    entity = models.User(**create_dto.model_dump())
+    
+    db.add(entity)
     db.commit()
-    db.refresh(new_user)  # Obtener id_user, created_at, etc.
-    return new_user
+    db.refresh(entity)
+    
+    dto = dtos.UserDTO.model_validate(entity)
+    return dto
   except IntegrityError as e:
     db.rollback()
     # Detectar si es error de email o rut duplicado
@@ -37,22 +50,26 @@ def create(db: Session, user_data: dtos.CreateUserDTO):
   except SQLAlchemyError as e:
     db.rollback()
     raise e
-  
-def update(db: Session, id_user: UUID, user_data: dtos.UpdateUserDTO):
+
+# -----------------------------------------------------------------
+#UPDATE
+def update(id_user: UUID, update_dto: dtos.UpdateUserDTO, db: Session):
   try:
-    # Buscar usuario existente
-    user = db.query(models.User).filter(models.User.id_user == id_user).first()
-    if not user:
+    entity = db.query(models.User).filter(models.User.id_user == id_user).first()
+    
+    if not entity:
       return None
     
     # Solo actualizar campos que vienen en el request (exclude_unset=True)
-    update_data = user_data.model_dump(exclude_unset=True)
+    update_data = update_dto.model_dump(exclude_unset=True)
     for key, value in update_data.items():
-      setattr(user, key, value)
+      setattr(entity, key, value)
     
     db.commit()
-    db.refresh(user)
-    return user
+    db.refresh(entity)
+
+    dto = dtos.UserDTO.model_validate(entity)
+    return dto
   except IntegrityError as e:
     db.rollback()
     if 'rut' in str(e.orig):

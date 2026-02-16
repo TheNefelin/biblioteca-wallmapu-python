@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import List
 
+from src.shared.dtos import ApiResponse
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
 from src.core.database import get_db
@@ -12,55 +13,49 @@ admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN, UserRo
 
 router = APIRouter(prefix="/users", tags=["users"], dependencies=[admin_required])
 
-@router.get("/", response_model=List[dtos.UserDTO])
-def get_all_users(
-  db: Session = Depends(get_db)
-):
+# -----------------------------------------------------------------
+# GET ALL
+@router.get("/", response_model=ApiResponse[List[dtos.UserDTO]])
+def get_all_users(db: Session = Depends(get_db)):
   res = repository.get_all(db)
-  return res
+  return ApiResponse.success(data=res)
 
-@router.get("/{id}", response_model=dtos.UserDTO)
+# -----------------------------------------------------------------
+# GET BY ID
+@router.get("/{id}", response_model=ApiResponse[dtos.UserDTO])
 def get_by_id_user(id: UUID, db: Session = Depends(get_db)):
-  res = repository.get_by_id(db, id)
-  if not res:
-    raise HTTPException(status_code=404, detail="Usuario no encontrado")
-  return res
+  res = repository.get_by_id(id, db)
 
-@router.post("/", response_model=dtos.UserDTO, status_code=status.HTTP_201_CREATED)
-def create_user(user: dtos.CreateUserDTO, db: Session = Depends(get_db)):
+  if not res:
+    return ApiResponse.not_found(message="Usuario no encontrado")
+
+  return ApiResponse.success(data=res)
+
+# -----------------------------------------------------------------
+# CREATE
+@router.post("/", response_model=ApiResponse[dtos.UserDTO])
+def create_user(create_dto: dtos.CreateUserDTO, db: Session = Depends(get_db)):
   try:
-    new_user = repository.create(db, user)
-    return new_user
+    created_dto = repository.create(create_dto, db)
+
+    return ApiResponse.created(data=created_dto)
   except ValueError as e:
-    raise HTTPException(
-      status_code=status.HTTP_400_BAD_REQUEST,
-      detail=str(e)
-    )
+    return ApiResponse.bad_request(message=str(e))
   except Exception as e:
-    raise HTTPException(
-      status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-      detail="Error interno del servidor"
-    )
-  
-@router.put("/{id}", response_model=dtos.UserDTO)
-def update_user(id: UUID, user: dtos.UpdateUserDTO, db: Session = Depends(get_db)):
+    return ApiResponse.server_error(message=str(e))
+
+# -----------------------------------------------------------------
+# UPDATE
+@router.put("/{id}", response_model=ApiResponse[dtos.UserDTO])
+def update_user(id: UUID, update_dto: dtos.UpdateUserDTO, db: Session = Depends(get_db)):
   try:
-    updated_user = repository.update(db, id, user)
+    updated_dto = repository.update(db, id, update_dto)
     
-    if not updated_user:
-      raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"Usuario con id {id} no encontrado"
-      )
+    if not updated_dto:
+      return ApiResponse.not_found(message="Usuario no encontrado")
     
-    return updated_user
+    return ApiResponse.updated(data=updated_dto)
   except ValueError as e:
-    raise HTTPException(
-      status_code=status.HTTP_400_BAD_REQUEST,
-      detail=str(e)
-    )
+    return ApiResponse.bad_request(message=str(e))
   except Exception as e:
-    raise HTTPException(
-      status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-      detail="Error interno del servidor"
-    ) 
+    return ApiResponse.server_error(message=str(e))
