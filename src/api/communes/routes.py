@@ -6,11 +6,11 @@ from src.core.database import get_db
 from src.shared.dtos import ApiResponse
 from . import dtos, repository
 
-router = APIRouter(prefix="/communes", tags=["communes"])
+router = APIRouter(prefix="/commune", tags=["commune"])
 
 # GET ALL
 @router.get("/", response_model=ApiResponse[List[dtos.CommuneDTO]])
-def get_all_region(db: Session = Depends(get_db)):
+def get_all_commune(db: Session = Depends(get_db)):
   try:
     res = repository.get_all(db)
     return ApiResponse.success(data=res)    
