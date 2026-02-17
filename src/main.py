@@ -6,6 +6,8 @@ from starlette.responses import FileResponse
 
 from src.api.auth.routes import router as auth_router
 from src.api.regions.routes import router as regions_router
+from src.api.provinces.routes import router as provinces_router
+from src.api.communes.routes import router as communes_router
 from src.api.user_role.routes import router as users_role_router
 from src.api.user_status.routes import router as users_status_router
 from src.api.users.routes import router as users_router
@@ -44,6 +46,8 @@ async def root():
 
 app.include_router(auth_router, prefix="/api")
 app.include_router(regions_router, prefix="/api")
+app.include_router(provinces_router, prefix="/api")
+app.include_router(communes_router, prefix="/api")
 app.include_router(users_role_router, prefix="/api")
 app.include_router(users_status_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
