@@ -10,9 +10,9 @@ from . import models, dtos
 def get_all(db: Session):
   try:
     entities = db.query(models.User).all()
-    dtos =  [dtos.UserDTO.model_validate(entity) for entity in entities]
+    dto_list =  [dtos.UserDTO.model_validate(entity) for entity in entities]
 
-    return dtos
+    return dto_list
   except SQLAlchemyError as e:
     raise e
 
