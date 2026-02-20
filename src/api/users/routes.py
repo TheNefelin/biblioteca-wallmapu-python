@@ -30,19 +30,6 @@ def get_by_id_user(id: UUID, db: Session = Depends(database.get_db)):
   return ApiResponse.success(data=res)
 
 # -----------------------------------------------------------------
-# CREATE
-@router.post("/", response_model=ApiResponse[dtos.UserDTO])
-def create_user(create_dto: dtos.CreateUserDTO, db: Session = Depends(database.get_db)):
-  try:
-    created_dto = repository.create(create_dto, db)
-
-    return ApiResponse.created(data=created_dto)
-  except ValueError as e:
-    return ApiResponse.bad_request(message=str(e))
-  except Exception as e:
-    return ApiResponse.server_error(message=str(e))
-
-# -----------------------------------------------------------------
 # UPDATE
 @router.put("/{id}", response_model=ApiResponse[dtos.UserDTO])
 def update_user(id: UUID, update_dto: dtos.UpdateUserDTO, db: Session = Depends(database.get_db)):
