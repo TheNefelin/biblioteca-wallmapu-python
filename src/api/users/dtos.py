@@ -3,6 +3,10 @@ import re
 from typing import Optional
 from pydantic import UUID4, BaseModel, ConfigDict, field_validator
 
+from src.api.communes.dtos import CommuneDTO
+from src.api.user_role.dtos import UserRoleDTO
+from src.api.user_status.dtos import UserStatusDTO
+
 class CreateUserDTO(BaseModel):
   email: str
   name: Optional[str] = None
@@ -73,3 +77,8 @@ class UserDTO(BaseModel):
   user_status_id: Optional[int] = None 
 
   model_config = ConfigDict(from_attributes=True) # ✅ hace el mapeo
+
+class UserDetailedDTO(UserDTO):
+  commune: Optional[CommuneDTO] = None
+  user_role: UserRoleDTO
+  user_status: UserStatusDTO

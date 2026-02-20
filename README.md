@@ -49,6 +49,11 @@ backend/
 │   │   │   ├── google_service.py
 │   │   │   ├── repository.py
 │   │   │   └── routes.py
+│   │   ├── communes/
+│   │   │   ├── dtos.py
+│   │   │   ├── google_service.py
+│   │   │   ├── repository.py
+│   │   │   └── routes.py
 │   │   ├── news/
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
@@ -60,22 +65,43 @@ backend/
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
 │   │   │   └── service.py
+│   │   ├── provinces/
+│   │   │   ├── dtos.py
+│   │   │   ├── google_service.py
+│   │   │   ├── repository.py
+│   │   │   └── routes.py
+│   │   ├── regions/
+│   │   │   ├── dtos.py
+│   │   │   ├── google_service.py
+│   │   │   ├── repository.py
+│   │   │   └── routes.py
+│   │   ├── user_role/
+│   │   │   ├── dtos.py
+│   │   │   ├── google_service.py
+│   │   │   ├── repository.py
+│   │   │   └── routes.py
+│   │   ├── user_status/
+│   │   │   ├── dtos.py
+│   │   │   ├── google_service.py
+│   │   │   ├── repository.py
+│   │   │   └── routes.py
 │   │   └── users/
 │   │       ├── dtos.py
 │   │       ├── models.py
 │   │       ├── repository.py
 │   │       └── routes.py
 │   │
-│   ├── services/
-│   │   ├── cloudinary_service.py
-│   │   └── image_service.py
-│   │
 │   ├── core/
 │   │   ├── __init__.py
 │   │   ├── config.py
 │   │   ├── database.py
 │   │   ├── jwt_service.py
+│   │   ├── roles.py
 │   │   └── url_helper.py
+│   │
+│   ├── services/
+│   │   ├── cloudinary_service.py
+│   │   └── image_service.py
 │   │
 │   ├── shared/
 │   │   └── dtos.py
@@ -88,7 +114,6 @@ backend/
 │   └── favicon.ico
 │
 ├── .env
-├── .env.demo
 ├── .gitignore
 ├── LICENSE.txt
 ├── postgre.sql

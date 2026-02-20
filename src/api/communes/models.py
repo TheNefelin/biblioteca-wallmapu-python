@@ -11,6 +11,8 @@ class Commune(Base):
   commune = Column(String(45), nullable=False)
   created_at = Column(DateTime, server_default=func.now())
   updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
   province_id = Column(Integer, ForeignKey('wm_provinces.id_province'))
 
   province = relationship("Province", back_populates="communes")
+  users = relationship("User", back_populates="commune")
