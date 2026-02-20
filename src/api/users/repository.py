@@ -53,9 +53,9 @@ def create(create_dto: dtos.CreateUserDTO, db: Session):
 
 # -----------------------------------------------------------------
 #UPDATE
-def update(id_user: UUID, update_dto: dtos.UpdateUserDTO, db: Session):
+def update(id: UUID, update_dto: dtos.UpdateUserDTO, db: Session):
   try:
-    entity = db.query(models.User).filter(models.User.id_user == id_user).first()
+    entity = db.query(models.User).filter(models.User.id_user == id).first()
     
     if not entity:
       return None

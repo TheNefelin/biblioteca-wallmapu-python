@@ -34,7 +34,7 @@ def get_by_id_user(id: UUID, db: Session = Depends(database.get_db)):
 @router.put("/{id}", response_model=ApiResponse[dtos.UserDTO])
 def update_user(id: UUID, update_dto: dtos.UpdateUserDTO, db: Session = Depends(database.get_db)):
   try:
-    updated_dto = repository.update(db, id, update_dto)
+    updated_dto = repository.update(id, update_dto, db)
     
     if not updated_dto:
       return ApiResponse.not_found(message="Usuario no encontrado")
