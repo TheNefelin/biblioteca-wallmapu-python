@@ -19,7 +19,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.get(
   "/detailed", 
   response_model=ApiResponse[PaginationResponseDTO[List[dtos.UserDetailDTO]]],
-  dependencies=[admin_or_user_required]
+  dependencies=[admin_required]
 )
 def get_all_detailed(
   request: Request,
