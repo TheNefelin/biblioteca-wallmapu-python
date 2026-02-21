@@ -8,13 +8,19 @@ from src.shared.dtos import ApiResponse, PaginationResponseDTO
 from src.core import jwt_service, roles, database
 from . import repository, dtos
 
-admin_required = Depends(jwt_service.get_current_user(required_roles=[roles.UserRole.ADMIN, roles.UserRole.LECTOR]))
+admin_required = Depends(jwt_service.get_current_user(required_roles=[roles.UserRole.ADMIN]))
+user_required = Depends(jwt_service.get_current_user(required_roles=[roles.UserRole.LECTOR]))
+admin_or_user_required = Depends(jwt_service.get_current_user(required_roles=[roles.UserRole.ADMIN, roles.UserRole.LECTOR]))
 
-router = APIRouter(prefix="/users", tags=["users"], dependencies=[admin_required])
+router = APIRouter(prefix="/users", tags=["users"])
 
 # -----------------------------------------------------------------
 # GET ALL DETAILED
-@router.get("/detailed", response_model=ApiResponse[PaginationResponseDTO[List[dtos.UserDetailDTO]]])
+@router.get(
+  "/detailed", 
+  response_model=ApiResponse[PaginationResponseDTO[List[dtos.UserDetailDTO]]],
+  dependencies=[admin_or_user_required]
+)
 def get_all_detailed(
   request: Request,
   page: int = Query(default=1, ge=1, description="Número de página a mostrar"),
@@ -58,7 +64,11 @@ def get_all_detailed(
 
 # -----------------------------------------------------------------
 # GET BY ID DETAILED
-@router.get("/detailed/{id}", response_model=ApiResponse[dtos.UserDetailDTO])
+@router.get(
+  "/detailed/{id}", 
+  response_model=ApiResponse[dtos.UserDetailDTO],
+  dependencies=[admin_or_user_required]
+)
 def get_by_id_detailed(id: UUID, db: Session = Depends(database.get_db)):
   try:  
     res = repository.get_by_id_detailed(id, db)
@@ -71,9 +81,44 @@ def get_by_id_detailed(id: UUID, db: Session = Depends(database.get_db)):
     return ApiResponse.server_error(str(e))
 
 # -----------------------------------------------------------------
-# UPDATE
-@router.put("/{id}", response_model=ApiResponse[dtos.UserDTO])
-def update_user(id: UUID, update_dto: dtos.UpdateUserDTO, db: Session = Depends(database.get_db)):
+# UPDATE USER
+@router.put(
+  "/{id}", 
+  response_model=ApiResponse[dtos.UserDTO],
+  dependencies=[user_required]
+)
+def update_user(
+  id: UUID, update_dto: dtos.UpdateUserDTO, 
+  db: Session = Depends(database.get_db),
+  current_user = Depends(jwt_service.get_current_user())
+):
+  try:
+    # Solo puede modificar su propio perfil
+    if (str(id) != current_user["sub"]):
+      return ApiResponse.unauthorized(message='No estas autorizado para modificar este usuario')
+
+    updated_dto = repository.update(id, update_dto, db)
+    
+    if not updated_dto:
+      return ApiResponse.not_found(message="Usuario no encontrado")
+    
+    return ApiResponse.updated(data=updated_dto)
+  except ValueError as e:
+    return ApiResponse.bad_request(message=str(e))
+  except Exception as e:
+    return ApiResponse.server_error(message=str(e))
+  
+# -----------------------------------------------------------------
+# UPDATE USER BY ADMIN
+@router.put(
+  "/admin/{id}", 
+  response_model=ApiResponse[dtos.UserDTO],
+  dependencies=[admin_required]  
+)
+def update_user(
+  id: UUID, update_dto: dtos.UpdateUserByAdminDTO, 
+  db: Session = Depends(database.get_db)
+):
   try:
     updated_dto = repository.update(id, update_dto, db)
     

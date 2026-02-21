@@ -50,6 +50,7 @@ def get_all_detailed(page: int, items: int, search: str | None, db: Session):
   except SQLAlchemyError as e:
     raise e
 
+# -----------------------------------------------------------------
 # GET BY ID DETAILED
 def get_by_id_detailed(id_user: UUID, db: Session):
   try:
@@ -73,26 +74,34 @@ def get_by_id_detailed(id_user: UUID, db: Session):
     raise e
   
 # -----------------------------------------------------------------
-# CREATE
-def create(create_dto: dtos.CreateUserDTO, db: Session):
+# GET OR CREATE
+def get_or_create_user(
+  email: str,
+  name: str,
+  db: Session
+):
   try:
-    entity = models.User(**create_dto.model_dump())
-    
-    db.add(entity)
+    user = db.query(models.User).filter(models.User.email == email).first()
+
+    if user:
+      dtos.UserDTO.model_validate(user)
+      return user;
+
+    new_user = models.User(
+      email=email,
+      name=name,
+      user_role_id=3,
+      user_status_id=1
+    )
+
+    db.add(new_user)
     db.commit()
-    db.refresh(entity)
+    db.refresh(new_user)
     
-    dto = dtos.UserDTO.model_validate(entity)
-    return dto
+    return dtos.UserDTO.model_validate(new_user)
   except IntegrityError as e:
     db.rollback()
-    # Detectar si es error de email o rut duplicado
-    if 'email' in str(e.orig):
-      raise ValueError("El email ya está registrado")
-    elif 'rut' in str(e.orig):
-      raise ValueError("El RUT ya está registrado")
-    else:
-      raise ValueError("Error de integridad en la base de datos")  
+    raise ValueError("Error de integridad en la base de datos")  
   except SQLAlchemyError as e:
     db.rollback()
     raise e

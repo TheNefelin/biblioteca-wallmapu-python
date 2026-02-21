@@ -1,30 +1,30 @@
 import requests
 
-from src.api.auth.dtos import GoogleUserInfo
+from . import dtos
 
-def verify_google_token(access_token: str) -> GoogleUserInfo:
+def verify_google_token(access_token: str) -> dtos.GoogleUserInfo:
   """
   Valida el Access Token de Google y obtiene información del usuario
   """
   try:
     # Llamar a la API de Google para obtener info del usuario
-    response = requests.get(
+    googleResponse = requests.get(
       'https://www.googleapis.com/oauth2/v2/userinfo',
       headers={'Authorization': f'Bearer {access_token}'}
     )
     
-    if response.status_code != 200:
-      raise ValueError(f'Token inválido: {response.text}')
+    if googleResponse.status_code != 200:
+      raise ValueError(f'Token inválido: {googleResponse.text}')
     
-    data = response.json()
+    googleUser = googleResponse.json()
     
     # Extraer información del usuario
-    return GoogleUserInfo(
-      google_id=data['id'],
-      email=data['email'],
-      name=data.get('name'),
-      picture=data.get('picture'),
-      email_verified=data.get('verified_email', False)
+    return dtos.GoogleUserInfo(
+      google_id=googleUser['id'],
+      email=googleUser['email'],
+      name=googleUser.get('name'),
+      picture=googleUser.get('picture'),
+      email_verified=googleUser.get('verified_email', False)
     )
   except requests.RequestException as e:
     raise ValueError(f"Error al validar token de Google: {str(e)}")
