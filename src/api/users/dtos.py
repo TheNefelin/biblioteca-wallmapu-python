@@ -78,7 +78,7 @@ class UserDTO(BaseModel):
 
   model_config = ConfigDict(from_attributes=True) # ✅ hace el mapeo
 
-class UserDetailedDTO(UserDTO):
+class UserDetailDTO(UserDTO):
   commune: Optional[CommuneDTO] = None
   user_role: UserRoleDTO
   user_status: UserStatusDTO

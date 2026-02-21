@@ -71,7 +71,6 @@ def update(id: int, data: UpdateNewsDTO, db: Session):
   try:
     item = db.query(News).filter(News.id_news == id).first()
 
-    print(item)
     if not item:
       return None
 

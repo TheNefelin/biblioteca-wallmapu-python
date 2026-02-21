@@ -10,12 +10,11 @@ from . import repository, dtos
 
 admin_required = Depends(jwt_service.get_current_user(required_roles=[roles.UserRole.ADMIN, roles.UserRole.LECTOR]))
 
-#router = APIRouter(prefix="/users", tags=["users"], dependencies=[admin_required])
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/users", tags=["users"], dependencies=[admin_required])
 
 # -----------------------------------------------------------------
 # GET ALL DETAILED
-@router.get("/detailed", response_model=ApiResponse[PaginationResponseDTO[List[dtos.UserDetailedDTO]]])
+@router.get("/detailed", response_model=ApiResponse[PaginationResponseDTO[List[dtos.UserDetailDTO]]])
 def get_all_detailed(
   request: Request,
   page: int = Query(default=1, ge=1, description="Número de página a mostrar"),
@@ -58,21 +57,11 @@ def get_all_detailed(
     return ApiResponse.server_error(str(e))
 
 # -----------------------------------------------------------------
-# GET ALL
-@router.get("/", response_model=ApiResponse[List[dtos.UserDTO]])
-def get_all_users(db: Session = Depends(database.get_db)):
-  try:
-    res = repository.get_all(db)
-    return ApiResponse.success(data=res)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
-
-# -----------------------------------------------------------------
-# GET BY ID
-@router.get("/{id}", response_model=ApiResponse[dtos.UserDTO])
-def get_by_id_user(id: UUID, db: Session = Depends(database.get_db)):
+# GET BY ID DETAILED
+@router.get("/detailed/{id}", response_model=ApiResponse[dtos.UserDetailDTO])
+def get_by_id_detailed(id: UUID, db: Session = Depends(database.get_db)):
   try:  
-    res = repository.get_by_id(id, db)
+    res = repository.get_by_id_detailed(id, db)
 
     if not res:
       return ApiResponse.not_found(message="Usuario no encontrado")
