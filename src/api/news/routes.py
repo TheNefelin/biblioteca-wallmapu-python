@@ -17,7 +17,11 @@ admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 router = APIRouter(prefix="/news", tags=["news"])
 
 # GET ALL Pagination
-@router.get("/", response_model=ApiResponse[PaginationResponseDTO[List[NewsWithGalleryDTO]]], status_code=HTTP_200_OK)
+@router.get(
+  "/", 
+  response_model=ApiResponse[PaginationResponseDTO[List[NewsWithGalleryDTO]]], 
+  status_code=HTTP_200_OK
+)
 def get_all_pagination(
   request: Request,
   page: int = Query(default=1, ge=1, description="Número de página a mostrar"),

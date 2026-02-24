@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import List, Optional
 
+from starlette.status import HTTP_200_OK
+
 from src.core.url_helper import get_base_url
 from src.shared.dtos import ApiResponse, PaginationResponseDTO
 from src.core import jwt_service, roles, database
@@ -19,7 +21,8 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.get(
   "/detailed", 
   response_model=ApiResponse[PaginationResponseDTO[List[dtos.UserDetailDTO]]],
-  dependencies=[admin_required]
+  dependencies=[admin_required],
+  status_code=HTTP_200_OK
 )
 def get_all_detailed(
   request: Request,
