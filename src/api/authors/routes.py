@@ -9,18 +9,18 @@ from src.core.roles import UserRole
 from src.shared.dtos import ApiResponse
 from . import dtos, repository
 
-admin_or_user_required = Depends(get_current_user(required_roles=[UserRole.ADMIN, UserRole.LECTOR]))
+admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
-router = APIRouter(prefix="/region", tags=["region"], dependencies=[admin_or_user_required])
+router = APIRouter(prefix="/author", tags=["author"], dependencies=[admin_required])
 
 # -----------------------------------------------------------------
 # GET ALL
 @router.get(
   "/", 
-  response_model=ApiResponse[List[dtos.RegionDTO]],
-  status_code=HTTP_200_OK  
+  response_model=ApiResponse[List[dtos.AuthorDTO]],
+  status_code=HTTP_200_OK
 )
-def get_all_region(db: Session = Depends(get_db)):
+def get_all_author(db: Session = Depends(get_db)):
   try:
     res = repository.get_all(db)
     return ApiResponse.success(data=res)    
