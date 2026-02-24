@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
+# -----------------------------------------------------------------
 class UserRoleDTO(BaseModel):
   id_user_role: int
   role: str

@@ -3,8 +3,9 @@ from sqlalchemy.orm import Session
 
 from . import models, dtos
 
+# -----------------------------------------------------------------
 # GET ALL
-def get_all(db: Session):
+def get_all(db: Session) -> list[dtos.ProvinceDTO]:
   try:
     items = db.query(models.Province).all()
     

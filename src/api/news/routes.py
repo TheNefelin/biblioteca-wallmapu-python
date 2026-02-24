@@ -4,22 +4,22 @@ from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_200_OK, HTTP_202_ACCEPTED, HTTP_204_NO_CONTENT
 
+from src.shared.dtos import ApiResponse, PaginationResponseDTO
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
-from src.api.news import repository
-from src.api.news.dtos import CreateNewsDTO, NewsDTO, NewsWithGalleryDTO, UpdateNewsDTO
 from src.core.url_helper import get_base_url
-from src.shared.dtos import ApiResponse, PaginationResponseDTO
 from src.core.database import get_db
+from . import repository, dtos
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
 router = APIRouter(prefix="/news", tags=["news"])
 
+# -----------------------------------------------------------------
 # GET ALL Pagination
 @router.get(
   "/", 
-  response_model=ApiResponse[PaginationResponseDTO[List[NewsWithGalleryDTO]]], 
+  response_model=ApiResponse[PaginationResponseDTO[List[dtos.NewsWithGalleryDTO]]], 
   status_code=HTTP_200_OK
 )
 def get_all_pagination(
@@ -51,12 +51,6 @@ def get_all_pagination(
     if page > 1:
       prev_url = f"{base_url}?page={page - 1}&page_size={items}{search_param}"
     
-    # Añadir base_url a las imágenes de cada noticia
-    #static_url = get_static_news_url(request)
-    #for news in result:
-    #  for image in news.images:
-    #    image.img = f"{static_url}/{image.img}"
-
     paginationResult = PaginationResponseDTO(  
       items=count,
       pages=pages,
@@ -69,8 +63,13 @@ def get_all_pagination(
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
+# -----------------------------------------------------------------
 # GET BY ID Pagination    
-@router.get("/{id}", response_model=ApiResponse[NewsWithGalleryDTO], status_code=HTTP_200_OK)
+@router.get(
+  "/{id}", 
+  response_model=ApiResponse[dtos.NewsWithGalleryDTO], 
+  status_code=HTTP_200_OK
+)
 def get_by_id(
   request: Request,
   id: int, 
@@ -82,18 +81,22 @@ def get_by_id(
     if not result:
       return ApiResponse.not_found()
 
-    #static_url = get_static_news_url(request)
-
-    #for image in result.images:
-    #  image.img = f"{static_url}/{image.img}"
-
     return ApiResponse.success(result)  
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
+# -----------------------------------------------------------------
 # CREATE
-@router.post("/", response_model=ApiResponse[NewsDTO], status_code=status.HTTP_201_CREATED)
-def create(news: CreateNewsDTO, db: Session = Depends(get_db), current_user: dict = admin_required):
+@router.post(
+  "/", 
+  response_model=ApiResponse[dtos.NewsDTO], 
+  status_code=status.HTTP_201_CREATED
+)
+def create(
+  news: dtos.CreateNewsDTO, 
+  db: Session = Depends(get_db), 
+  current_user: dict = admin_required
+):
   try:
     created = repository.create(news, db)
 
@@ -103,9 +106,19 @@ def create(news: CreateNewsDTO, db: Session = Depends(get_db), current_user: dic
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
+# -----------------------------------------------------------------
 # UPDATE
-@router.put("/{id}", response_model=ApiResponse[NewsDTO], status_code=HTTP_202_ACCEPTED)
-def update(id: int, news: UpdateNewsDTO, db: Session = Depends(get_db), current_user: dict = admin_required):
+@router.put(
+  "/{id}", 
+  response_model=ApiResponse[dtos.NewsDTO], 
+  status_code=HTTP_202_ACCEPTED
+)
+def update(
+  id: int, 
+  news: dtos.UpdateNewsDTO, 
+  db: Session = Depends(get_db), 
+  current_user: dict = admin_required
+):
   try:
     if (id != news.id_news):
       return ApiResponse.bad_request(message=f"El id: {id} no coincide")
@@ -121,11 +134,20 @@ def update(id: int, news: UpdateNewsDTO, db: Session = Depends(get_db), current_
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
+# -----------------------------------------------------------------
 # DELETE
-@router.delete("/{id}", response_model=ApiResponse[object], status_code=HTTP_202_ACCEPTED)
-def delete(id: int, db: Session = Depends(get_db), current_user: dict = admin_required):
+@router.delete(
+  "/{id}", 
+  response_model=ApiResponse[object], 
+  status_code=HTTP_202_ACCEPTED
+)
+def delete(
+  id: int, 
+  db: Session = Depends(get_db), 
+  current_user: dict = admin_required
+):
   try:
-    updated = repository.delete(id, db)
+    deleted = repository.delete(id, db)
 
     return ApiResponse.deleted()
   except ValueError as e:

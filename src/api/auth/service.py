@@ -1,4 +1,3 @@
-from sqlalchemy import Null
 from sqlalchemy.orm import Session
 
 from src.api.users import repository as user_repository

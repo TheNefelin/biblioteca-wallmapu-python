@@ -8,6 +8,7 @@ from . import dtos, repository
 
 router = APIRouter(prefix="/commune", tags=["commune"])
 
+# -----------------------------------------------------------------
 # GET ALL
 @router.get("/", response_model=ApiResponse[List[dtos.CommuneDTO]])
 def get_all_commune(db: Session = Depends(get_db)):

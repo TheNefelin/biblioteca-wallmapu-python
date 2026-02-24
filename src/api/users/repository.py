@@ -11,7 +11,12 @@ from . import models, dtos
 
 # -----------------------------------------------------------------
 # GET ALL DETAILED
-def get_all_detailed(page: int, items: int, search: str | None, db: Session):
+def get_all_detailed(
+  page: int, 
+  items: int, 
+  search: str | None, 
+  db: Session
+) -> tuple[int, int, list[dtos.UserDetailDTO]]:
   try:
     query = (
       db.query(models.User)
@@ -52,7 +57,10 @@ def get_all_detailed(page: int, items: int, search: str | None, db: Session):
 
 # -----------------------------------------------------------------
 # GET BY ID DETAILED
-def get_by_id_detailed(id_user: UUID, db: Session):
+def get_by_id_detailed(
+  id_user: UUID, 
+  db: Session
+) -> dtos.UserDetailDTO | None:
   try:
     entity = (
       db.query(models.User)
@@ -79,13 +87,17 @@ def get_or_create_user(
   email: str,
   name: str,
   db: Session
-):
+) -> dtos.UserWithRoleDTO:
   try:
-    user = db.query(models.User).filter(models.User.email == email).first()
+    user = (
+      db.query(models.User)
+      .options(joinedload(models.User.user_role))
+      .filter(models.User.email == email)
+      .first()
+    )
 
     if user:
-      dtos.UserDTO.model_validate(user)
-      return user;
+      return dtos.UserWithRoleDTO.model_validate(user)
 
     new_user = models.User(
       email=email,
@@ -97,8 +109,15 @@ def get_or_create_user(
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    user = (
+        db.query(models.User)
+        .options(joinedload(models.User.user_role))
+        .filter(models.User.id_user == new_user.id_user)
+        .first()
+    )
     
-    return dtos.UserDTO.model_validate(new_user)
+    return dtos.UserWithRoleDTO.model_validate(user)
   except IntegrityError as e:
     db.rollback()
     raise ValueError("Error de integridad en la base de datos")  
@@ -108,7 +127,11 @@ def get_or_create_user(
 
 # -----------------------------------------------------------------
 #UPDATE
-def update(id: UUID, update_dto: dtos.UpdateUserDTO, db: Session):
+def update(
+  id: UUID, 
+  update_dto: dtos.UpdateUserDTO, 
+  db: Session
+) -> dtos.UserDTO | None:
   try:
     entity = db.query(models.User).filter(models.User.id_user == id).first()
     

@@ -3,8 +3,9 @@ from sqlalchemy.orm import Session
 
 from . import dtos, models
 
+# -----------------------------------------------------------------
 # GET ALL
-def get_all(db: Session):
+def get_all(db: Session) -> list[dtos.CommuneDTO]:
   try:
     items = db.query(models.Commune).all()
     

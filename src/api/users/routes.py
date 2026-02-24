@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import List, Optional
 
-from starlette.status import HTTP_200_OK
+from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_202_ACCEPTED
 
 from src.core.url_helper import get_base_url
 from src.shared.dtos import ApiResponse, PaginationResponseDTO
@@ -70,7 +70,8 @@ def get_all_detailed(
 @router.get(
   "/detailed/{id}", 
   response_model=ApiResponse[dtos.UserDetailDTO],
-  dependencies=[admin_or_user_required]
+  dependencies=[admin_or_user_required],
+  status_code=HTTP_200_OK
 )
 def get_by_id_detailed(id: UUID, db: Session = Depends(database.get_db)):
   try:  
@@ -88,7 +89,8 @@ def get_by_id_detailed(id: UUID, db: Session = Depends(database.get_db)):
 @router.put(
   "/{id}", 
   response_model=ApiResponse[dtos.UserDTO],
-  dependencies=[user_required]
+  dependencies=[user_required],
+  status_code=HTTP_201_CREATED
 )
 def update_user(
   id: UUID, update_dto: dtos.UpdateUserDTO, 
@@ -116,7 +118,8 @@ def update_user(
 @router.put(
   "/admin/{id}", 
   response_model=ApiResponse[dtos.UserDTO],
-  dependencies=[admin_required]  
+  dependencies=[admin_required],
+  status_code=HTTP_202_ACCEPTED
 )
 def update_user(
   id: UUID, update_dto: dtos.UpdateUserByAdminDTO, 

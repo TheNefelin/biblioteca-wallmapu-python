@@ -6,11 +6,15 @@ from sqlalchemy.orm import Session, joinedload
 from src.api.news.dtos import CreateNewsDTO, UpdateNewsDTO
 from src.api.news.models import News
 
+# -----------------------------------------------------------------
 # GET ALL Pagination
 def get_all_pagination(page: int, items: int, search: str | None, db: Session):
   try:
     # Query base con eager loading de imágenes
-    query = db.query(News).options(joinedload(News.images))
+    query = (
+      db.query(News)
+      .options(joinedload(News.images))
+    )
     
     # Aplicar filtro de búsqueda si existe
     if search:
@@ -42,6 +46,7 @@ def get_all_pagination(page: int, items: int, search: str | None, db: Session):
   except SQLAlchemyError as e:
     raise e
 
+# -----------------------------------------------------------------
 # GET BY ID Pagination    
 def get_by_id(id: int, db: Session):
   try:
@@ -49,6 +54,7 @@ def get_by_id(id: int, db: Session):
   except SQLAlchemyError as e:
     raise e
 
+# -----------------------------------------------------------------
 # CREATE
 def create(data: CreateNewsDTO, db: Session):
   try:
@@ -66,6 +72,7 @@ def create(data: CreateNewsDTO, db: Session):
     db.rollback()
     raise e
 
+# -----------------------------------------------------------------
 # UPDATE
 def update(id: int, data: UpdateNewsDTO, db: Session):
   try:
@@ -88,6 +95,7 @@ def update(id: int, data: UpdateNewsDTO, db: Session):
     db.rollback()
     raise e
   
+# -----------------------------------------------------------------  
 # DELETE
 def delete(id: int, db: Session):
   try:

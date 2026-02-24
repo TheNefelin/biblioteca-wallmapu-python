@@ -1,17 +1,24 @@
 from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from sqlalchemy.orm import Session
+from starlette.status import HTTP_200_OK
 
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
-from src.api.news_gallery import dtos, repository, service
 from src.core.database import get_db
 from src.shared.dtos import ApiResponse
+from . import dtos, repository, service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
 router = APIRouter(prefix="/news-gallery", tags=["news-gallery"])
 
-@router.get("/news/{news_id}", response_model=ApiResponse[list[dtos.NewsGalleryDTO]])
+# -----------------------------------------------------------------
+# GET ALL
+@router.get(
+  "/news/{news_id}", 
+  response_model=ApiResponse[list[dtos.NewsGalleryDTO]],
+  status_code=HTTP_200_OK
+)
 def get_by_news_id(news_id: int, db: Session = Depends(get_db)):
   try:
     res = repository.get_by_news_id(news_id, db)
@@ -20,7 +27,10 @@ def get_by_news_id(news_id: int, db: Session = Depends(get_db)):
   except Exception as e:
     return ApiResponse.server_error(str(e))  
 
-@router.post("/news/{news_id}",
+# -----------------------------------------------------------------
+# CREATE
+@router.post(
+  "/news/{news_id}",
   response_model=ApiResponse[list[dtos.NewsGalleryDTO]],
   status_code=status.HTTP_201_CREATED
 )
@@ -55,7 +65,13 @@ def create_gallery(
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
-@router.delete("/news/{news_id}", response_model=ApiResponse[object])
+# -----------------------------------------------------------------
+# DELETE
+@router.delete(
+  "/news/{news_id}", 
+  response_model=ApiResponse[object],
+  status_code=status.HTTP_202_ACCEPTED
+)
 def delete_by_news_id(news_id: int, db: Session = Depends(get_db), current_user: dict = admin_required):
   try:
     res = service.delete_news_gallery_by_news_id(news_id, db)

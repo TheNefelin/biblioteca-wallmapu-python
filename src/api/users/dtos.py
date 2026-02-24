@@ -7,6 +7,7 @@ from src.api.communes.dtos import CommuneDTO
 from src.api.user_role.dtos import UserRoleDTO
 from src.api.user_status.dtos import UserStatusDTO
 
+# -----------------------------------------------------------------
 # USER DTO
 class UserDTO(BaseModel): 
   id_user: UUID4
@@ -24,13 +25,20 @@ class UserDTO(BaseModel):
 
   model_config = ConfigDict(from_attributes=True) # ✅ hace el mapeo
 
+# -----------------------------------------------------------------
+# USER WITH ROLE DTO
+class UserWithRoleDTO(UserDTO):
+  user_role: UserRoleDTO
+
+# -----------------------------------------------------------------
 # USER DETAIL DTO
 class UserDetailDTO(UserDTO):
   commune: Optional[CommuneDTO] = None
   user_role: UserRoleDTO
   user_status: UserStatusDTO
 
-# UPDATE DTO
+# -----------------------------------------------------------------
+# UPDATE BY USER DTO
 class UpdateUserDTO(BaseModel):
   name: Optional[str] = None
   lastname: Optional[str] = None
@@ -57,6 +65,8 @@ class UpdateUserDTO(BaseModel):
       raise ValueError('Teléfono debe contener solo números (máximo 10 dígitos)')
     return v
 
+# -----------------------------------------------------------------
+# UPDATE BY ADMIND TO
 class UpdateUserByAdminDTO(UpdateUserDTO):
   user_role_id: Optional[int] = None 
   user_status_id: Optional[int] = None 
