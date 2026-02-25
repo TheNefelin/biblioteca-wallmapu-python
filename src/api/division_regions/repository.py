@@ -1,7 +1,7 @@
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from src.api.regions.models import Region
+from src.api.division_regions.models import Region
 from . import dtos
 
 # -----------------------------------------------------------------

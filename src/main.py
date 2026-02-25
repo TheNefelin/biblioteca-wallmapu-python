@@ -4,17 +4,19 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import FileResponse
 
+from src.api.status.routes import router as status_router
 from src.api.auth.routes import router as auth_router
-from src.api.regions.routes import router as regions_router
-from src.api.provinces.routes import router as provinces_router
-from src.api.communes.routes import router as communes_router
+from src.api.division_regions.routes import router as regions_router
+from src.api.division_provinces.routes import router as provinces_router
+from src.api.division_communes.routes import router as communes_router
 from src.api.user_role.routes import router as users_role_router
 from src.api.user_status.routes import router as users_status_router
 from src.api.users.routes import router as users_router
 from src.api.news.routes import router as news_router
 from src.api.news_gallery.routes import router as news_gallery_router
-from src.api.editorials.routes import router as editorials_router
-from src.api.authors.routes import router as authors_router
+from src.api.book_editorials.routes import router as book_editorials_router
+from src.api.book_authors.routes import router as book_authors_router
+from src.api.book_subjects.routes import router as book_subjects_router
 
 app = FastAPI(title="Biblioteca Wallmapu API", description="In development", version="1.0")
 
@@ -46,6 +48,7 @@ async def root():
     "swagger": "/docs",
   }
 
+app.include_router(status_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(regions_router, prefix="/api")
 app.include_router(provinces_router, prefix="/api")
@@ -55,5 +58,6 @@ app.include_router(users_status_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
 app.include_router(news_router, prefix="/api")
 app.include_router(news_gallery_router, prefix="/api")
-app.include_router(editorials_router, prefix="/api")
-app.include_router(authors_router, prefix="/api")
+app.include_router(book_editorials_router, prefix="/api")
+app.include_router(book_authors_router, prefix="/api")
+app.include_router(book_subjects_router, prefix="/api")

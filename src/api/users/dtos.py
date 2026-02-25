@@ -3,7 +3,7 @@ import re
 from typing import Optional
 from pydantic import UUID4, BaseModel, ConfigDict, field_validator
 
-from src.api.communes.dtos import CommuneDTO
+from src.api.division_communes.dtos import CommuneDTO
 from src.api.user_role.dtos import UserRoleDTO
 from src.api.user_status.dtos import UserStatusDTO
 
