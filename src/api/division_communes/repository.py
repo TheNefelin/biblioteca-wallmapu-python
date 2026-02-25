@@ -7,9 +7,13 @@ from . import dtos, models
 # GET ALL
 def get_all(db: Session) -> list[dtos.CommuneDTO]:
   try:
-    items = db.query(models.Commune).all()
+    query = (
+      db.query(models.Commune)
+      .order_by(models.Commune.commune.asc())
+      .all()
+    )
     
-    return [dtos.CommuneDTO.model_validate(item) for item in items]
+    return [dtos.CommuneDTO.model_validate(item) for item in query]
   except SQLAlchemyError as e:
     raise e
   
