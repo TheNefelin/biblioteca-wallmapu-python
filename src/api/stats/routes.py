@@ -7,7 +7,7 @@ from src.core.database import get_db
 from src.shared.dtos import ApiResponse
 from . import dtos, repository
 
-router = APIRouter(prefix="/status", tags=["status"])
+router = APIRouter(prefix="/stat", tags=["stat"])
 
 # -----------------------------------------------------------------
 # GET ALL 
