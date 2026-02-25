@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import FileResponse
 
-from src.api.status.routes import router as status_router
+from src.api.stats.routes import router as stats_router
 from src.api.auth.routes import router as auth_router
 from src.api.division_regions.routes import router as regions_router
 from src.api.division_provinces.routes import router as provinces_router
@@ -48,7 +48,7 @@ async def root():
     "swagger": "/docs",
   }
 
-app.include_router(status_router, prefix="/api")
+app.include_router(stats_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(regions_router, prefix="/api")
 app.include_router(provinces_router, prefix="/api")
