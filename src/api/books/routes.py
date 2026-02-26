@@ -11,7 +11,7 @@ from . import dtos, repository
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
-router = APIRouter(prefix="/book", tags=["book"])
+router = APIRouter(prefix="/books", tags=["books"])
 
 # -----------------------------------------------------------------
 # GET ALL
