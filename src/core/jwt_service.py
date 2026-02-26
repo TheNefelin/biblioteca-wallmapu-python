@@ -8,7 +8,7 @@ from src.core.config import settings
 
 SECRET_KEY = settings.SECRET_KEY  # Agregar en .env
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 1 #60 * 24 * 7  # (7 días)
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 #60 * 24 * 7  # (7 días)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 def create_access_token(user_id: UUID, role: str) -> str:
