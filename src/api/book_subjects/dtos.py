@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict
 
 class SubjectDTO(BaseModel):
   id_subject: int
-  subject: str
+  name: str
   created_at: datetime
   updated_at: datetime
   

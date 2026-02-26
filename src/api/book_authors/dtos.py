@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict
 
 class AuthorDTO(BaseModel):
   id_author: int
-  author: str
+  name: str
   created_at: datetime
   updated_at: datetime
 
