@@ -2,8 +2,10 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from src.api.book_authors.models import Author
-from src.api.book_editorials.models import Editorial
+from src.api.books.models import Book
+from src.api.authors.models import Author
+from src.api.editorials.models import Editorial
+from src.api.subjects.models import Subject
 from src.api.division_regions.models import Region
 from src.api.division_provinces.models import Province
 from src.api.division_communes.models import Commune
@@ -23,8 +25,8 @@ def get_all_admin(db: Session):
         select(func.count(Commune.id_commune)).scalar_subquery().label("communes"),
         select(func.count(Author.id_author)).scalar_subquery().label("authors"),
         select(func.count(Editorial.id_editorial)).scalar_subquery().label("editorials"),
-        #select(func.count(Subject.id_subject)).scalar_subquery().label("subjects"),
-        #select(func.count(Book.id_book)).scalar_subquery().label("books"),
+        select(func.count(Subject.id_subject)).scalar_subquery().label("subjects"),
+        select(func.count(Book.id_book)).scalar_subquery().label("books"),
     )
 
     result = query.one()

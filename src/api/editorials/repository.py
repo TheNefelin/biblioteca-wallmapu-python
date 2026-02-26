@@ -9,7 +9,7 @@ def get_all(db: Session) -> list[dtos.EditorialDTO]:
   try:
     query = (
       db.query(models.Editorial)
-      .order_by(models.Editorial.editorial.asc())
+      .order_by(models.Editorial.name.asc())
       .all()
     )
 

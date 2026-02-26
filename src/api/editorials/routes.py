@@ -11,16 +11,16 @@ from . import dtos, repository
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
-router = APIRouter(prefix="/book-author", tags=["book-author"], dependencies=[admin_required])
+router = APIRouter(prefix="/editorial", tags=["editorial"], dependencies=[admin_required])
 
 # -----------------------------------------------------------------
 # GET ALL
 @router.get(
   "/", 
-  response_model=ApiResponse[List[dtos.AuthorDTO]],
+  response_model=ApiResponse[List[dtos.EditorialDTO]],
   status_code=HTTP_200_OK
 )
-def get_all_author(db: Session = Depends(get_db)):
+def get_all_editorial(db: Session = Depends(get_db)):
   try:
     res = repository.get_all(db)
     return ApiResponse.success(data=res)    

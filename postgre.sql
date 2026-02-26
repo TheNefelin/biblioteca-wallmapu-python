@@ -116,32 +116,33 @@ CREATE TABLE IF NOT EXISTS wm_subjects (
 CREATE TABLE IF NOT EXISTS wm_books (
   id_book INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   title VARCHAR(300) NOT NULL,
-  isbn VARCHAR(20) UNIQUE,
+  description TEXT NOT NULL,
+  cover_image_url VARCHAR(255) NOT NULL,
+  isbn VARCHAR(20) UNIQUE NOT NULL,
   edition VARCHAR(50),
-  publication_year INTEGER,
-  pages INTEGER,
-  dewey_number VARCHAR(20),
-  cutter VARCHAR(20),
-  editorial_id INTEGER NOT NULL,
+  publication_year INTEGER NOT NULL,
+  pages INTEGER NOT NULL,
+  dewey_number VARCHAR(20) NOT NULL,
+  cutter VARCHAR(20) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  editorial_id INTEGER NOT NULL,
   CONSTRAINT books_editorials_fk FOREIGN KEY (editorial_id) REFERENCES wm_editorials(id_editorial)
 );
 
 CREATE TABLE IF NOT EXISTS wm_book_copies (
   id_copy INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  book_id INTEGER NOT NULL,
-  status_id SMALLINT NOT NULL,
   barcode VARCHAR(50) UNIQUE NOT NULL,
   signature_topography VARCHAR(50) NOT NULL,
   spine_label VARCHAR(50),
   location VARCHAR(100),
-  status VARCHAR(30) DEFAULT 'available',
   acquisition_date DATE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  book_id INTEGER NOT NULL,
+  status_id SMALLINT,
   CONSTRAINT copies_books_fk FOREIGN KEY (book_id) REFERENCES wm_books(id_book)
-  CONSTRAINT copies_books_status_fk FOREIGN KEY (status_id) REFERENCES wm_copy_book_status(id_status)
+  --CONSTRAINT copies_books_status_fk FOREIGN KEY (status_id) REFERENCES wm_copy_book_status(id_status)
 );
 
 CREATE TABLE IF NOT EXISTS wm_copy_book_status (
@@ -1164,4 +1165,102 @@ INSERT INTO wm_authors (author) VALUES
 ('antologia'),
 ('antolologia ilustrada');
 
+
+
+INSERT INTO wm_authors (name) VALUES
+('Marcela Paz'),
+('Luis Sepúlveda'),
+('Christopher Paolini'),
+('George R. R. Martin'),
+('Stephen King'),
+('H. P. Lovecraft'),
+('Dan Brown'),
+('Homero'),
+('Peter J. Tomasi'),
+('Thomas Harris'),
+('Arthur C. Clarke'),
+('J. R. R. Tolkien');
+
+
+
+INSERT INTO wm_editorials (name) VALUES
+('Editorial Universitaria'),
+('Tusquets Editores'),
+('Alfaguara'),
+('Plaza & Janés'),
+('Doubleday'),
+('Arkham House'),
+('Planeta'),
+('Penguin Random House'),
+('DC Comics'),
+('St. Martin''s Press'),
+('Debolsillo'),
+('Minotauro');
+
+
+INSERT INTO wm_subjects (name) VALUES
+('Literatura infantil'),
+('Literatura chilena'),
+('Niños'),
+('Vida cotidiana'),
+('Novela latinoamericana'),
+('Amazonía'),
+('Soledad'),
+('Fantasía épica'),
+('Dragones'),
+('Magia'),
+('Reinos imaginarios'),
+('Novela de terror'),
+('Cementerios'),
+('Horror cósmico'),
+('Seres sobrenaturales'),
+('Thriller psicológico'),
+('Asesinos seriales'),
+('Simbología religiosa'),
+('Conspiraciones'),
+('Epopeya griega'),
+('Mitología griega'),
+('Guerra de Troya'),
+('Ciencia ficción'),
+('Vida extraterrestre'),
+('Distopías'),
+('Superhéroes'),
+('Identidad secreta'),
+('Tierra Media'),
+('Viajes fantásticos'),
+('Criaturas míticas');
+
+
+INSERT INTO wm_books 
+(title, description, cover_image_url, isbn, edition, publication_year, pages, dewey_number, cutter, editorial_id)
+VALUES
+('Papelucho','Las aventuras de un niño travieso chileno.','images/test/01.jpg','9789561111851','1ra edición',1947,200,'863','P348',1),
+('Un viejo que leía novelas de amor','Novela ambientada en la Amazonía.','images/test/02.jpg','9788483835302','1ra edición',1989,250,'863','S479',2),
+('El despertar de los dragones','Fantasía épica con dragones.','images/test/03.jpg','9780375826680','1ra edición',2003,500,'813.6','P195',3),
+('El mundo de Hielo y Fuego','Historia épica de reinos en guerra.','images/test/04.jpg','9788416035342','1ra edición',1996,700,'813.54','M379',4),
+('Cementerio de animales','Novela de terror psicológico.','images/test/05.jpg','9780385182443','1ra edición',1983,350,'813.54','K54',5),
+('El llamado de Cthulhu','Relato de horror cósmico.','images/test/06.jpg','9780486294380','1ra edición',1928,150,'813.52','L897',6),
+('El Código Da Vinci','Thriller de misterio y conspiración.','images/test/07.jpg','9788408175728','1ra edición',2003,450,'813.54','B877',7),
+('La Iliada y la Odisea','Epopeyas clásicas griegas.','images/test/08.jpg','9788433906489','1ra edición',-800,600,'883','H767',8),
+('Superman Dawnbreaker','Novela gráfica de superhéroes.','images/test/09.jpg','9781401278919','1ra edición',2018,120,'741.5','T655',9),
+('El silencio de los corderos','Thriller psicológico criminal.','images/test/10.jpg','9780312927226','1ra edición',1988,350,'813.54','H316',10),
+('El fin de la Infancia','Ciencia ficción clásica.','images/test/11.webp','9788445077009','1ra edición',1985,280,'823.914','C592',11),
+('El Hobbit','Fantasía clásica con dragones.','images/test/12.webp','9786070797217','1ra edición',1937,310,'823.912','T649',12);
+
+
+INSERT INTO wm_book_copies
+(book_id, status_id, barcode, signature_topography, spine_label, location, acquisition_date)
+VALUES
+(1,1,'BC0001','863 P348','863 P348','General',CURRENT_DATE),
+(2,1,'BC0002','863 S479','863 S479','General',CURRENT_DATE),
+(3,1,'BC0003','813.6 P195','813.6 P195','General',CURRENT_DATE),
+(4,1,'BC0004','813.54 M379','813.54 M379','General',CURRENT_DATE),
+(5,1,'BC0005','813.54 K54','813.54 K54','General',CURRENT_DATE),
+(6,1,'BC0006','813.52 L897','813.52 L897','General',CURRENT_DATE),
+(7,1,'BC0007','813.54 B877','813.54 B877','General',CURRENT_DATE),
+(8,1,'BC0008','883 H767','883 H767','General',CURRENT_DATE),
+(9,1,'BC0009','741.5 T655','741.5 T655','General',CURRENT_DATE),
+(10,1,'BC0010','813.54 H316','813.54 H316','General',CURRENT_DATE),
+(11,1,'BC0011','823.914 C592','823.914 C592','General',CURRENT_DATE),
+(12,1,'BC0012','823.912 T649','823.912 T649','General',CURRENT_DATE);
 
