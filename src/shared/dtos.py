@@ -4,7 +4,13 @@ from pydantic import BaseModel, Field
 
 T = TypeVar('T')
 
+class PaginationRequestDTO(BaseModel):
+  page: int 
+  limit: int 
+  search: Optional[str] = None
+
 class PaginationResponseDTO(BaseModel, Generic[T]): 
+  page: int = Field(..., description="Página actual")
   pages: int= Field(..., description="Cantidad total de páginas disponibles")
   items: int = Field(..., description="Cantidad total de registros disponibles")
   next: Optional[str] = Field(None, description="URL de la siguiente página, si existe")

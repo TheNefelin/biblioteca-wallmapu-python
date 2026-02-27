@@ -5,6 +5,7 @@ from sqlalchemy import UUID
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import SQLAlchemyError
 
+from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.api.user_status import models as status_models
 from src.api.user_role import models as role_models
 from . import models, dtos
@@ -12,11 +13,9 @@ from . import models, dtos
 # -----------------------------------------------------------------
 # GET ALL DETAILED
 def get_all_detailed(
-  page: int, 
-  items: int, 
-  search: str | None, 
+  pagination: PaginationRequestDTO, 
   db: Session
-) -> tuple[int, int, list[dtos.UserDetailDTO]]:
+) -> PaginationResponseDTO:
   try:
     query = (
       db.query(models.User)
@@ -27,31 +26,38 @@ def get_all_detailed(
       )
     )
 
-    if search:
-      search_filter = or_(
-        models.User.name.ilike(f"%{search}%"),
-        models.User.lastname.ilike(f"%{search}%"),
-        models.User.email.ilike(f"%{search}%"),
-        models.User.user_role.has(role_models.UserRole.role.ilike(f"%{search}%")),
-        models.User.user_status.has(status_models.UserStatus.status.ilike(f"%{search}%")),
+    if pagination.search:
+      query = query.filter(
+        or_(
+          models.User.name.ilike(f"%{pagination.search}%"),
+          models.User.lastname.ilike(f"%{pagination.search}%"),
+          models.User.email.ilike(f"%{pagination.search}%"),
+          models.User.user_role.has(role_models.UserRole.role.ilike(f"%{pagination.search}%")),
+          models.User.user_status.has(status_models.UserStatus.status.ilike(f"%{pagination.search}%")),          
+        )
       )
-      query = query.filter(search_filter)    
 
-    # Paginación
-    count = query.order_by(None).count()
-    pages = ceil(count / items) if count > 0 else 0
-    offset = (page - 1) * items
+    items = query.count()
+    pages = ceil(items / pagination.limit) if items > 0 else 0
+
+    # Ajuste seguro de página
+    page = min(pagination.page, pages) if pages > 0 else 1
+    skip = (page - 1) * pagination.limit
 
     result = (
       query
-      .order_by(models.User.created_at.desc())
-      .offset(offset)
-      .limit(items)
+      .order_by(models.User.name.asc())
+      .offset(skip)
+      .limit(pagination.limit)
       .all()
     )
 
-    dto_list = [dtos.UserDetailDTO.model_validate(item)for item in result]
-    return count, pages, dto_list
+    return PaginationResponseDTO(
+      page=page,
+      pages=pages,
+      items=items,
+      result=result
+    )
   except SQLAlchemyError as e:
     raise e
 

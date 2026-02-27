@@ -2,9 +2,9 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.orm import Session
-from starlette.status import HTTP_200_OK, HTTP_202_ACCEPTED, HTTP_204_NO_CONTENT
+from starlette.status import HTTP_200_OK, HTTP_202_ACCEPTED
 
-from src.shared.dtos import ApiResponse, PaginationResponseDTO
+from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
 from src.core.url_helper import get_base_url
@@ -25,41 +25,38 @@ router = APIRouter(prefix="/news", tags=["news"])
 def get_all_pagination(
   request: Request,
   page: int = Query(default=1, ge=1, description="Número de página a mostrar"),
-  items: int = Query(default=10, ge=1, le=100, description="Cantidad de elementos por página"),
+  limit: int = Query(default=10, ge=1, le=100, description="Cantidad de elementos por página"),
   search: Optional[str] = Query(default=None, description="Buscar en título o subtítulo"),
   db: Session = Depends(get_db)
 ):
   try:
-    count, pages, result = repository.get_all_pagination(page, items, search, db)
-    
-    # Ajuste automático de página
-    if page > pages and pages > 0:
-      page = pages
-      count, pages, result = repository.get_all_pagination(page, items, search, db)
-
-    # Construir URLs next/prev
-    search_param = f"&search={search}" if search else ""
-    
-    next_url = None
-    prev_url = None
-    
-    base_url = get_base_url(request)
-  
-    if page < pages:
-      next_url = f"{base_url}?page={page + 1}&page_size={items}{search_param}"
-    
-    if page > 1:
-      prev_url = f"{base_url}?page={page - 1}&page_size={items}{search_param}"
-    
-    paginationResult = PaginationResponseDTO(  
-      items=count,
-      pages=pages,
-      next=next_url,
-      prev=prev_url,
-      result=result
+    pagination_request = PaginationRequestDTO(
+      page=page,
+      limit=limit,
+      search=search
     )
+    
+    pagination_response = repository.get_all_pagination(pagination_request, db)
 
-    return ApiResponse.success(paginationResult)
+    current_page = pagination_response.page
+    total_pages = pagination_response.pages
+
+    base_url = get_base_url(request)
+    search_param = f"&search={search}" if search else ""
+
+    # NEXT
+    if current_page < total_pages:
+      pagination_response.next = (
+        f"{base_url}?page={current_page + 1}&limit={limit}{search_param}"
+      )
+
+    # PREV
+    if current_page > 1:
+      pagination_response.prev = (
+        f"{base_url}?page={current_page - 1}&limit={limit}{search_param}"
+      )
+
+    return ApiResponse.success(pagination_response)
   except Exception as e:
     return ApiResponse.server_error(str(e))
 

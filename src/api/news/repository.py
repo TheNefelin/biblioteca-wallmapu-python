@@ -3,62 +3,66 @@ from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 
-from src.api.news.dtos import CreateNewsDTO, UpdateNewsDTO
-from src.api.news.models import News
+from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from . import models, dtos
 
 # -----------------------------------------------------------------
 # GET ALL Pagination
-def get_all_pagination(page: int, items: int, search: str | None, db: Session):
+def get_all_pagination(
+  pagination: PaginationRequestDTO, 
+  db: Session
+) -> PaginationResponseDTO:
   try:
-    # Query base con eager loading de imágenes
     query = (
-      db.query(News)
-      .options(joinedload(News.images))
+      db.query(models.News)
+      .options(joinedload(models.News.images))
     )
     
-    # Aplicar filtro de búsqueda si existe
-    if search:
-      search_filter = or_(
-        News.title.ilike(f"%{search}%"),
-        News.subtitle.ilike(f"%{search}%")
+    if pagination.search:
+      query = query.filter(
+        or_(
+          models.News.title.ilike(f"%{pagination.search}%"),
+          models.News.subtitle.ilike(f"%{pagination.search}%")
+        )
       )
-      query = query.filter(search_filter)
     
-    # Total de registros
-    count = query.count()
-    
-    # Total de páginas
-    pages = ceil(count / items) if count > 0 else 0
-    
-    # Calcular offset
-    skip = (page - 1) * items
-    
-    # Obtener registros paginados
+    items = query.count()
+    pages = ceil(items / pagination.limit) if items > 0 else 0
+
+    # Ajuste seguro de página
+    page = min(pagination.page, pages) if pages > 0 else 1
+    skip = (page - 1) * pagination.limit
+
     result = (
       query
-      .order_by(News.created_at.desc())
+      .order_by(models.News.created_at.desc())
       .offset(skip)
-      .limit(items)
+      .limit(pagination.limit)
       .all()
     )
-    
-    return count, pages, result
+
+    return PaginationResponseDTO(
+      page=page,
+      pages=pages,
+      items=items,
+      result=result
+    )
   except SQLAlchemyError as e:
     raise e
 
 # -----------------------------------------------------------------
-# GET BY ID Pagination    
+# GET BY ID    
 def get_by_id(id: int, db: Session):
   try:
-    return db.query(News).filter(News.id_news == id).first()
+    return db.query(models.News).filter(models.News.id_news == id).first()
   except SQLAlchemyError as e:
     raise e
 
 # -----------------------------------------------------------------
 # CREATE
-def create(data: CreateNewsDTO, db: Session):
+def create(data: dtos.CreateNewsDTO, db: Session):
   try:
-    new_item = News(**data.model_dump())
+    new_item = models.News(**data.model_dump())
     
     db.add(new_item)
     db.commit()
@@ -74,9 +78,9 @@ def create(data: CreateNewsDTO, db: Session):
 
 # -----------------------------------------------------------------
 # UPDATE
-def update(id: int, data: UpdateNewsDTO, db: Session):
+def update(id: int, data: dtos.UpdateNewsDTO, db: Session):
   try:
-    item = db.query(News).filter(News.id_news == id).first()
+    item = db.query(models.News).filter(models.News.id_news == id).first()
 
     if not item:
       return None
@@ -99,7 +103,7 @@ def update(id: int, data: UpdateNewsDTO, db: Session):
 # DELETE
 def delete(id: int, db: Session):
   try:
-    item = db.query(News).filter(News.id_news == id).first()
+    item = db.query(models.News).filter(models.News.id_news == id).first()
     
     if not item:
       return 0
