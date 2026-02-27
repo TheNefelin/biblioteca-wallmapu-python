@@ -1,4 +1,5 @@
 from typing import List, Optional
+from unittest import result
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_200_OK
@@ -58,3 +59,26 @@ def get_all_pagination(
     return ApiResponse.success(pagination_response)
   except Exception as e:
     return ApiResponse.server_error(str(e))
+
+# -----------------------------------------------------------------
+# GET ALL BY ID
+@router.get(
+  "/{id}", 
+  response_model=ApiResponse[dtos.BookDTO], 
+  status_code=HTTP_200_OK
+)
+def get_by_id(
+  request: Request,
+  id: int, 
+  db: Session = Depends(get_db)
+):
+  try:
+    result = repository.get_by_id(id, db)
+    
+    if not result:
+      return ApiResponse.not_found()
+
+    return ApiResponse.success(result)
+  except Exception as e:
+    return ApiResponse.server_error(str(e))
+

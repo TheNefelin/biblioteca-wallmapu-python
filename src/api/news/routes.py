@@ -61,7 +61,7 @@ def get_all_pagination(
     return ApiResponse.server_error(str(e))
 
 # -----------------------------------------------------------------
-# GET BY ID Pagination    
+# GET BY ID    
 @router.get(
   "/{id}", 
   response_model=ApiResponse[dtos.NewsWithGalleryDTO], 

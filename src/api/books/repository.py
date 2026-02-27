@@ -4,7 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
-from . import models
+from . import models, dtos
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
@@ -30,7 +30,7 @@ def get_all_pagination(
     page = min(pagination.page, pages) if pages > 0 else 1
     skip = (page - 1) * pagination.limit
 
-    result = (
+    resultModel = (
       query
       .order_by(models.Book.title.asc())
       .offset(skip)
@@ -38,12 +38,27 @@ def get_all_pagination(
       .all()
     )
 
+    resultDto = [dtos.BookDTO.model_validate(item) for item in resultModel]
+
     return PaginationResponseDTO(
       page=page,
       pages=pages,
       items=items,
-      result=result
+      result=resultDto
     )
+  except SQLAlchemyError as e:
+    raise e
+
+# -----------------------------------------------------------------
+# GET BY ID    
+def get_by_id(id: int, db: Session) -> dtos.BookDTO:
+  try:
+    entity = db.query(models.Book).filter(models.Book.id_book == id).first()
+
+    if not entity:
+      return None
+      
+    return dtos.BookDTO.model_validate(entity)  
   except SQLAlchemyError as e:
     raise e
 
