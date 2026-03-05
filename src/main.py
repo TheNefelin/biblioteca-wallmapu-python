@@ -14,11 +14,12 @@ from src.api.user_status.routes import router as users_status_router
 from src.api.users.routes import router as users_router
 from src.api.news.routes import router as news_router
 from src.api.news_gallery.routes import router as news_gallery_router
-from src.api.editorials.routes import router as editorials_router
 from src.api.book_authors.routes import router as book_authors_router
 from src.api.book_subjects.routes import router as book_subjects_router
 from src.api.book_genres.routes import router as book_genres_router
 from src.api.books.routes import router as books_router
+from src.api.book_editions.routes import router as book_editions_router
+from src.api.editorials.routes import router as editorials_router
 from src.api.copy_status.routes import router as copy_status_router
 
 app = FastAPI(title="Biblioteca Wallmapu API", description="In development", version="1.0")
@@ -65,7 +66,7 @@ app.include_router(book_authors_router, prefix="/api")
 app.include_router(book_genres_router, prefix="/api")
 app.include_router(book_subjects_router, prefix="/api")
 app.include_router(books_router, prefix="/api")
-
+app.include_router(book_editions_router, prefix="/api")
 app.include_router(editorials_router, prefix="/api")
 app.include_router(copy_status_router, prefix="/api")
 

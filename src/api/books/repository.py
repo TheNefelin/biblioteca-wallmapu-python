@@ -59,7 +59,8 @@ def get_by_id(id: int, db: Session) -> dtos.BookDTO:
       .options(
         joinedload(models.Book.genre),
         joinedload(models.Book.book_authors).joinedload(models.BookAuthor.author),
-        joinedload(models.Book.book_subjects).joinedload(models.BookSubject.subject)
+        joinedload(models.Book.book_subjects).joinedload(models.BookSubject.subject),
+        joinedload(models.Book.editions),
       )
       .first()
     )

@@ -18,13 +18,13 @@ class Book(Base):
   book_authors = relationship("BookAuthor", back_populates="book")
   book_subjects = relationship("BookSubject", back_populates="book")
 
-  @property
-  def authors(self):
-    return [ba.author for ba in self.book_authors]
+  editions = relationship("Edition", back_populates="book")
 
   @property
-  def subjects(self):
-    return [bs.subject for bs in self.book_subjects]
+  def authors(self): return [ba.author for ba in self.book_authors]
+
+  @property
+  def subjects(self): return [bs.subject for bs in self.book_subjects]
 
 
 class BookAuthor(Base):
