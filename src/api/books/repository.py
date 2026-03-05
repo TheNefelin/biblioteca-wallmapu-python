@@ -13,13 +13,23 @@ def get_all_pagination(
   db: Session
 ) -> PaginationResponseDTO:
   try:
-    query = db.query(models.Book)
+    query = (
+      db.query(models.Book)
+      .options(
+        joinedload(models.Book.genre),
+        joinedload(models.Book.book_authors).joinedload(models.BookAuthor.author),
+        joinedload(models.Book.book_subjects).joinedload(models.BookSubject.subject),
+        joinedload(models.Book.editions),
+      )
+    )    
 
     if pagination.search:
       query = query.filter(
         or_(
           models.Book.title.ilike(f"%{pagination.search}%"),
-          models.Book.edition.ilike(f"%{pagination.search}%")
+          models.Book.editions.any(
+            models.Edition.edition.ilike(f"%{pagination.search}%")
+          )
         )
       )
 
