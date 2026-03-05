@@ -1,9 +1,8 @@
 from datetime import datetime
-
 from pydantic import BaseModel, ConfigDict
 
 
-class BookGenreDTO(BaseModel):
+class GenreDTO(BaseModel):
   id_genre: int
   name: str
   created_at: datetime

@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict
 from src.api.book_authors.dtos import AuthorDTO
 from src.api.book_editions.dtos import EditionDTO
 from src.api.book_subjects.dtos import SubjectDTO
-from src.api.book_genres.dtos import BookGenreDTO
+from src.api.book_genres.dtos import GenreDTO
 
 
 class BookDTO(BaseModel):
@@ -14,7 +14,7 @@ class BookDTO(BaseModel):
   summary: str
   created_at: datetime
   updated_at: datetime
-  genre: BookGenreDTO
+  genre: GenreDTO
   authors: List[AuthorDTO]
   subjects: List[SubjectDTO]
   editions: List[EditionDTO]

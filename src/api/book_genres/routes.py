@@ -11,13 +11,13 @@ from . import dtos, repository
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
-router = APIRouter(prefix="/genre", tags=["genre"], dependencies=[admin_required])
+router = APIRouter(prefix="/genre", tags=["genre"])
 
 # -----------------------------------------------------------------
 # GET ALL
 @router.get(
   "/", 
-  response_model=ApiResponse[List[dtos.BookGenreDTO]],
+  response_model=ApiResponse[List[dtos.GenreDTO]],
   status_code=HTTP_200_OK
 )
 def get_all_genre(db: Session = Depends(get_db)):
