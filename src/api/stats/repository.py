@@ -3,9 +3,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from src.api.books.models import Book
-from src.api.authors.models import Author
 from src.api.editorials.models import Editorial
-from src.api.subjects.models import Subject
+from src.api.book_authors.models import Author
+from src.api.book_subjects.models import Subject
 from src.api.division_regions.models import Region
 from src.api.division_provinces.models import Province
 from src.api.division_communes.models import Commune

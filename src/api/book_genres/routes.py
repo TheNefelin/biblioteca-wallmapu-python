@@ -17,7 +17,7 @@ router = APIRouter(prefix="/genre", tags=["genre"], dependencies=[admin_required
 # GET ALL
 @router.get(
   "/", 
-  response_model=ApiResponse[List[dtos.GenreDTO]],
+  response_model=ApiResponse[List[dtos.BookGenreDTO]],
   status_code=HTTP_200_OK
 )
 def get_all_genre(db: Session = Depends(get_db)):

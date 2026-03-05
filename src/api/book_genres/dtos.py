@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 
-class GenreDTO(BaseModel):
+class BookGenreDTO(BaseModel):
   id_genre: int
   name: str
   created_at: datetime

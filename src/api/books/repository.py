@@ -1,7 +1,7 @@
 from math import ceil
 from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
 from . import models, dtos
@@ -53,11 +53,22 @@ def get_all_pagination(
 # GET BY ID    
 def get_by_id(id: int, db: Session) -> dtos.BookDTO:
   try:
-    entity = db.query(models.Book).filter(models.Book.id_book == id).first()
+    entity = (
+      db.query(models.Book)
+      .filter(models.Book.id_book == id)
+      .options(
+        joinedload(models.Book.genre),
+        joinedload(models.Book.book_authors).joinedload(models.BookAuthor.author),
+        joinedload(models.Book.book_subjects).joinedload(models.BookSubject.subject)
+      )
+      .first()
+    )
 
     if not entity:
       return None
-      
+
+    print(entity)
+
     return dtos.BookDTO.model_validate(entity)  
   except SQLAlchemyError as e:
     raise e

@@ -1,22 +1,20 @@
 from datetime import datetime
+from typing import List
 from pydantic import BaseModel, ConfigDict
+
+from src.api.book_authors.dtos import AuthorDTO
+from src.api.book_subjects.dtos import SubjectDTO
+from src.api.book_genres.dtos import BookGenreDTO
 
 
 class BookDTO(BaseModel):
   id_book: int
   title: str
-  description: str
-  cover_image_url: str
-  isbn: str
-  edition: str
-  publication_year: int
-  pages: int
-  dewey_number: str
-  cutter: str
+  summary: str
   created_at: datetime
   updated_at: datetime
-  editorial_id: int
-
+  genre: BookGenreDTO
+  authors: List[AuthorDTO]
+  subjects: List[SubjectDTO]
 
   model_config = ConfigDict(from_attributes=True)
-
