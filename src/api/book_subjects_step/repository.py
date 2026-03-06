@@ -11,7 +11,10 @@ def delete(item: dtos.BookSubjectDTO, db: Session) -> bool:
       models.BookSubject,
       (item.id_book, item.id_subject)
     )
-    
+
+    print(item)    
+    print(relation)
+
     if not relation:
       return False
 
