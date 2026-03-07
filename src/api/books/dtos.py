@@ -20,3 +20,18 @@ class BookDTO(BaseModel):
   editions: List[EditionDTO]
 
   model_config = ConfigDict(from_attributes=True)
+
+class CreateBookDTO(BaseModel):
+  title: str
+  summary: str
+  genre_id: int
+  authors: List[int]
+  subjects: List[int]
+
+class UpdateBookDTO(BaseModel):
+  id_book: int
+  title: str
+  summary: str
+  genre_id: int
+  authors: List[int]
+  subjects: List[int]

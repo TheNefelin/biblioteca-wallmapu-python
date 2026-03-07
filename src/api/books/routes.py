@@ -2,7 +2,7 @@ from typing import List, Optional
 from unittest import result
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
-from starlette.status import HTTP_200_OK
+from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 
 from src.core.url_helper import get_base_url
 from src.core.database import get_db
@@ -81,4 +81,67 @@ def get_by_id(
     return ApiResponse.success(result)
   except Exception as e:
     return ApiResponse.server_error(str(e))
+
+# -----------------------------------------------------------------
+# CREATE
+@router.post(
+  "/",
+  response_model=ApiResponse[dtos.BookDTO], 
+  status_code=HTTP_201_CREATED,
+  dependencies=[admin_required]
+)
+def create_book(
+  book: dtos.CreateBookDTO, 
+  db: Session = Depends(get_db)
+):
+  try:
+    if book.authors.count == 0:
+      return ApiResponse.bad_request(message="El autor es requerido")
+
+    if book.subjects.count == 0:
+      return ApiResponse.bad_request(message="El o los descriptores son requerido")
+
+    if book.genre_id == 0:
+      return ApiResponse.bad_request(message="El género es requerido")      
+    
+    result = repository.create(book, db)
+
+    return ApiResponse.success(data=result)
+  except Exception as e:
+    return ApiResponse.server_error(message=str(e))
+      
+# -----------------------------------------------------------------
+# UPDATE
+@router.put(
+  "/{id}",
+  response_model=ApiResponse[dtos.BookDTO], 
+  status_code=HTTP_200_OK,
+  dependencies=[admin_required]
+)
+def update_book(
+  id: int, 
+  book: dtos.UpdateBookDTO, 
+  db: Session = Depends(get_db)
+):
+  try:
+    if book.id_book != id:
+      return ApiResponse.bad_request(message="El Id no coincide")
+
+    if book.authors.count == 0:
+      return ApiResponse.bad_request(message="El autor es requerido")
+
+    if book.subjects.count == 0:
+      return ApiResponse.bad_request(message="El o los descriptores son requerido")
+
+    if book.genre_id == 0:
+      return ApiResponse.bad_request(message="El género es requerido")      
+      
+    result = repository.update(book, db)
+    
+    if not result:
+      return ApiResponse.not_found()
+
+    return ApiResponse.success(data=result)
+  except Exception as e:
+    return ApiResponse.server_error(message=str(e))
 

@@ -1,8 +1,10 @@
 from math import ceil
 from sqlalchemy import or_
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 
+from src.api.book_authors_step import repository as book_author_repo
+from src.api.book_subjects_step import repository as book_subject_repo
 from src.api.book_editions.models import Edition
 from src.api.book_authors_step.models import BookAuthor
 from src.api.book_subjects_step.models import BookSubject
@@ -22,7 +24,7 @@ def get_all_pagination(
         joinedload(models.Book.genre),
         joinedload(models.Book.book_authors).joinedload(BookAuthor.author),
         joinedload(models.Book.book_subjects).joinedload(BookSubject.subject),
-        joinedload(models.Book.editions).joinedload(Edition),
+        joinedload(models.Book.editions),
       )
     )    
 
@@ -31,7 +33,7 @@ def get_all_pagination(
         or_(
           models.Book.title.ilike(f"%{pagination.search}%"),
           models.Book.editions.any(
-            models.Edition.edition.ilike(f"%{pagination.search}%")
+            Edition.edition.ilike(f"%{pagination.search}%")
           )
         )
       )
@@ -87,3 +89,71 @@ def get_by_id(id: int, db: Session) -> dtos.BookDTO:
   except SQLAlchemyError as e:
     raise e
 
+# -----------------------------------------------------------------
+# CREATE
+def create(bookDto: dtos.CreateBookDTO, db: Session) -> dtos.BookDTO:
+  try:
+    # 1️⃣ Extraer datos del DTO
+    new_data = bookDto.model_dump(exclude_unset=True)
+    author_ids = new_data.pop("authors", None)
+    subject_ids = new_data.pop("subjects", None)
+
+    # 2️⃣ Crear la instancia de SQLAlchemy
+    book = models.Book(**new_data)
+
+    # 3️⃣ Agregar a la sesión y hacer commit
+    db.add(book)
+    db.commit()
+    db.refresh(book)  # Para que book tenga id_book y timestamps
+
+    # 4️⃣ Manejar relaciones con autores y subjects
+    if author_ids is not None:
+      book_author_repo.update(book.id_book, author_ids, db)
+
+    if subject_ids is not None:
+      book_subject_repo.update(book.id_book, subject_ids, db)
+
+    # 5️⃣ Refrescar para incluir relaciones y devolver DTO
+    db.refresh(book)
+    return dtos.BookDTO.model_validate(book)
+  except IntegrityError as e:
+    db.rollback()
+    raise ValueError(e.orig)
+  except SQLAlchemyError as e:
+    db.rollback()
+    raise e
+
+# -----------------------------------------------------------------
+# UPDATE
+def update(bookDto: dtos.UpdateBookDTO, db: Session) -> dtos.BookDTO:
+  try:
+    book = db.get(models.Book, bookDto.id_book)
+
+    if not book:
+      return None
+
+    update_data = bookDto.model_dump(exclude_unset=True)
+    author_ids = update_data.pop("authors", None)
+    subject_ids = update_data.pop("subjects", None)
+
+    for key, value in update_data.items():
+      setattr(book, key, value)
+
+    db.commit()
+
+    if author_ids is not None:
+      book_author_repo.update(book.id_book, author_ids, db)
+
+    if subject_ids is not None:
+      book_subject_repo.update(book.id_book, subject_ids, db)
+
+    db.refresh(book)
+
+    return dtos.BookDTO.model_validate(book)
+  except IntegrityError as e:
+    db.rollback()
+    raise ValueError(e.orig)
+  except SQLAlchemyError as e:
+    db.rollback()
+    raise e
+    
