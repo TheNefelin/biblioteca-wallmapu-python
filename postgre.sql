@@ -683,40 +683,60 @@ INSERT INTO wm_copy_status (id_status, name) VALUES
 
 INSERT INTO wm_books (title, summary, genre_id) VALUES
 ('Papelucho',
- 'Relato clásico chileno sobre las divertidas y reflexivas aventuras de un niño curioso que narra su vida en forma de diario.',
+ 'Papelucho tiene un terrible secreto, tan terrible que no puede contárselo a nadie. Por eso decide escribirlo en un diario...
+Asi comienza la exitosa serie de diarios de Papelucho, personaje que con su ingenio logra transformar la vida cotidiana en un escenario chispeante, donde las travesuras son las protagonistas',
  14),
 ('Un viejo que leía novelas de amor',
- 'Novela ambientada en la Amazonía que narra la vida de un anciano que descubre el amor por la lectura mientras enfrenta la dureza de la selva.',
+ 'Antonio José Bolívar Proaño vive en El Idilio, un pueblo remoto en la región amazónica de los indios shuar (mal llamados jíbaros), y con ellos aprendió a conocer la Selva y sus leyes, a respetar a los animales y los indígenas que la pueblan, pero también a cazar el temible tigrillo como ningún blanco jamás pudo hacerlo. Un buen día decidió leer con pasión las novelas de amor -«del verdadero, del que hace sufrir»- que dos veces al año le lleva el dentista Rubicundo Loachamín para distraer las solitarias noches ecuatoriales de su incipiente vejez. En ellas intenta alejarse un poco de la fanfarrona estupidez de esos codiciosos forasteros que creen dominar la Selva porque van armados hasta los dientes pero que no saben cómo enfrentarse a una fiera enloquecida porque le han matado las crías. Descritas en un lenguaje cristalino, escueto y preciso, las aventuras y las emociones del viejo Bolívar Proaño difícilmente abandonarán nuestra memoria.',
  1),
 ('El despertar de los dragones',
- 'Primera novela del ciclo fantástico donde un joven descubre su vínculo con los dragones y su destino como jinete.',
+ 'Si pensaste que ya no había razón para vivir después de terminar de leer la serie El anillo del hechicero, te equivocaste. En EL DESPERTAR DE LOS DRAGONES Morgan Rice nos presenta lo que promete ser otra brillante serie, sumergiéndonos en una fantasía de troles y dragones, de valor, honor, intrepidez, magia y fe en tu destino. Morgan ha logrado producir otro fuerte conjunto de personajes que nos hacen animarlos en cada página.…Recomendado para la biblioteca permanente de todos los lectores que aman la fantasía bien escrita',
  7),
 ('El mundo de Hielo y Fuego',
- 'Historia épica ilustrada que narra el trasfondo del mundo de Poniente y sus grandes casas en guerra.',
+ 'Si el pasado es prólogo, la obra maestra de George R.R. Martin -Juego de Tronos, la saga fantástica más innovadora y trepidante de nuestra época- se merecía una introducción excepcional. Por fin, con El mundo de hielo y fuego, la tenemos. Con más de 170 imágenes originales a todo color. Este libro magníficamente ilustrado es una historia completa de los Siete Reinos, animada por vibrantes descripciones de las épicas batallas, enconadas rivalidades y audaces rebeliones que desembocan en la trama de Canción de hielo y fuego y de la serie de HBO Game of thrones. En una colaboración preparada desde hace años, George R.R. Martin ha formado equipo con Elio M. García Jr. y Linda Antonsson, fundadores del prestigioso fan site Westeros.org, quizá las únicas personas que conocen casi tan bien el mundo de la saga como su visionario creador. Se reúne aquí todo el saber acumulado, todas las teorías eruditas y todo el acervo de relatos populares de maestres, septones, magos y bardos, en una crónica que empieza por la Era del Amanecer y sigue por la Edad de los Héroes, la aparición de los primeros hombres, la llegada de Aegon el Conquistador, el establecimiento del Trono de Hierro por Aegon, la Rebelión de Robert y la caída del Rey Loco, Aerys II Targaryen, causantes de las peripecias "actuales" de los Stark, los Lannister, los Baratheon y los Targaryen. Complemento definitivo del universo que tan deslumbrantemente ha ideado George R.R. Martin, El mundo de hielo y fuego es sin duda la demostración de que es más poderosa la pluma que una tormenta de espadas.',
  18),
 ('Cementerio de animales',
- 'Novela de terror psicológico donde un antiguo cementerio indígena esconde un poder oscuro capaz de desafiar la muerte.',
+ 'Cementerio de animales Church estaba allí otra vez, como Louis Creed temía y deseaba. Porque su hijita Ellie le había encomendado que cuidara del gato, y Church había muerto atropellado. Louis lo había comprobado: el gato estaba muerto, incluso lo había enterrado más allá del cementerio de animales. Sin embargo, Church había regresado, y sus ojos eran más crueles y perversos que antes. Pero volvía a estar allí y Ellie no lo lamentaría. Louis Creed sí lo lamentaría. Porque más allá del cementerio de animales, más allá de la valla de troncos que nadie se atrevía a trasponer, más allá de los cuarenta y cinco escalones, el maligno poder del antiguo cementerio indio le reclamaba con macabra avidez...',
  8),
 ('El llamado de Cthulhu',
- 'Relato clásico de horror cósmico que introduce a una entidad ancestral cuyo despertar amenaza la cordura humana.',
+ 'Lovecraft explora en este relato, el terror a lo desconocido y el miedo por la existencia de creaturas míticas escondidas de la sociedad moderna. El llamado de Cthulhu es un relato en primera persona que provoca en el lector desconcierto e incertidumbre sobre la realidad en la que vive. ¿Pueden existir creaturas de las que sólo hay registro en los mitos? ¿Hasta dónde alcanza el conocimiento de nuestra realidad? De la mano con la ciencia y los descubrimientos de su tiempo Lovecraft crea un universo literario, donde cuestiona, los límites del conocimiento humano.',
  2),
 ('El Código Da Vinci',
- 'Thriller de misterio y conspiración que mezcla simbología religiosa, arte e historia en una carrera contra el tiempo.',
+ '¿Qué misterio se oculta tras la sonrisa de Mona Lisa? Durante siglos, la Iglesia ha conseguido mantener oculta la verdad… hasta ahora.
+
+Antes de morir asesinado, Jacques Saunière, el último Gran Maestre de una sociedad secreta que se remonta a la fundación de los templarios, transmite a su nieta Sofía una misteriosa clave. Saunière y sus predecesores, entre los que se encontraban hombres como Isaac Newton o Leonardo da Vinci, han conservado durante siglos un conocimiento que puede cambiar completamente la historia de la humanidad.
+
+Ahora Sofía, con la ayuda del experto en simbología Robert Langdon, comienza la búsqueda de ese secreto, en una trepidante carrera que los lleva de una clave a otra, descifrando mensajes ocultos en los más famosos cuadros del genial pintor y en las paredes de antiguas catedrales. Un rompecabezas que deberán resolver pronto, ya que no están solos en el juego: una poderosa e influyente organización católica está dispuesta a emplear todos los medios para evitar que el secreto salga a la luz.
+
+Un apasionante juego de claves escondidas, sorprendentes revelaciones, acertijos ingeniosos, verdades, mentiras, realidades históricas, mitos, símbolos, ritos, misterios y suposiciones en una trama llena de giros inesperados, narrada con un ritmo imparable que conduce al lector hasta el secreto más celosamente guardado del inicio de nuestra era.
+
+Intriga y amenaza se mezclan en una de las mejores novelas de suspense que he leído jamás. Un sorprendente relato donde los enigmas se suceden a los secretos y estos a las adivinanzas.
+Clive Cussler.
+
+Un inteligente thriller lleno de enigmas y códigos que, sin duda, puede recomendarse con rotundo entusiasmo.
+The New York Times.',
  10),
 ('La Ilíada y la Odisea',
- 'Epopeyas fundamentales de la literatura griega que narran la Guerra de Troya y el regreso de Odiseo a Ítaca.',
+ 'La Ilíada y la Odisea, obras cumbre de la literatura, son dos de los textos fundacionales de la cultura occidental. He aquí la versión manga de estos poemas épicos queEncuadernación: Rústica con solapas narran las aventuras de los héroes griegos: la lucha de Aquiles en la guerra de Troya y el viaje posterior de regreso a Ítaca emprendido por Odiseo. Homero (siglo VIII a.C.) es el cantor épico de la antigua Grecia a quien se atribuyen la Ilíada y la Odisea. Sobre su figura, rodeada de misterio, se han vertido ríos de tinta. Desde la época helenística se ha debatido no solo si fue autor o compilador, sino también su existencia histórica.',
  29),
 ('Superman Dawnbreaker',
- 'Novela juvenil que reimagina los orígenes de Superman en un contexto moderno.',
+ 'Su poder va más allá de la imaginación.
+Clark Kent siempre ha sido más rápido, más fuerte y mejor que la gente que lo rodea. Pero no fue educado para demostrarlo, y llamar la atención podría ser peligroso. Sin embargo, sus poderes son cada vez más fuertes y pronto se vuelve difícil mantenerlos en secreto.
+Pero todo poder tiene un precio.
+Cuando Clark conoce a Gloria Álvarez descubre que un oscuro secreto se esconde en Smallville. Parece que él no es el único que oculta algo. ¿Qué peligros se ciernen sobre esa pequeña ciudad? Junto con su mejor amiga, Lana Lang, busca resolver el misterio, pero para conseguirlo tendrá que pagar un alto precio: afrontar la verdad sobre su pasado.
+Antes de salvar el mundo,
+debe salvar Smallville.',
  15),
 ('El silencio de los corderos',
- 'Thriller psicológico que enfrenta a una joven agente del FBI con un asesino serial y el brillante pero peligroso Hannibal Lecter.',
+ 'En este potente thriller psicológico, Clarice, cautivada por Hannibal, se enfrenta con su ayuda a un despiadado asesino. A Clarice Starling, joven y ambiciosa estudiante de la academia del FBI, le encomiendan que entreviste a Hannibal Lecter, brillante psiquiatra y despiadado asesino, para conseguir su colaboración en la resolución de un caso de asesinatos en serie. El asombroso conocimiento de Lecter del comportamiento humano y su poderosa personalidad cautivarán de inmediato a Clarice, quien, incapaz de dominarse, establecerá con él una ambigua, inquietante y peligrosa relación. El silencio de los corderos fue llevada al cine en 1991, y ganó los Premios Oscar a las categorías mejor película, mejor dirección (Jonathan Demme), mejor actriz (Jodie Foster), mejor actor (Anthony Hopkins) y mejor guion adaptado. Los lectores opinan:«Excelente libro de un excelente autor.» «Hannibal Lecter, uno de los mejores antihéroes que ha dado la literatura. [...] Lectura más que obligada para los amantes de las buenas historias de suspense.»',
  10),
 ('El fin de la infancia',
- 'Clásica novela de ciencia ficción que explora el impacto de una civilización extraterrestre en el destino de la humanidad.',
+ 'Recuperamos este clásico escrito por una de las figuras más influyentes de la ciencia ficción del siglo XX.
+
+Perteneciente a la tradicional y ya casi extinta «literatura de ideas», El fin de la infancia tiene como tema la futura evolución del hombre. Una raza extraña llega a la Tierra y trae consigo paz, prosperidad..., y la inesperada tragedia de la perfección. ¿Qué seguirá a la extinción de la raza humana?',
  6),
 ('El Hobbit',
- 'Aventura fantástica que sigue el viaje de Bilbo Bolsón junto a un grupo de enanos para recuperar un tesoro custodiado por un dragón.',
+ 'Un gran clásico moderno y el preludio a las vastas y poderosas mitologías de El Señor de Los Anillos. Cuando alrededor de 1930, J.R.R. Tolkien comenzó a escribir El Hobbit, hacía ya diez años que trabajaba en el vasto panorama mitológico de El Libro de los Relatos, que más tarde se llamaría El Silmarillion. Así como esas crónicas tempranas narraban los mitos inmemoriales de la Primera y Segunda Edad, Tolkien pronto advirtió que El Hobbit iba ordenándose de algún modo como un relato de la Tercera Edad (Gandalf habla del Nigromante en las primeras páginas), aunque las inesperadas aventuras de un pacífico hombre del campo no parecieran tener mucha relación con las vastas y oscuras mitologías de la Tierra Media. El estilo directo y lineal, con alusiones (que el autor deploró más tarde) a un público infantil, no impide la poderosa irrupción unas pocas veces en términos de comedia de los grandes temas tolkienianos (el poder, la codicia, la guerra, la muerte) que reaparecerían en una dimensión a menudo obviamente épica en El Señor de los Anillos.',
  7);
 
 
