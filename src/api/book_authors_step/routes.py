@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_200_OK
 
-
 from src.core.database import get_db
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole

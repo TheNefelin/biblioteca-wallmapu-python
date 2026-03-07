@@ -12,9 +12,6 @@ def delete(item: dtos.BookAuthorDTO, db: Session) -> bool:
       (item.id_book, item.id_author)
     )
 
-    print(item)    
-    print(relation)
-
     if not relation:
       return False
 
