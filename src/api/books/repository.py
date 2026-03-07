@@ -3,6 +3,7 @@ from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 
+from src.api.book_editions.models import Edition
 from src.api.book_authors_step.models import BookAuthor
 from src.api.book_subjects_step.models import BookSubject
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
@@ -21,7 +22,7 @@ def get_all_pagination(
         joinedload(models.Book.genre),
         joinedload(models.Book.book_authors).joinedload(BookAuthor.author),
         joinedload(models.Book.book_subjects).joinedload(BookSubject.subject),
-        joinedload(models.Book.editions),
+        joinedload(models.Book.editions).joinedload(Edition),
       )
     )    
 
