@@ -3,10 +3,9 @@ from typing import List
 from pydantic import BaseModel, ConfigDict
 
 from src.api.book_authors.dtos import AuthorDTO
-from src.api.book_editions.dtos import EditionDTO
 from src.api.book_subjects.dtos import SubjectDTO
 from src.api.book_genres.dtos import GenreDTO
-
+from src.api.editions.dtos import EditionDTO
 
 class BookDTO(BaseModel):
   id_book: int

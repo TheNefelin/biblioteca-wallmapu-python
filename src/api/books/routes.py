@@ -145,3 +145,26 @@ def update_book(
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
 
+# -----------------------------------------------------------------
+# DELETE
+@router.delete(
+  "/{id}",
+  response_model=ApiResponse[bool],
+  status_code=HTTP_200_OK,
+  dependencies=[admin_required]
+)
+def delete_book(
+  id: int,
+  db: Session = Depends(get_db)
+):
+  try:
+    result = repository.delete(id, db)
+
+    if result is None:
+      return ApiResponse.not_found()
+
+    return ApiResponse.success(data=True)
+  except ValueError as e:
+    return ApiResponse.bad_request(message=str(e))
+  except Exception as e:
+    return ApiResponse.server_error(message=str(e))

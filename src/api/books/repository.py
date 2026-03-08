@@ -5,9 +5,9 @@ from sqlalchemy.orm import Session, joinedload
 
 from src.api.book_authors_step import repository as book_author_repo
 from src.api.book_subjects_step import repository as book_subject_repo
-from src.api.book_editions.models import Edition
 from src.api.book_authors_step.models import BookAuthor
 from src.api.book_subjects_step.models import BookSubject
+from src.api.editions.models import Edition
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
 from . import models, dtos
 
@@ -157,3 +157,32 @@ def update(bookDto: dtos.UpdateBookDTO, db: Session) -> dtos.BookDTO:
     db.rollback()
     raise e
     
+# -----------------------------------------------------------------
+# DELETE
+def delete(id: int, db: Session) -> bool:
+  try:
+    book = db.get(models.Book, id)
+
+    if not book:
+      return None
+
+    # 🔎 Validar dependencias usando EXISTS (más eficiente)
+    has_authors = db.query(BookAuthor).filter(BookAuthor.id_book == id).first()
+    if has_authors:
+      raise ValueError("El libro tiene autores asociados")
+
+    has_subjects = db.query(BookSubject).filter(BookSubject.id_book == id).first()
+    if has_subjects:
+      raise ValueError("El libro tiene materias asociadas")
+
+    has_editions = db.query(Edition).filter(Edition.book_id == id).first()
+    if has_editions:
+      raise ValueError("El libro tiene ediciones registradas")
+
+    db.delete(book)
+    db.commit()
+
+    return True
+  except SQLAlchemyError as e:
+    db.rollback()
+    raise e
