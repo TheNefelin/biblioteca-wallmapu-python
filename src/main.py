@@ -21,6 +21,7 @@ from src.api.book_subjects.routes import router as book_subjects_router
 from src.api.book_subjects_step.routes import router as book_subjects_step_router
 from src.api.books.routes import router as books_router
 from src.api.editions.routes import router as editions_router
+from src.api.edition_image.routes import router as edition_image_router
 from src.api.editorials.routes import router as editorials_router
 from src.api.copy_status.routes import router as copy_status_router
 
@@ -71,7 +72,7 @@ app.include_router(book_subjects_router, prefix="/api")
 app.include_router(book_subjects_step_router, prefix="/api")
 app.include_router(books_router, prefix="/api")
 app.include_router(editions_router, prefix="/api")
-
+app.include_router(edition_image_router, prefix="/api")
 app.include_router(editorials_router, prefix="/api")
 app.include_router(copy_status_router, prefix="/api")
 

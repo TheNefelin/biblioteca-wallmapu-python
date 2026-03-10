@@ -743,7 +743,7 @@ Perteneciente a la tradicional y ya casi extinta «literatura de ideas», El fin
 INSERT INTO wm_editions
 (edition, isbn, publication_year, pages, cover_image, book_id, editorial_id)
 VALUES
-('1ra edición','9789561111851',1947,200,'images/test/01.jpg',1,1),
+('1ra edición','9789561111851',1947,200,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773089263/edition/d0y1qsplzftnalveumcl.webp',1,1),
 ('1ra edición','9788483835302',1989,250,'images/test/02.jpg',2,2),
 ('1ra edición','9780375826680',2003,500,'images/test/03.jpg',3,3),
 ('1ra edición','9788416035342',1996,700,'images/test/04.jpg',4,4),
