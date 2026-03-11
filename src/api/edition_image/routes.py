@@ -9,7 +9,7 @@ from . import service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
-router = APIRouter(prefix="/edition-image", tags=["edition-image"], dependencies=[admin_required])
+router = APIRouter(prefix="/edition-image", tags=["edition-image"])
 
 # -----------------------------------------------------------------
 # CREATE

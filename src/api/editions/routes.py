@@ -34,7 +34,10 @@ def get_all_edition(db: Session = Depends(get_db)):
   response_model=ApiResponse[dtos.EditionDTO],
   status_code=HTTP_200_OK
 )
-def get_edition(id: int, db: Session = Depends(get_db)):
+def get_edition(
+  id: int, 
+  db: Session = Depends(get_db)
+):
   try:
     res = repository.get_by_id(id, db)
     return ApiResponse.success(data=res)    

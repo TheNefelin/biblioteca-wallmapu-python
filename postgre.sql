@@ -744,17 +744,17 @@ INSERT INTO wm_editions
 (edition, isbn, publication_year, pages, cover_image, book_id, editorial_id)
 VALUES
 ('1ra edición','9789561111851',1947,200,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773089263/edition/d0y1qsplzftnalveumcl.webp',1,1),
-('1ra edición','9788483835302',1989,250,'images/test/02.jpg',2,2),
-('1ra edición','9780375826680',2003,500,'images/test/03.jpg',3,3),
-('1ra edición','9788416035342',1996,700,'images/test/04.jpg',4,4),
-('1ra edición','9780385182443',1983,350,'images/test/05.jpg',5,5),
-('1ra edición','9780486294380',1928,150,'images/test/06.jpg',6,6),
-('1ra edición','9788408175728',2003,450,'images/test/07.jpg',7,7),
-('1ra edición','9788433906489',-800,600,'images/test/08.jpg',8,8),
-('1ra edición','9781401278919',2018,120,'images/test/09.jpg',9,9),
-('1ra edición','9780312927226',1988,350,'images/test/10.jpg',10,10),
-('1ra edición','9788445077009',1985,280,'images/test/11.webp',11,11),
-('1ra edición','9786070797217',1937,310,'images/test/12.webp',12,12);
+('1ra edición','9788483835302',1989,250,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773089263/edition/aniuzgtkfw2yknukydix.webp',2,2),
+('1ra edición','9780375826680',2003,500,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773089263/edition/g8aug3ov198rkumybpcf.webp',3,3),
+('1ra edición','9788416035342',1996,700,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773089263/edition/pt9kf9rqzva50pjsbrcj.webp',4,4),
+('1ra edición','9780385182443',1983,350,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195682/edition/gaz9ueno8r0ja9nshprf.jpg',5,5),
+('1ra edición','9780486294380',1928,150,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773182339/edition/qan097holp6dqnow2z0g.webp',6,6),
+('1ra edición','9788408175728',2003,450,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195606/edition/mgetonnzlujkwplxghni.jpg',7,7),
+('1ra edición','9788433906489',-800,600,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195104/edition/sy07b8kgsfx6dx23swoz.webp',8,8),
+('1ra edición','9781401278919',2018,120,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195135/edition/bcb10klmstviynx6iygi.webp',9,9),
+('1ra edición','9780312927226',1988,350,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195005/edition/s8fd6qiku0ugqotftsgm.webp',10,10),
+('1ra edición','9788445077009',1985,280,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773194942/edition/dvikpgxy3xqiuqn1yecw.webp',11,11),
+('1ra edición','9786070797217',1937,310,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773194862/edition/quwflvgijtzwlvu48pju.webp',12,12);
 
 
 INSERT INTO wm_copies

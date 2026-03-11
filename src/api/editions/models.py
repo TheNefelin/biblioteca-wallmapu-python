@@ -15,6 +15,7 @@ class Edition(Base):
   cover_image = Column(String(256), nullable=True)
   created_at = Column(DateTime, server_default=func.now())
   updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+  editorial_id = Column(Integer, ForeignKey('wm_editorials.id_editorial'))
 
   book_id = Column(Integer, ForeignKey('wm_books.id_book'))
   book = relationship("Book", back_populates="editions")

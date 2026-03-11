@@ -51,11 +51,11 @@ def create(data: dtos.CreateEditionDTO, db: Session) -> dtos.EditionDTO:
 
 # -----------------------------------------------------------------
 # UPDATE
-def update(id: int, data: dtos.UpdateEditionDTO, db: Session):
+def update(data: dtos.UpdateEditionDTO, db: Session) -> dtos.EditionDTO:
   try:
     item = (
       db.query(models.Edition)
-      .filter(models.Edition.id_edition == id)
+      .filter(models.Edition.id_edition == data.id_edition)
       .first()
     )
 
