@@ -12,7 +12,11 @@ from . import dtos, repository
 
 admin_or_user_required = Depends(get_current_user(required_roles=[UserRole.ADMIN, UserRole.LECTOR]))
 
-router = APIRouter(prefix="/copy-status", tags=["copy-status"], dependencies=[admin_or_user_required])
+router = APIRouter(
+  prefix="/edition-copy-status", 
+  tags=["edition-copy-status"], 
+  #dependencies=[admin_or_user_required]
+)
 
 # -----------------------------------------------------------------
 # GET ALL

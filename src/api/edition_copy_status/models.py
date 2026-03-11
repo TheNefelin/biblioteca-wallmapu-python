@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
 
 from src.core.database import Base
 
@@ -8,3 +9,6 @@ class CopyStatus(Base):
 
   id_status = Column(Integer, primary_key=True, autoincrement=True)
   name = Column(String(45), nullable=False)
+
+  copies = relationship("EditionCopy", back_populates="status")
+  

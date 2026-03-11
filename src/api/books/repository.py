@@ -173,11 +173,11 @@ def delete(id: int, db: Session) -> bool:
 
     has_subjects = db.query(BookSubject).filter(BookSubject.id_book == id).first()
     if has_subjects:
-      raise ValueError("El libro tiene materias asociadas")
+      raise ValueError("El libro tiene descriptores asociados")
 
     has_editions = db.query(Edition).filter(Edition.book_id == id).first()
     if has_editions:
-      raise ValueError("El libro tiene ediciones registradas")
+      raise ValueError("El libro tiene ediciones/ejemplares asociados")
 
     db.delete(book)
     db.commit()

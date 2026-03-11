@@ -19,3 +19,9 @@ class Edition(Base):
 
   book_id = Column(Integer, ForeignKey('wm_books.id_book'))
   book = relationship("Book", back_populates="editions")
+
+  book_id = Column(Integer, ForeignKey('wm_books.id_book'))
+  book = relationship("Book", back_populates="editions")
+
+  copies = relationship("EditionCopy", back_populates="edition")
+  
