@@ -47,7 +47,7 @@ def get_all_pagination(
 
     resultModel = (
       query
-      .order_by(models.Book.title.asc())
+      .order_by(models.Book.updated_at.desc())
       .offset(skip)
       .limit(pagination.limit)
       .all()
