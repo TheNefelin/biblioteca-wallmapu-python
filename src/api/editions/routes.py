@@ -17,7 +17,7 @@ router = APIRouter(prefix="/edition", tags=["edition"])
 # GET ALL
 @router.get(
   "/", 
-  response_model=ApiResponse[List[dtos.EditionDTO]],
+  response_model=ApiResponse[List[dtos.EditionDetailDTO]],
   status_code=HTTP_200_OK
 )
 def get_all_edition(db: Session = Depends(get_db)):
@@ -31,7 +31,7 @@ def get_all_edition(db: Session = Depends(get_db)):
 # GET BY ID
 @router.get(
   "/{id}", 
-  response_model=ApiResponse[dtos.EditionDTO],
+  response_model=ApiResponse[dtos.EditionDetailDTO],
   status_code=HTTP_200_OK
 )
 def get_edition(

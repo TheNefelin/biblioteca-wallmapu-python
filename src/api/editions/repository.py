@@ -5,11 +5,12 @@ from . import dtos, models
 
 # -----------------------------------------------------------------
 # GET ALL
-def get_all(db: Session) -> list[dtos.EditionDTO]:
+def get_all(db: Session) -> list[dtos.EditionDetailDTO]:
   try:
     query = (
       db.query(models.Edition)
       .options(
+        joinedload(models.Edition.editorial),
         joinedload(models.Edition.book),
         joinedload(models.Edition.copies),
       )
@@ -17,13 +18,13 @@ def get_all(db: Session) -> list[dtos.EditionDTO]:
       .all()
     )
 
-    return [dtos.EditionDTO.model_validate(item) for item in query]
+    return [dtos.EditionDetailDTO.model_validate(item) for item in query]
   except SQLAlchemyError as e:
     raise e
 
 # -----------------------------------------------------------------
 # GET BY ID
-def get_by_id(id: int, db: Session) -> dtos.EditionDTO | None:
+def get_by_id(id: int, db: Session) -> dtos.EditionDetailDTO | None:
   try:
     edition = (
       db.query(models.Edition)
@@ -38,7 +39,7 @@ def get_by_id(id: int, db: Session) -> dtos.EditionDTO | None:
     if not edition:
       return None
 
-    return dtos.EditionDTO.model_validate(edition)
+    return dtos.EditionDetailDTO.model_validate(edition)
   except SQLAlchemyError as e:
     raise e
 
