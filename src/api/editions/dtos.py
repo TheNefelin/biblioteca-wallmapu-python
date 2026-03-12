@@ -1,6 +1,8 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel, ConfigDict
+
+from src.api.edition_copy.dtos import EditionCopyDTO
 
 
 class EditionDTO(BaseModel):
@@ -14,8 +16,10 @@ class EditionDTO(BaseModel):
   updated_at: datetime
   editorial_id: int  
   book_id: int
+  copies: List[EditionCopyDTO]
 
   model_config = ConfigDict(from_attributes=True)
+
 
 class CreateEditionDTO(BaseModel):
   edition: str
@@ -27,6 +31,7 @@ class CreateEditionDTO(BaseModel):
   book_id: int
 
   model_config = ConfigDict(from_attributes=True)
+
 
 class UpdateEditionDTO(BaseModel):
   id_edition: int

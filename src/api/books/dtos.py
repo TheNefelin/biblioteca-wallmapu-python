@@ -20,12 +20,16 @@ class BookDTO(BaseModel):
 
   model_config = ConfigDict(from_attributes=True)
 
+
 class CreateBookDTO(BaseModel):
   title: str
   summary: str
   genre_id: int
   authors: List[int]
   subjects: List[int]
+
+  model_config = ConfigDict(from_attributes=True)
+
 
 class UpdateBookDTO(BaseModel):
   id_book: int
@@ -34,3 +38,6 @@ class UpdateBookDTO(BaseModel):
   genre_id: int
   authors: List[int]
   subjects: List[int]
+
+  model_config = ConfigDict(from_attributes=True)
+

@@ -1,5 +1,6 @@
+from shlex import join
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from . import dtos, models
 
@@ -9,6 +10,9 @@ def get_all(db: Session) -> list[dtos.EditionDTO]:
   try:
     query = (
       db.query(models.Edition)
+      .options(
+        joinedload(models.Edition.copies)
+      )
       .order_by(models.Edition.edition.asc())
       .all()
     )
@@ -23,6 +27,9 @@ def get_by_id(id: int, db: Session) -> dtos.EditionDTO:
   try:
     query = (
       db.query(models.Edition)
+      .options(
+        joinedload(models.Edition.copies)
+      )
       .filter(models.Edition.id_edition == id)
       .first()
     )
