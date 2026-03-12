@@ -40,6 +40,10 @@ def get_edition(
 ):
   try:
     res = repository.get_by_id(id, db)
+
+    if not res:
+      return ApiResponse.not_found()
+
     return ApiResponse.success(data=res)    
   except Exception as e:
     return ApiResponse.server_error(str(e))

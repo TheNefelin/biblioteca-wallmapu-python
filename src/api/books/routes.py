@@ -1,5 +1,4 @@
 from typing import List, Optional
-from unittest import result
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED
@@ -95,10 +94,10 @@ def create_book(
   db: Session = Depends(get_db)
 ):
   try:
-    if book.authors.count == 0:
+    if not book.authors:
       return ApiResponse.bad_request(message="El autor es requerido")
 
-    if book.subjects.count == 0:
+    if not book.subjects:
       return ApiResponse.bad_request(message="El o los descriptores son requerido")
 
     if book.genre_id == 0:
@@ -127,10 +126,10 @@ def update_book(
     if book.id_book != id:
       return ApiResponse.bad_request(message="El Id no coincide")
 
-    if book.authors.count == 0:
+    if not book.authors:
       return ApiResponse.bad_request(message="El autor es requerido")
 
-    if book.subjects.count == 0:
+    if not book.subjects:
       return ApiResponse.bad_request(message="El o los descriptores son requerido")
 
     if book.genre_id == 0:

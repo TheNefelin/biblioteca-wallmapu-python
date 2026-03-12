@@ -83,8 +83,6 @@ def get_by_id(id: int, db: Session) -> dtos.BookDTO:
     if not entity:
       return None
 
-    print(entity)
-
     return dtos.BookDTO.model_validate(entity)  
   except SQLAlchemyError as e:
     raise e
