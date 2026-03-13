@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from starlette.status import HTTP_200_OK
+from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 
 from src.core.database import get_db
 from src.shared.dtos import ApiResponse
@@ -44,6 +44,10 @@ def get_all_copy(
 ):
   try:
     res = repository.get_by_id(id, db)
+
+    if not res:
+      return ApiResponse.not_found()
+
     return ApiResponse.success(data=res)    
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
@@ -62,5 +66,90 @@ def get_all_copy(
   try:
     res = repository.get_by_edition_id(id_edition, db)
     return ApiResponse.success(data=res)    
+  except Exception as e:
+    return ApiResponse.server_error(message=str(e))
+
+# -----------------------------------------------------------------
+# CREATE
+@router.post(
+  "/",
+  response_model=ApiResponse[dtos.EditionCopyDTO], 
+  status_code=HTTP_201_CREATED,
+)
+def create_copy(
+  copy: dtos.CreateEditionCopyDTO, 
+  db: Session = Depends(get_db)
+):
+  try:
+    if copy.status_id == 0:
+      return ApiResponse.bad_request(message="El estado es requerido")      
+    
+    if not copy.edition_id:
+      return ApiResponse.bad_request(message="El edition_id es requerido")      
+      
+    if not copy.status_id:
+      return ApiResponse.bad_request(message="El status_id es requerido")      
+          
+    res = repository.create(copy, db)
+
+    return ApiResponse.success(data=res)
+  except ValueError as e:
+    return ApiResponse.bad_request(message=str(e))
+  except Exception as e:
+    return ApiResponse.server_error(message=str(e))
+      
+# -----------------------------------------------------------------
+# UPDATE
+@router.put(
+  "/{id}",
+  response_model=ApiResponse[dtos.EditionCopyDTO], 
+  status_code=HTTP_200_OK,
+)
+def update_copy(
+  id: int, 
+  copy: dtos.UpdateEditionCopyDTO, 
+  db: Session = Depends(get_db)
+):
+  try:
+    if copy.id_copy != id:
+      return ApiResponse.bad_request(message="El Id no coincide")
+
+    if not copy.edition_id:
+      return ApiResponse.bad_request(message="El edition_id es requerido")      
+      
+    if not copy.status_id:
+      return ApiResponse.bad_request(message="El status_id es requerido")      
+      
+    res = repository.update(copy, db)
+    
+    if not res:
+      return ApiResponse.not_found()
+
+    return ApiResponse.success(data=res)
+  except ValueError as e:
+    return ApiResponse.bad_request(message=str(e))
+  except Exception as e:
+    return ApiResponse.server_error(message=str(e))
+
+# -----------------------------------------------------------------
+# DELETE
+@router.delete(
+  "/{id}",
+  response_model=ApiResponse[bool],
+  status_code=HTTP_200_OK,
+)
+def delete_copy(
+  id: int,
+  db: Session = Depends(get_db)
+):
+  try:
+    res = repository.delete(id, db)
+
+    if res is None:
+      return ApiResponse.not_found()
+
+    return ApiResponse.success(data=res)
+  except ValueError as e:
+    return ApiResponse.bad_request(message=str(e))
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
