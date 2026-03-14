@@ -1,4 +1,5 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, func
+import uuid
+from sqlalchemy import UUID, Column, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import relationship
 
 from src.core.database import Base
@@ -8,7 +9,7 @@ class EditionCopy(Base):
   __tablename__ = "wm_copies"
 
   id_copy = Column(Integer, primary_key=True, autoincrement=True)
-  barcode = Column(String(100), nullable=False)
+  barcode = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False)
   signature_topography = Column(String(100), nullable=False)
   copy_number = Column(String(20), nullable=False)
   created_at = Column(DateTime, server_default=func.now())

@@ -5,7 +5,6 @@ from src.api.edition_copy_status.dtos import CopyStatusDTO
 
 
 class CreateEditionCopyDTO(BaseModel):
-  barcode: str
   signature_topography: str
   copy_number: int
   edition_id: int
