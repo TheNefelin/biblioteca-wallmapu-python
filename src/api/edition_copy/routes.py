@@ -14,7 +14,7 @@ admin_or_user_required = Depends(get_current_user(required_roles=[UserRole.ADMIN
 router = APIRouter(
   prefix="/edition-copy", 
   tags=["edition-copy"], 
-  #dependencies=[admin_or_user_required]
+  dependencies=[admin_or_user_required]
 )
 
 # -----------------------------------------------------------------

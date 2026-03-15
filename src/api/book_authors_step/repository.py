@@ -6,7 +6,7 @@ from . import dtos, models
 
 # -----------------------------------------------------------------
 # UPDATE
-def update(id_book: int, author_ids: list[int], db: Session) -> list[dtos.BookAuthorDTO]:
+def update(id_book: int, author_ids: list[int], db: Session) -> list[models.BookAuthor]:
   try:
     # evitar duplicados
     author_ids = list(set(author_ids))
@@ -27,7 +27,7 @@ def update(id_book: int, author_ids: list[int], db: Session) -> list[dtos.BookAu
 
     db.commit()
 
-    return [dtos.BookAuthorDTO.model_validate(r) for r in relations]
+    return relations
   except IntegrityError as e:
     db.rollback()
     raise ValueError(e.orig)

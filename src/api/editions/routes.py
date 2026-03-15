@@ -33,7 +33,12 @@ def get_edition(id: int, db: Session = Depends(get_db)):
 
 # -----------------------------------------------------------------
 # CREATE
-@router.post("/", response_model=ApiResponse[dtos.EditionDTO], status_code=HTTP_201_CREATED)
+@router.post(
+  "/", 
+  response_model=ApiResponse[dtos.EditionDTO], 
+  status_code=HTTP_201_CREATED,
+  dependencies=[admin_required],  
+)
 def create_edition(item: dtos.CreateEditionDTO, db: Session = Depends(get_db)):
   try:
     res = service.create_edition(item, db)
@@ -45,7 +50,12 @@ def create_edition(item: dtos.CreateEditionDTO, db: Session = Depends(get_db)):
 
 # -----------------------------------------------------------------
 # UPDATE
-@router.put("/{id}", response_model=ApiResponse[dtos.EditionDTO], status_code=HTTP_200_OK)
+@router.put(
+  "/{id}", 
+  response_model=ApiResponse[dtos.EditionDTO], 
+  status_code=HTTP_200_OK,
+  dependencies=[admin_required],
+)
 def update_edition(id: int, item: dtos.UpdateEditionDTO, db: Session = Depends(get_db)):
   if item.id_edition != id:
     return ApiResponse.bad_request(message="El Id no coincide")
@@ -63,7 +73,12 @@ def update_edition(id: int, item: dtos.UpdateEditionDTO, db: Session = Depends(g
 
 # -----------------------------------------------------------------
 # DELETE
-@router.delete("/{id}", response_model=ApiResponse[bool], status_code=HTTP_200_OK)
+@router.delete(
+  "/{id}", 
+  response_model=ApiResponse[bool], 
+  status_code=HTTP_200_OK,
+  dependencies=[admin_required],  
+)
 def delete_edition(id: int, db: Session = Depends(get_db)):
   try:
     res = service.delete_edition_with_image(id, db)

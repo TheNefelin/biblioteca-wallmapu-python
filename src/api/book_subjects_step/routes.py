@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Body, Depends
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_200_OK
 
@@ -6,14 +6,18 @@ from src.core.database import get_db
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
 from src.shared.dtos import ApiResponse
-from . import dtos, repository
+from . import dtos, service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
-router = APIRouter(prefix="/book-subject", tags=["book-subject"], dependencies=[admin_required])
+router = APIRouter(
+  prefix="/book-subject", 
+  tags=["book-subject"], 
+  dependencies=[admin_required]
+)
 
 # -----------------------------------------------------------------
-# UPDATE
+# UPDATE (reemplaza descriptores del libro; body vacío elimina todos)
 @router.put(
   "/{id_book}",
   response_model=ApiResponse[list[dtos.BookSubjectDTO]],
@@ -21,14 +25,14 @@ router = APIRouter(prefix="/book-subject", tags=["book-subject"], dependencies=[
 )
 def update_book_subject(
   id_book: int,
-  subject_ids: list[int],
+  subject_ids: list[int] = Body(..., embed=False),
   db: Session = Depends(get_db)
 ):
   try:
-    #res = repository.update(id_book, subject_ids, db)
-    #return ApiResponse.success(data=res)
-
-    return ApiResponse.bad_request(message='SOLO USO INTERNO POR REPOSITORIO')
+    res = service.update_subjects(id_book, subject_ids, db)
+    return ApiResponse.success(data=res)
+  except ValueError as e:
+    return ApiResponse.bad_request(message=str(e))
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
 
@@ -41,17 +45,15 @@ def update_book_subject(
 )
 def delete_book_subject(
   id_book: int,
-  id_subject: int, 
+  id_subject: int,
   db: Session = Depends(get_db)
 ):
   try:
-    #item = dtos.BookSubjectDTO(
-    #  id_book=id_book,
-    #  id_subject=id_subject
-    #)
-    #res = repository.delete(item, db)
-    #return ApiResponse.success(data=res)    
-  
-    return ApiResponse.bad_request(message='SOLO USO INTERNO POR REPOSITORIO')
+    res = service.delete_subject(id_book, id_subject, db)
+    if not res:
+      return ApiResponse.not_found()
+    return ApiResponse.success(data=res)
+  except ValueError as e:
+    return ApiResponse.bad_request(message=str(e))
   except Exception as e:
     return ApiResponse.server_error(message=str(e))

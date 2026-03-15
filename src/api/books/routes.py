@@ -8,11 +8,36 @@ from src.core.database import get_db
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
 from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
-from . import dtos, repository
+from . import dtos, service, repository
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
 router = APIRouter(prefix="/books", tags=["books"])
+
+
+# -----------------------------------------------------------------
+# GET ALL PAGINATION
+@router.get(
+  "/pagination", 
+  response_model=ApiResponse[PaginationResponseDTO[List[dtos.BookDetailDTO]]], 
+  status_code=HTTP_200_OK
+)
+def get_all_pagination(
+  request: Request,
+  page: int = Query(default=1, ge=1, description="Número de página a mostrar"),
+  limit: int = Query(default=10, ge=1, le=100, description="Cantidad de elementos por página"),
+  search: Optional[str] = Query(default=None, description="Buscar opcional"),
+  db: Session = Depends(get_db)
+):
+  pagination_request = PaginationRequestDTO(
+    page=page,
+    limit=limit,
+    search=search
+  )
+
+  pagination_response = repository.get_all_pagination(pagination_request, db)
+  return ApiResponse.success(pagination_response)
+  
 
 # -----------------------------------------------------------------
 # GET ALL
@@ -21,7 +46,7 @@ router = APIRouter(prefix="/books", tags=["books"])
   response_model=ApiResponse[PaginationResponseDTO[List[dtos.BookDetailDTO]]], 
   status_code=HTTP_200_OK
 )
-def get_all_pagination(
+def get_all(
   request: Request,
   page: int = Query(default=1, ge=1, description="Número de página a mostrar"),
   limit: int = Query(default=10, ge=1, le=100, description="Cantidad de elementos por página"),
@@ -35,7 +60,7 @@ def get_all_pagination(
       search=search
     )
 
-    pagination_response = repository.get_all_pagination(pagination_request, db)
+    pagination_response = repository.get_all(pagination_request, db)
 
     current_page = pagination_response.page
     total_pages = pagination_response.pages
@@ -59,6 +84,7 @@ def get_all_pagination(
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
+
 # -----------------------------------------------------------------
 # GET ALL BY ID
 @router.get(
@@ -72,7 +98,7 @@ def get_by_id(
   db: Session = Depends(get_db)
 ):
   try:
-    result = repository.get_by_id(id, db)
+    result = service.get_book_by_id(id, db)
     
     if not result:
       return ApiResponse.not_found()
@@ -96,8 +122,7 @@ def create_book(
   try:
     if book.genre_id == 0:
       return ApiResponse.bad_request(message="El género es requerido")      
-    
-    result = repository.create(book, db)
+    result = service.create_book(book, db)
 
     return ApiResponse.success(data=result)
   except Exception as e:
@@ -109,7 +134,7 @@ def create_book(
   "/{id}",
   response_model=ApiResponse[dtos.BookDTO], 
   status_code=HTTP_200_OK,
-  #dependencies=[admin_required]
+  dependencies=[admin_required]
 )
 def update_book(
   id: int, 
@@ -125,7 +150,7 @@ def update_book(
     
     print(book)
 
-    result = repository.update(book, db)
+    result = service.update_book(book, db)
     
     if not result:
       return ApiResponse.not_found()
@@ -147,7 +172,7 @@ def delete_book(
   db: Session = Depends(get_db)
 ):
   try:
-    result = repository.delete(id, db)
+    result = service.delete_book(id, db)
 
     if result is None:
       return ApiResponse.not_found()
