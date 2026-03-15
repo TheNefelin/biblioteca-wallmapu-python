@@ -14,20 +14,17 @@ def update(id_book: int, subject_ids: list[int], db: Session) -> list[dtos.BookS
 
     # crear nuevas relaciones
     relations = [
-      models.BookSubject(
-        id_book=id_book,
-        id_subject=subject_id
-      )
-      for subject_id in subject_ids
+      models.BookSubject(id_book=id_book, id_subject=sid)
+      for sid in subject_ids
     ]
 
-    db.add_all(relations)
 
-    return [
-      dtos.BookSubjectDTO.model_validate(item)
-      for item in relations
-    ]
+    if relations:
+      db.add_all(relations)
 
+    db.commit()
+
+    return [dtos.BookSubjectDTO.model_validate(r) for r in relations]
   except IntegrityError as e:
     raise ValueError(e.orig)
   except SQLAlchemyError as e:

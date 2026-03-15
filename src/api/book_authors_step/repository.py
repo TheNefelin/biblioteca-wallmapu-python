@@ -8,7 +8,6 @@ from . import dtos, models
 # UPDATE
 def update(id_book: int, author_ids: list[int], db: Session) -> list[dtos.BookAuthorDTO]:
   try:
-
     # evitar duplicados
     author_ids = list(set(author_ids))
 
@@ -17,25 +16,23 @@ def update(id_book: int, author_ids: list[int], db: Session) -> list[dtos.BookAu
       models.BookAuthor.id_book == id_book
     ).delete(synchronize_session=False)
 
-    # crear nuevas relaciones
+    # crear nuevas relaciones solo si hay IDs
     relations = [
-      models.BookAuthor(
-        id_book=id_book,
-        id_author=author_id
-      )
-      for author_id in author_ids
+      models.BookAuthor(id_book=id_book, id_author=aid)
+      for aid in author_ids
     ]
 
-    db.add_all(relations)
+    if relations:
+      db.add_all(relations)
 
-    return [
-      dtos.BookAuthorDTO.model_validate(item)
-      for item in relations
-    ]
+    db.commit()
 
+    return [dtos.BookAuthorDTO.model_validate(r) for r in relations]
   except IntegrityError as e:
+    db.rollback()
     raise ValueError(e.orig)
   except SQLAlchemyError as e:
+    db.rollback()
     raise e
 
 # -----------------------------------------------------------------  

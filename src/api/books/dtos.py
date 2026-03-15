@@ -51,5 +51,5 @@ class UpdateBookDTO(CreateBookDTO):
 
 
 class BookDTO(UpdateBookDTO):
-    created_at: datetime
-    updated_at: datetime
+  created_at: datetime
+  updated_at: datetime

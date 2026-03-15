@@ -94,12 +94,6 @@ def create_book(
   db: Session = Depends(get_db)
 ):
   try:
-    if not book.author_ids:
-      return ApiResponse.bad_request(message="El autor es requerido")
-
-    if not book.subject_ids:
-      return ApiResponse.bad_request(message="El o los descriptores son requerido")
-
     if book.genre_id == 0:
       return ApiResponse.bad_request(message="El género es requerido")      
     
@@ -126,15 +120,11 @@ def update_book(
     if book.id_book != id:
       return ApiResponse.bad_request(message="El Id no coincide")
 
-    if not book.author_ids:
-      return ApiResponse.bad_request(message="El autor es requerido")
-
-    if not book.subject_ids:
-      return ApiResponse.bad_request(message="El o los descriptores son requerido")
-
     if book.genre_id == 0:
       return ApiResponse.bad_request(message="El género es requerido")      
-      
+    
+    print(book)
+
     result = repository.update(book, db)
     
     if not result:
