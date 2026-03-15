@@ -2,8 +2,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from src.api.news_gallery.models import NewsGallery
-#from src.services.image_service import save_image_webp
-from src.services.cloudinary_service import delete_image, upload_image_16_9
+from src.services import cloudinary_service
 
 #STATIC_PATH = "static/news"
 PATH = "news"
@@ -23,7 +22,7 @@ def create_news_gallery_with_images(
       #filename = f"{news_id}_{uuid.uuid4().hex}.webp"
       #save_image_webp(file.file.read(), filename)
 
-      url, public_id = upload_image_16_9(
+      url, public_id = cloudinary_service.upload_image_16_9(
         file_bytes=file.file.read(),
         folder=f"{PATH}"
       )
@@ -51,7 +50,7 @@ def create_news_gallery_with_images(
     # 🔥 rollback físico en Cloudinary
     for public_id in uploaded_public_ids:
       try:
-        delete_image(public_id)
+        cloudinary_service.delete_image(public_id)
       except Exception:
         pass  # opcional: loggear error    
 
@@ -73,10 +72,10 @@ def delete_news_gallery_by_news_id(
     ).all()
 
     for item in items:
-      public_id = extract_public_id(item.url)
+      public_id = cloudinary_service.extract_public_id(item.url)
 
       if public_id:
-        delete_image(public_id)
+        cloudinary_service.delete_image(public_id)
 
       db.delete(item)
 
@@ -98,10 +97,10 @@ def delete_news_gallery(
 
     # 1️⃣ borrar imagen en Cloudinary
     # extraemos public_id desde la URL
-    public_id = extract_public_id(item.url)
+    public_id = cloudinary_service.extract_public_id(item.url)
 
     if public_id:
-      delete_image(public_id)
+      cloudinary_service.delete_image(public_id)
 
     # 2️⃣ borrar registro DB
     db.delete(item)
@@ -110,24 +109,3 @@ def delete_news_gallery(
   except Exception as e:
     db.rollback()
     raise e
-
-def extract_public_id(url: str) -> str | None:
-  """
-  Extrae:
-  news/9/o6md6byxzpbnygtak05j
-  desde:
-  https://res.cloudinary.com/.../upload/v1770756121/news/9/o6md6byxzpbnygtak05j.webp
-  """
-  try:
-    # Quitar todo antes de /upload/
-    after_upload = url.split("/upload/")[1]
-    # Quitar la versión (v1770756121)
-    parts = after_upload.split("/", 1)[1]
-    # Quitar extensión
-    public_id = parts.rsplit(".", 1)[0]
-
-    return public_id
-  except Exception:
-    return None
-
-#news/osfdnhmsd5dq7q6ngcgx

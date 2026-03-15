@@ -9,13 +9,15 @@ from src.api.book_subjects.dtos import SubjectDTO
 from src.api.book_genres.dtos import GenreDTO
 
 
-class EditionDetailDTO(BaseModel):
+class EditionForBookDTO(BaseModel):
   id_edition: int
   edition: str
   isbn: str
   publication_year: int
   pages: int
   cover_image: Optional[str]
+  created_at: datetime
+  updated_at: datetime  
   editorial: EditorialDTO
   copies: List[EditionCopyDTO]
 
@@ -31,7 +33,7 @@ class BookDetailDTO(BaseModel):
   genre: GenreDTO
   authors: List[AuthorDTO]
   subjects: List[SubjectDTO]
-  editions: List[EditionDetailDTO]
+  editions: List[EditionForBookDTO]
 
   model_config = ConfigDict(from_attributes=True)
 
@@ -48,12 +50,6 @@ class UpdateBookDTO(CreateBookDTO):
   id_book: int
 
 
-class BookDTO(BaseModel):
-    id_book: int
-    title: str
-    summary: str
-    genre_id: int
+class BookDTO(UpdateBookDTO):
     created_at: datetime
     updated_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)

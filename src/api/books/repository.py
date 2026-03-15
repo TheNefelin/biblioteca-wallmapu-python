@@ -157,6 +157,7 @@ def update(bookDto: dtos.UpdateBookDTO, db: Session) -> dtos.BookDTO:
 def delete(id: int, db: Session) -> bool:
   try:
     book = db.get(models.Book, id)
+    
     if not book:
       return None
 

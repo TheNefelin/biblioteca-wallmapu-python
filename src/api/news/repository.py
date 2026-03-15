@@ -35,7 +35,8 @@ def get_all_pagination(
 
     result = (
       query
-      .order_by(models.News.created_at.asc()) # deberia ser desc
+      #.order_by(models.News.created_at.desc())
+      .order_by(func.random())
       .offset(skip)
       .limit(pagination.limit)
       .all()

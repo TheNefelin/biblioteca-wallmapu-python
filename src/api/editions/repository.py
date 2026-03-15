@@ -1,125 +1,105 @@
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 
-from . import dtos, models
+from src.api.edition_copy import models as edition_copy_models
+from . import models
 
 # -----------------------------------------------------------------
 # GET ALL
-def get_all(db: Session) -> list[dtos.EditionDetailDTO]:
-  try:
-    query = (
-      db.query(models.Edition)
-      .options(
-        joinedload(models.Edition.editorial),
-        joinedload(models.Edition.book),
-        joinedload(models.Edition.copies),
-      )
-      .order_by(models.Edition.edition.asc())
-      .all()
+def get_all(db: Session) -> list[models.Edition]:
+  stmt = (
+    select(models.Edition)
+    .options(
+      joinedload(models.Edition.editorial),
+      joinedload(models.Edition.book),
+      joinedload(models.Edition.copies),
     )
-
-    return [dtos.EditionDetailDTO.model_validate(item) for item in query]
-  except SQLAlchemyError as e:
-    raise e
-
-# -----------------------------------------------------------------
-# GET BY ID
-def get_by_id(id: int, db: Session) -> dtos.EditionDetailDTO | None:
-  try:
-    edition = (
-      db.query(models.Edition)
-      .options(
-        joinedload(models.Edition.book),
-        joinedload(models.Edition.copies),
-      )
-      .filter(models.Edition.id_edition == id)
-      .first()
-    )
-
-    if not edition:
-      return None
-
-    return dtos.EditionDetailDTO.model_validate(edition)
-  except SQLAlchemyError as e:
-    raise e
-
-# -----------------------------------------------------------------
-# GET BY ID
-def get_entity_by_id(id: int, db: Session) -> models.Edition | None:
-  return (
-    db.query(models.Edition)
-    .filter(models.Edition.id_edition == id)
-    .first()
+    .order_by(models.Edition.edition.asc())
   )
+
+  #return db.scalars(stmt).all()
+  return db.scalars(stmt).unique().all()
+
+
+# -----------------------------------------------------------------
+# GET BY ID
+def get_by_id(id: int, db: Session) -> models.Edition | None:
+  stmt = (
+    select(models.Edition)
+    .options(
+      joinedload(models.Edition.editorial),
+      joinedload(models.Edition.book),
+      joinedload(models.Edition.copies),
+    )
+    .where(models.Edition.id_edition == id)
+  )
+
+  return db.scalars(stmt).first()
+
+
+# -----------------------------------------------------------------
+# GET ENTITY BY ID (sin joins)
+def get_entity_by_id(id: int, db: Session) -> models.Edition | None:
+  return db.get(models.Edition, id)
+
 
 # -----------------------------------------------------------------
 # CREATE
-def create(data: dtos.CreateEditionDTO, db: Session) -> dtos.EditionDTO:
+def create(data: dict, db: Session) -> models.Edition:
   try:
-    new_item = models.Edition(**data.model_dump())
+    new_item = models.Edition(**data)
     
     db.add(new_item)
     db.commit()
     db.refresh(new_item)
 
-    return dtos.EditionDTO.model_validate(new_item)
+    return new_item
   except IntegrityError as e:
     db.rollback()
-    raise ValueError(e.orig)
+    raise ValueError(f"Violación de integridad: {e.orig}")
   except SQLAlchemyError as e:
     db.rollback()
     raise e
+
 
 # -----------------------------------------------------------------
 # UPDATE
-def update(data: dtos.UpdateEditionDTO, db: Session) -> dtos.EditionDTO:
+def update(item: models.Edition, data: dict, db: Session) -> models.Edition:
   try:
-    item = (
-      db.query(models.Edition)
-      .filter(models.Edition.id_edition == data.id_edition)
-      .first()
-    )
-
-    if not item:
-      return None
-
-    update_data = data.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
+    for key, value in data.items():
       setattr(item, key, value)
-
+    
     db.commit()
     db.refresh(item)
 
-    return dtos.EditionDTO.model_validate(item)
+    return item
   except IntegrityError as e:
     db.rollback()
-    raise ValueError(e.orig)  
+    raise ValueError(f"Violación de integridad: {e.orig}")
   except SQLAlchemyError as e:
     db.rollback()
     raise e
 
+
 # -----------------------------------------------------------------
 # DELETE
-def delete(id: int, db: Session) -> bool:
+def delete(edition: models.Edition, db: Session) -> str | None:
   try:
-    item = (
-      db.query(models.Edition)
-      .filter(models.Edition.id_edition == id)
+    # Validar dependencias
+    has_copies = (
+      db.query(edition_copy_models.EditionCopy)
+      .filter(edition_copy_models.EditionCopy.edition_id == edition.id_edition)
       .first()
     )
-    
-    if not item:
-      return False
+    if has_copies:
+      raise ValueError(f"El Ejemplar ({edition.edition}) tiene copias asociados")
 
-    #if item.images:
-    #  raise ValueError("No se puede eliminar la noticia porque tiene imágenes asociadas")
-
-    db.delete(item)
+    url = edition.cover_image
+    db.delete(edition)
     db.commit()
-    return True
-  except IntegrityError as e:
-    db.rollback()
-    raise ValueError(e.orig)
+    
+    return url
   except SQLAlchemyError as e:
     db.rollback()
-    raise e  
+    raise e
