@@ -25,9 +25,10 @@ def update_book_subject(
   db: Session = Depends(get_db)
 ):
   try:
-    res = repository.update(id_book, subject_ids, db)
+    #res = repository.update(id_book, subject_ids, db)
+    #return ApiResponse.success(data=res)
 
-    return ApiResponse.success(data=res)    
+    return ApiResponse.bad_request(message='SOLO USO INTERNO POR REPOSITORIO')
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
 
@@ -44,13 +45,13 @@ def delete_book_subject(
   db: Session = Depends(get_db)
 ):
   try:
-    item = dtos.BookSubjectDTO(
-      id_book=id_book,
-      id_subject=id_subject
-    )
-
-    res = repository.delete(item, db)
-
-    return ApiResponse.success(data=res)    
+    #item = dtos.BookSubjectDTO(
+    #  id_book=id_book,
+    #  id_subject=id_subject
+    #)
+    #res = repository.delete(item, db)
+    #return ApiResponse.success(data=res)    
+  
+    return ApiResponse.bad_request(message='SOLO USO INTERNO POR REPOSITORIO')
   except Exception as e:
     return ApiResponse.server_error(message=str(e))

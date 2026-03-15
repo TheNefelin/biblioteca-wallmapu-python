@@ -44,6 +44,15 @@ def get_by_id(id: int, db: Session) -> dtos.EditionDetailDTO | None:
     raise e
 
 # -----------------------------------------------------------------
+# GET BY ID
+def get_entity_by_id(id: int, db: Session) -> models.Edition | None:
+  return (
+    db.query(models.Edition)
+    .filter(models.Edition.id_edition == id)
+    .first()
+  )
+
+# -----------------------------------------------------------------
 # CREATE
 def create(data: dtos.CreateEditionDTO, db: Session) -> dtos.EditionDTO:
   try:

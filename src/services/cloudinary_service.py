@@ -34,7 +34,6 @@ def upload_image_16_9(
         "crop": "fill",
         "gravity": "center",
         "quality": "auto",
-        "fetch_format": "auto"
       }
     ]
   )
@@ -65,7 +64,6 @@ def upload_image_7_10(
         "crop": "fill",
         "gravity": "center",
         "quality": "auto",
-        "fetch_format": "auto"
       }
     ]
   )
@@ -79,3 +77,23 @@ def delete_image(public_id: str):
     public_id,
     resource_type="image"
   )
+
+# -----------------------------------------------------------------
+# EXTRACT PUBLIC ID
+def extract_public_id(url: str) -> str | None:
+  """
+  Extrae: myfolder/oslosfszufg1rsfbeqcm
+  desde: https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773087504/myfolder/oslosfszufg1rsfbeqcm.webp
+  """
+
+  if not url:
+    return None
+  
+  try:
+    after_upload = url.split("/upload/")[1]   # Quitar todo antes de /upload/
+    parts = after_upload.split("/", 1)[1]     # Quitar la versión (v1773087504)
+    public_id = parts.rsplit(".", 1)[0]       # Quitar extensión
+
+    return public_id
+  except Exception:
+    return None

@@ -1,8 +1,9 @@
+from re import A
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
 from src.api.editions import repository as edition_repository
-from src.services.cloudinary_service import delete_image, upload_image_7_10
+from src.services import cloudinary_service
 
 PATH = "edition"
 
@@ -14,7 +15,7 @@ def create_edition_image(
   public_id = None
 
   try:
-    url, public_id = upload_image_7_10(
+    url, public_id = cloudinary_service.upload_image_7_10(
       file_bytes=file.file.read(),
       folder=f"{PATH}"
     )
@@ -22,7 +23,7 @@ def create_edition_image(
     return url    
   except Exception as e:
     try:
-      delete_image(public_id)
+      cloudinary_service.delete_image(public_id)
     except Exception:
       pass  # opcional: loggear error
 
@@ -35,40 +36,24 @@ def delete_edition_image(
   db: Session
 ) -> bool:
   try:
-    item = edition_repository.get_by_id(id_edition, db) 
-
+    item = edition_repository.get_entity_by_id(id_edition, db) 
+    print(item)
     if not item:
       raise ValueError("La edición no existe")
 
     if not item.cover_image or item.cover_image.strip() == "":
       raise ValueError("La edición no tiene imagen")
 
-    public_id = extract_public_id(item.cover_image)
+    public_id = cloudinary_service.extract_public_id(item.cover_image)
 
     if public_id:
-      delete_image(public_id)
+      cloudinary_service.delete_image(public_id)
 
     item.cover_image = None
-    db.commit()      
+    db.commit()
 
     return True
   except Exception as e:
     raise e
 
-def extract_public_id(url: str) -> str | None:
-  """
-  Extrae: edition/oslosfszufg1rsfbeqcm
-  desde: https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773087504/edition/oslosfszufg1rsfbeqcm.webp
-  """
 
-  if not url:
-    return None
-  
-  try:
-    after_upload = url.split("/upload/")[1]   # Quitar todo antes de /upload/
-    parts = after_upload.split("/", 1)[1]     # Quitar la versión (v1770756121)
-    public_id = parts.rsplit(".", 1)[0]       # Quitar extensión
-
-    return public_id
-  except Exception:
-    return None

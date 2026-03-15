@@ -25,9 +25,10 @@ def update_book_author(
   db: Session = Depends(get_db)
 ):
   try:
-    res = repository.update(id_book, author_ids, db)
+    #res = repository.update(id_book, author_ids, db)
+    #return ApiResponse.success(data=res)
 
-    return ApiResponse.success(data=res)    
+    return ApiResponse.bad_request(message='SOLO USO INTERNO POR REPOSITORIO')
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
     
@@ -44,13 +45,13 @@ def delete_book_author(
   db: Session = Depends(get_db)
 ):
   try:
-    item = dtos.BookAuthorDTO(
-      id_book=id_book,
-      id_author=id_author
-    )
-
-    res = repository.delete(item, db)
-
-    return ApiResponse.success(data=res)    
+    #item = dtos.BookAuthorDTO(
+    #  id_book=id_book,
+    #  id_author=id_author
+    #)
+    #res = repository.delete(item, db)
+    #return ApiResponse.success(data=res)    
+  
+    return ApiResponse.bad_request(message='SOLO USO INTERNO POR REPOSITORIO')
   except Exception as e:
     return ApiResponse.server_error(message=str(e))

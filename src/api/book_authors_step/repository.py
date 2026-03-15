@@ -4,34 +4,38 @@ from sqlalchemy.orm import Session
 from . import dtos, models
 
 
-# -----------------------------------------------------------------  
+# -----------------------------------------------------------------
 # UPDATE
 def update(id_book: int, author_ids: list[int], db: Session) -> list[dtos.BookAuthorDTO]:
   try:
-    (
-      db.query(models.BookAuthor)
-        .filter(models.BookAuthor.id_book == id_book)
-        .delete(synchronize_session=False)
-    )
 
-    relations = []
+    # evitar duplicados
+    author_ids = list(set(author_ids))
 
-    for author_id in author_ids:
-      relation = models.BookAuthor(
+    # eliminar relaciones actuales
+    db.query(models.BookAuthor).filter(
+      models.BookAuthor.id_book == id_book
+    ).delete(synchronize_session=False)
+
+    # crear nuevas relaciones
+    relations = [
+      models.BookAuthor(
         id_book=id_book,
         id_author=author_id
       )
+      for author_id in author_ids
+    ]
 
-      db.add(relation)
-      relations.append(relation)
+    db.add_all(relations)
 
-    db.commit()
-    return [dtos.BookAuthorDTO.model_validate(item) for item in relations]
+    return [
+      dtos.BookAuthorDTO.model_validate(item)
+      for item in relations
+    ]
+
   except IntegrityError as e:
-    db.rollback()
     raise ValueError(e.orig)
   except SQLAlchemyError as e:
-    db.rollback()
     raise e
 
 # -----------------------------------------------------------------  

@@ -5,9 +5,9 @@ from sqlalchemy.orm import Session, joinedload
 
 from src.api.book_authors_step import repository as book_author_repo
 from src.api.book_subjects_step import repository as book_subject_repo
-from src.api.book_authors_step.models import BookAuthor
-from src.api.book_subjects_step.models import BookSubject
-from src.api.editions.models import Edition
+from src.api.book_authors_step import models as book_authors_step_model
+from src.api.book_subjects_step import models as book_subjects_step_model
+from src.api.editions import models as edition_models
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
 from . import models, dtos
 
@@ -22,30 +22,28 @@ def get_all_pagination(
       db.query(models.Book)
       .options(
         joinedload(models.Book.genre),
-        joinedload(models.Book.book_authors).joinedload(BookAuthor.author),
-        joinedload(models.Book.book_subjects).joinedload(BookSubject.subject),
-        joinedload(models.Book.editions),
+        joinedload(models.Book.book_authors).joinedload(book_authors_step_model.BookAuthor.author),
+        joinedload(models.Book.book_subjects).joinedload(book_subjects_step_model.BookSubject.subject),
+        joinedload(models.Book.editions).joinedload(edition_models.Edition.copies),
       )
-    )    
+    )
 
     if pagination.search:
       query = query.filter(
         or_(
           models.Book.title.ilike(f"%{pagination.search}%"),
           models.Book.editions.any(
-            Edition.edition.ilike(f"%{pagination.search}%")
+            edition_models.Edition.edition.ilike(f"%{pagination.search}%")
           )
         )
       )
 
     items = query.count()
     pages = ceil(items / pagination.limit) if items > 0 else 0
-
-    # Ajuste seguro de página
     page = min(pagination.page, pages) if pages > 0 else 1
     skip = (page - 1) * pagination.limit
 
-    resultModel = (
+    result_model = (
       query
       .order_by(models.Book.updated_at.desc())
       .offset(skip)
@@ -53,29 +51,29 @@ def get_all_pagination(
       .all()
     )
 
-    resultDto = [dtos.BookDTO.model_validate(item) for item in resultModel]
+    result_dto = [dtos.BookDetailDTO.model_validate(item) for item in result_model]
 
     return PaginationResponseDTO(
       page=page,
       pages=pages,
       items=items,
-      result=resultDto
+      result=result_dto
     )
   except SQLAlchemyError as e:
     raise e
 
 # -----------------------------------------------------------------
 # GET BY ID    
-def get_by_id(id: int, db: Session) -> dtos.BookDTO:
+def get_by_id(id: int, db: Session) -> dtos.BookDetailDTO:
   try:
     entity = (
       db.query(models.Book)
       .filter(models.Book.id_book == id)
       .options(
         joinedload(models.Book.genre),
-        joinedload(models.Book.book_authors).joinedload(BookAuthor.author),
-        joinedload(models.Book.book_subjects).joinedload(BookSubject.subject),
-        joinedload(models.Book.editions),
+        joinedload(models.Book.book_authors).joinedload(book_authors_step_model.BookAuthor.author),
+        joinedload(models.Book.book_subjects).joinedload(book_subjects_step_model.BookSubject.subject),
+        joinedload(models.Book.editions).joinedload(edition_models.Edition.copies),
       )
       .first()
     )
@@ -83,7 +81,7 @@ def get_by_id(id: int, db: Session) -> dtos.BookDTO:
     if not entity:
       return None
 
-    return dtos.BookDTO.model_validate(entity)  
+    return dtos.BookDetailDTO.model_validate(entity) 
   except SQLAlchemyError as e:
     raise e
 
@@ -91,28 +89,27 @@ def get_by_id(id: int, db: Session) -> dtos.BookDTO:
 # CREATE
 def create(bookDto: dtos.CreateBookDTO, db: Session) -> dtos.BookDTO:
   try:
-    # 1️⃣ Extraer datos del DTO
+    # Extraer datos del DTO
     new_data = bookDto.model_dump(exclude_unset=True)
-    author_ids = new_data.pop("authors", None)
-    subject_ids = new_data.pop("subjects", None)
+    author_ids = new_data.pop("author_ids", None)
+    subject_ids = new_data.pop("subject_ids", None)
 
-    # 2️⃣ Crear la instancia de SQLAlchemy
+    # Crear instancia de SQLAlchemy
     book = models.Book(**new_data)
-
-    # 3️⃣ Agregar a la sesión y hacer commit
     db.add(book)
     db.commit()
-    db.refresh(book)  # Para que book tenga id_book y timestamps
+    db.refresh(book)  # obtiene id_book y timestamps
 
-    # 4️⃣ Manejar relaciones con autores y subjects
+    # Relación con autores y subjects
     if author_ids is not None:
-      book_author_repo.update(book.id_book, author_ids, db)
+        book_author_repo.update(book.id_book, author_ids, db)
 
     if subject_ids is not None:
-      book_subject_repo.update(book.id_book, subject_ids, db)
+        book_subject_repo.update(book.id_book, subject_ids, db)
 
-    # 5️⃣ Refrescar para incluir relaciones y devolver DTO
+    db.commit()
     db.refresh(book)
+
     return dtos.BookDTO.model_validate(book)
   except IntegrityError as e:
     db.rollback()
@@ -126,25 +123,25 @@ def create(bookDto: dtos.CreateBookDTO, db: Session) -> dtos.BookDTO:
 def update(bookDto: dtos.UpdateBookDTO, db: Session) -> dtos.BookDTO:
   try:
     book = db.get(models.Book, bookDto.id_book)
-
     if not book:
       return None
 
     update_data = bookDto.model_dump(exclude_unset=True)
-    author_ids = update_data.pop("authors", None)
-    subject_ids = update_data.pop("subjects", None)
+    author_ids = update_data.pop("author_ids", None)
+    subject_ids = update_data.pop("subject_ids", None)
+    update_data.pop("id_book", None)  # evitar sobrescribir PK
 
     for key, value in update_data.items():
       setattr(book, key, value)
 
-    db.commit()
-
+    # Actualizar relaciones many-to-many
     if author_ids is not None:
       book_author_repo.update(book.id_book, author_ids, db)
 
     if subject_ids is not None:
       book_subject_repo.update(book.id_book, subject_ids, db)
 
+    db.commit()
     db.refresh(book)
 
     return dtos.BookDTO.model_validate(book)
@@ -160,21 +157,17 @@ def update(bookDto: dtos.UpdateBookDTO, db: Session) -> dtos.BookDTO:
 def delete(id: int, db: Session) -> bool:
   try:
     book = db.get(models.Book, id)
-
     if not book:
       return None
 
-    # 🔎 Validar dependencias usando EXISTS (más eficiente)
-    has_authors = db.query(BookAuthor).filter(BookAuthor.id_book == id).first()
-    if has_authors:
+    # Validar dependencias
+    if db.query(book_authors_step_model.BookAuthor).filter_by(id_book=id).first():
       raise ValueError("El libro tiene autores asociados")
 
-    has_subjects = db.query(BookSubject).filter(BookSubject.id_book == id).first()
-    if has_subjects:
+    if db.query(book_subjects_step_model.BookSubject).filter_by(id_book=id).first():
       raise ValueError("El libro tiene descriptores asociados")
 
-    has_editions = db.query(Edition).filter(Edition.book_id == id).first()
-    if has_editions:
+    if db.query(edition_models.Edition).filter_by(book_id=id).first():
       raise ValueError("El libro tiene ediciones/ejemplares asociados")
 
     db.delete(book)

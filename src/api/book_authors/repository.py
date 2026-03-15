@@ -15,3 +15,4 @@ def get_all(db: Session) -> list[dtos.AuthorDTO]:
     return [dtos.AuthorDTO.model_validate(item) for item in query]
   except SQLAlchemyError as e:
     raise e
+

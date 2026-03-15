@@ -18,7 +18,7 @@ router = APIRouter(prefix="/books", tags=["books"])
 # GET ALL
 @router.get(
   "/", 
-  response_model=ApiResponse[PaginationResponseDTO[List[dtos.BookDTO]]], 
+  response_model=ApiResponse[PaginationResponseDTO[List[dtos.BookDetailDTO]]], 
   status_code=HTTP_200_OK
 )
 def get_all_pagination(
@@ -63,7 +63,7 @@ def get_all_pagination(
 # GET ALL BY ID
 @router.get(
   "/{id}", 
-  response_model=ApiResponse[dtos.BookDTO], 
+  response_model=ApiResponse[dtos.BookDetailDTO], 
   status_code=HTTP_200_OK
 )
 def get_by_id(
@@ -94,10 +94,10 @@ def create_book(
   db: Session = Depends(get_db)
 ):
   try:
-    if not book.authors:
+    if not book.author_ids:
       return ApiResponse.bad_request(message="El autor es requerido")
 
-    if not book.subjects:
+    if not book.subject_ids:
       return ApiResponse.bad_request(message="El o los descriptores son requerido")
 
     if book.genre_id == 0:
@@ -115,7 +115,7 @@ def create_book(
   "/{id}",
   response_model=ApiResponse[dtos.BookDTO], 
   status_code=HTTP_200_OK,
-  dependencies=[admin_required]
+  #dependencies=[admin_required]
 )
 def update_book(
   id: int, 
@@ -126,10 +126,10 @@ def update_book(
     if book.id_book != id:
       return ApiResponse.bad_request(message="El Id no coincide")
 
-    if not book.authors:
+    if not book.author_ids:
       return ApiResponse.bad_request(message="El autor es requerido")
 
-    if not book.subjects:
+    if not book.subject_ids:
       return ApiResponse.bad_request(message="El o los descriptores son requerido")
 
     if book.genre_id == 0:
