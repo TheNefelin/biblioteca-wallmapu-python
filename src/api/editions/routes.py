@@ -7,11 +7,11 @@ from src.core.database import get_db
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
 from src.shared.dtos import ApiResponse
-from . import dtos, repository, service
+from . import dtos, service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
-router = APIRouter(prefix="/edition", tags=["edition"])
+router = APIRouter(prefix="/edition", tags=["edition"], dependencies=[admin_required])
 
 # -----------------------------------------------------------------
 # GET ALL
@@ -37,7 +37,6 @@ def get_edition(id: int, db: Session = Depends(get_db)):
   "/", 
   response_model=ApiResponse[dtos.EditionDTO], 
   status_code=HTTP_201_CREATED,
-  dependencies=[admin_required],  
 )
 def create_edition(item: dtos.CreateEditionDTO, db: Session = Depends(get_db)):
   try:
@@ -54,7 +53,6 @@ def create_edition(item: dtos.CreateEditionDTO, db: Session = Depends(get_db)):
   "/{id}", 
   response_model=ApiResponse[dtos.EditionDTO], 
   status_code=HTTP_200_OK,
-  dependencies=[admin_required],
 )
 def update_edition(id: int, item: dtos.UpdateEditionDTO, db: Session = Depends(get_db)):
   if item.id_edition != id:
@@ -77,7 +75,6 @@ def update_edition(id: int, item: dtos.UpdateEditionDTO, db: Session = Depends(g
   "/{id}", 
   response_model=ApiResponse[bool], 
   status_code=HTTP_200_OK,
-  dependencies=[admin_required],  
 )
 def delete_edition(id: int, db: Session = Depends(get_db)):
   try:
