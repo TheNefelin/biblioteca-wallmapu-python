@@ -1,22 +1,62 @@
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 
+from src.shared.dtos import BookPaginationRequestDTO
+from src.api.editorials import models as editorial_models
+from src.api.books import models as book_models
+from src.api.book_authors import models as book_authors_models
 from src.api.edition_copy import models as edition_copy_models
 from . import models
 
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
-def get_all_pagination(db: Session):
-  return (
-    db.query(models.Edition)
-    .options(
-      joinedload(models.Edition.editorial),
-      joinedload(models.Edition.book),
-      joinedload(models.Edition.copies),
+def get_all_paginated(
+  db: Session,
+  pagination: BookPaginationRequestDTO
+):
+  query = db.query(models.Edition)
+
+  # -------------------------
+  # JOINS dinámicos
+  # -------------------------
+  query = query.join(models.Edition.book)
+
+  if pagination.id_author:
+    query = query.join(book_models.Book.book_authors)
+
+  if pagination.id_editorial:
+    query = query.join(models.Edition.editorial)
+
+  # -------------------------
+  # FILTROS
+  # -------------------------
+  if pagination.search:
+    query = query.filter(
+      or_(
+        models.Edition.isbn.ilike(f"%{pagination.search}%"),
+        book_models.Book.title.ilike(f"%{pagination.search}%"),
+        book_models.Book.summary.ilike(f"%{pagination.search}%"),
+      )
     )
-  )
+
+  if pagination.id_editorial:
+    query = query.filter(
+      editorial_models.Editorial.id_editorial == pagination.id_editorial
+    )
+
+  if pagination.id_author:
+    query = query.filter(
+      book_authors_models.Author.id_author == pagination.id_author
+    )
+
+  if pagination.id_genre:
+    query = query.filter(
+      book_models.Book.genre_id == pagination.id_genre
+    )
+
+  return query.distinct()
  
 
 # -----------------------------------------------------------------

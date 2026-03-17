@@ -187,6 +187,13 @@ CREATE TABLE IF NOT EXISTS wm_book_subject (
   CONSTRAINT fk_bs_subject FOREIGN KEY (id_subject) REFERENCES wm_subjects(id_subject)
 );
 
+CREATE INDEX idx_edition_isbn ON wm_editions(isbn);
+CREATE INDEX idx_book_title ON wm_books(title);
+CREATE INDEX idx_book_summary ON wm_books(summary);
+CREATE INDEX idx_book_genre ON wm_books(genre_id);
+CREATE INDEX idx_author_id ON wm_book_author(id_author);
+CREATE INDEX idx_editorial_id ON wm_editions(editorial_id);
+
 CREATE TABLE IF NOT EXISTS wm_loans (
   id_loan INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   loan_date DATE NOT NULL DEFAULT CURRENT_DATE,
