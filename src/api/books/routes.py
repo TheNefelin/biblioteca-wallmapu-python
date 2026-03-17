@@ -7,7 +7,7 @@ from src.core.url_helper import get_base_url
 from src.core.database import get_db
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
-from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
+from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO, BookPaginationRequestDTO
 from . import dtos, service, repository
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
@@ -23,19 +23,24 @@ router = APIRouter(prefix="/books", tags=["books"])
   status_code=HTTP_200_OK
 )
 def get_all_pagination(
-  request: Request,
   page: int = Query(default=1, ge=1, description="Número de página a mostrar"),
   limit: int = Query(default=10, ge=1, le=100, description="Cantidad de elementos por página"),
   search: Optional[str] = Query(default=None, description="Buscar opcional"),
+  id_author: Optional[int] = Query(default=None, description="Buscar por autor opcional"),
+  id_editorial: Optional[int] = Query(default=None, description="Buscar por editorial opcional"),
+  id_genre: Optional[int] = Query(default=None, description="Buscar por generlo opcional"),   
   db: Session = Depends(get_db)
 ):
-  pagination_request = PaginationRequestDTO(
+  pagination_request = BookPaginationRequestDTO(
     page=page,
     limit=limit,
-    search=search
+    search=search,
+    id_author=id_author,
+    id_editorial=id_editorial,
+    id_genre=id_genre,
   )
 
-  pagination_response = repository.get_all_pagination(pagination_request, db)
+  pagination_response = service.get_all_pagination(pagination_request, db)
   return ApiResponse.success(pagination_response)
   
 
@@ -50,7 +55,7 @@ def get_all(
   request: Request,
   page: int = Query(default=1, ge=1, description="Número de página a mostrar"),
   limit: int = Query(default=10, ge=1, le=100, description="Cantidad de elementos por página"),
-  search: Optional[str] = Query(default=None, description="Buscar opcional"),
+  search: Optional[str] = Query(default=None, description="Buscar opcional"),   
   db: Session = Depends(get_db)
 ):
   try:

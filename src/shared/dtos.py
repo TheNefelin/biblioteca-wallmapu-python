@@ -9,6 +9,14 @@ class PaginationRequestDTO(BaseModel):
   limit: int 
   search: Optional[str] = None
 
+class BookPaginationRequestDTO(BaseModel):
+  page: int 
+  limit: int 
+  search: Optional[str] = None
+  id_author: Optional[int]
+  id_editorial: Optional[int]
+  id_genre: Optional[int]
+
 class PaginationResponseDTO(BaseModel, Generic[T]): 
   page: int = Field(..., description="Página actual")
   pages: int= Field(..., description="Cantidad total de páginas disponibles")

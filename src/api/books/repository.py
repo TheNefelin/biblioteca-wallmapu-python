@@ -16,9 +16,8 @@ from . import models, dtos
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
 def get_all_pagination(
-  pagination: PaginationRequestDTO,
   db: Session
-) -> PaginationResponseDTO[List[dtos.BookDetailDTO]]:
+) -> List[models.Book]:
   try:
     books = (
       db.query(models.Book)
@@ -30,37 +29,7 @@ def get_all_pagination(
       )
     )
 
-    if pagination.search:
-      books = books.filter(
-        or_(
-          models.Book.title.ilike(f"%{pagination.search}%"),
-          models.Book.editions.any(
-            edition_models.Edition.edition.ilike(f"%{pagination.search}%")
-          )
-        )
-      )
-
-    total_items = books.count()
-    total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
-    this_page = min(pagination.page, total_pages) if total_pages > 0 else 1
-    offset = (this_page - 1) * pagination.limit
-
-    result_model = (
-      books
-      .order_by(models.Book.updated_at.desc())
-      .offset(offset)
-      .limit(pagination.limit)
-      .all()
-    )
-
-    result_dto = [dtos.BookDetailDTO.model_validate(item) for item in result_model]
-
-    return PaginationResponseDTO[List[dtos.BookDetailDTO]](
-      page=this_page,
-      pages=total_pages,
-      items=total_items,
-      result=result_dto
-    )
+    return books
   except SQLAlchemyError as e:
     raise e
 

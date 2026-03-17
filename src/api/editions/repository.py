@@ -5,6 +5,20 @@ from sqlalchemy.orm import Session, joinedload
 from src.api.edition_copy import models as edition_copy_models
 from . import models
 
+
+# -----------------------------------------------------------------
+# GET ALL PAGINATION
+def get_all_pagination(db: Session):
+  return (
+    db.query(models.Edition)
+    .options(
+      joinedload(models.Edition.editorial),
+      joinedload(models.Edition.book),
+      joinedload(models.Edition.copies),
+    )
+  )
+ 
+
 # -----------------------------------------------------------------
 # GET ALL
 def get_all(db: Session) -> list[models.Edition]:

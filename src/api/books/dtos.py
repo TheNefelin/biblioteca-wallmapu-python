@@ -8,7 +8,6 @@ from src.api.book_authors.dtos import AuthorDTO
 from src.api.book_subjects.dtos import SubjectDTO
 from src.api.book_genres.dtos import GenreDTO
 
-
 class EditionForBookDTO(BaseModel):
   id_edition: int
   edition: str
