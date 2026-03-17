@@ -10,7 +10,7 @@ from . import dtos, models, repository
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
 def get_all_pagination(pagination: BookPaginationRequestDTO, db: Session):
-  query = repository.get_all_paginated(db, pagination)
+  query = repository.get_all_paginated(pagination, db)
 
   #total_items = query.count()
   total_items = db.query(models.Edition).count()
