@@ -37,7 +37,7 @@ class EditionDetailDTO(BaseModel):
 
   model_config = ConfigDict(from_attributes=True)
 
-  
+
 class CreateEditionDTO(BaseModel):
   edition: str
   isbn: str
