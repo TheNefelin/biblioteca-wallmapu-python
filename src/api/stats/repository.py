@@ -11,11 +11,10 @@ from src.api.division_provinces.models import Province
 from src.api.division_communes.models import Commune
 from src.api.news.models import News
 from src.api.users.models import User
-from . import dtos
 
 # -----------------------------------------------------------------
 # GET ALL 
-def get_all_admin(db: Session):
+def get_all_admin(db: Session) -> dict:
   try:
     query = db.query(
         select(func.count(User.id_user)).scalar_subquery().label("users"),
@@ -31,7 +30,7 @@ def get_all_admin(db: Session):
 
     result = query.one()
 
-    return dtos.StatusAdminDTO(**result._mapping)
+    return dict(result._mapping)
   except SQLAlchemyError as e:
     raise e
   

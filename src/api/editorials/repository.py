@@ -1,18 +1,16 @@
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from . import dtos, models
+from . import models
 
 # -----------------------------------------------------------------
 # GET ALL
-def get_all(db: Session) -> list[dtos.EditorialDTO]:
+def get_all(db: Session) -> list[models.Editorial]:
   try:
-    query = (
+    return (
       db.query(models.Editorial)
       .order_by(models.Editorial.name.asc())
       .all()
     )
-
-    return [dtos.EditorialDTO.model_validate(item) for item in query]
   except SQLAlchemyError as e:
     raise e

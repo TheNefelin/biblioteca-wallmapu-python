@@ -8,7 +8,7 @@ from src.core.database import get_db
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
 from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO, BookPaginationRequestDTO
-from . import dtos, service, repository
+from . import dtos, service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
@@ -65,7 +65,7 @@ def get_all(
       search=search
     )
 
-    pagination_response = repository.get_all(pagination_request, db)
+    pagination_response = service.get_all(pagination_request, db)
 
     current_page = pagination_response.page
     total_pages = pagination_response.pages

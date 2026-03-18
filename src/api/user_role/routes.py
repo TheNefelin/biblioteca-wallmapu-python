@@ -7,7 +7,7 @@ from src.core.database import get_db
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
 from src.shared.dtos import ApiResponse
-from . import repository, dtos
+from . import dtos, service
 
 admin_or_user_required = Depends(get_current_user(required_roles=[UserRole.ADMIN, UserRole.LECTOR]))
 
@@ -21,5 +21,5 @@ router = APIRouter(prefix="/user-role", tags=["user-role"], dependencies=[admin_
   status_code=HTTP_200_OK
 )
 def get_all_role(db: Session = Depends(get_db)):
-  res = repository.get_all(db)
+  res = service.get_all(db)
   return ApiResponse.success(data=res)

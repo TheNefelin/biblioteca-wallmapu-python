@@ -1,7 +1,7 @@
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from . import dtos, models
+from . import models
 
 
 # -----------------------------------------------------------------
@@ -37,11 +37,11 @@ def update(id_book: int, author_ids: list[int], db: Session) -> list[models.Book
 
 # -----------------------------------------------------------------  
 # DELETE
-def delete(item: dtos.BookAuthorDTO, db: Session) -> bool:
+def delete(id_book: int, id_author: int, db: Session) -> bool:
   try:
     relation = db.get(
       models.BookAuthor,
-      (item.id_book, item.id_author)
+      (id_book, id_author)
     )
 
     if not relation:

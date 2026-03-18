@@ -8,7 +8,7 @@ from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_202_ACCEPTED
 from src.core.url_helper import get_base_url
 from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
 from src.core import jwt_service, roles, database
-from . import repository, dtos
+from . import dtos, service
 
 admin_required = Depends(jwt_service.get_current_user(required_roles=[roles.UserRole.ADMIN]))
 user_required = Depends(jwt_service.get_current_user(required_roles=[roles.UserRole.LECTOR]))
@@ -38,7 +38,7 @@ def get_all_detailed(
       search=search
     )
 
-    pagination_response = repository.get_all_detailed(pagination_request, db)
+    pagination_response = service.get_all_detailed(pagination_request, db)
 
     current_page = pagination_response.page
     total_pages = pagination_response.pages
@@ -72,7 +72,7 @@ def get_all_detailed(
 )
 def get_by_id_detailed(id: UUID, db: Session = Depends(database.get_db)):
   try:  
-    res = repository.get_by_id_detailed(id, db)
+    res = service.get_by_id_detailed(id, db)
 
     if not res:
       return ApiResponse.not_found(message="Usuario no encontrado")
@@ -99,7 +99,7 @@ def update_user(
     if (str(id) != current_user["sub"]):
       return ApiResponse.unauthorized(message='No estas autorizado para modificar este usuario')
 
-    updated_dto = repository.update(id, update_dto, db)
+    updated_dto = service.update(id, update_dto, db)
     
     if not updated_dto:
       return ApiResponse.not_found(message="Usuario no encontrado")
@@ -123,7 +123,7 @@ def update_user(
   db: Session = Depends(database.get_db)
 ):
   try:
-    updated_dto = repository.update(id, update_dto, db)
+    updated_dto = service.update(id, update_dto, db)
     
     if not updated_dto:
       return ApiResponse.not_found(message="Usuario no encontrado")

@@ -7,7 +7,7 @@ from src.core.database import get_db
 from src.shared.dtos import ApiResponse
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
-from . import dtos, repository
+from . import dtos, service
 
 admin_or_user_required = Depends(get_current_user(required_roles=[UserRole.ADMIN, UserRole.LECTOR]))
 
@@ -26,7 +26,7 @@ router = APIRouter(
 )
 def get_all_copy(db: Session = Depends(get_db)):
   try:
-    res = repository.get_all(db)
+    res = service.get_all(db)
     return ApiResponse.success(data=res)    
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
@@ -43,7 +43,7 @@ def get_all_copy(
   db: Session = Depends(get_db)
 ):
   try:
-    res = repository.get_by_id(id, db)
+    res = service.get_by_id(id, db)
 
     if not res:
       return ApiResponse.not_found()
@@ -64,7 +64,7 @@ def get_all_copy(
   db: Session = Depends(get_db)
 ):
   try:
-    res = repository.get_by_edition_id(id_edition, db)
+    res = service.get_by_edition_id(id_edition, db)
     return ApiResponse.success(data=res)    
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
@@ -90,7 +90,7 @@ def create_copy(
     if not copy.status_id:
       return ApiResponse.bad_request(message="El status_id es requerido")      
           
-    res = repository.create(copy, db)
+    res = service.create(copy, db)
 
     return ApiResponse.success(data=res)
   except ValueError as e:
@@ -120,7 +120,7 @@ def update_copy(
     if not copy.status_id:
       return ApiResponse.bad_request(message="El status_id es requerido")      
       
-    res = repository.update(copy, db)
+    res = service.update(id, copy, db)
     
     if not res:
       return ApiResponse.not_found()
@@ -143,7 +143,7 @@ def delete_copy(
   db: Session = Depends(get_db)
 ):
   try:
-    res = repository.delete(id, db)
+    res = service.delete(id, db)
 
     if res is None:
       return ApiResponse.not_found()

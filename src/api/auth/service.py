@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from src.api.users import repository as user_repository
+from src.api.users import service as user_service
 from src.core import jwt_service
 from . import dtos, google_service
 
@@ -17,7 +17,7 @@ def auth_service(
       raise ValueError(f"Email no verificado en Google")
 
     # 3. obtener o crear usuario
-    user = user_repository.get_or_create_user(
+    user = user_service.get_or_create_user(
       google_user_info.email, 
       google_user_info.name, 
       db

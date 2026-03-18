@@ -1,19 +1,17 @@
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from . import models, dtos
+from . import models
 
 # -----------------------------------------------------------------
 # GET ALL
-def get_all(db: Session) -> list[dtos.ProvinceDTO]:
+def get_all(db: Session) -> list[models.Province]:
   try:
-    query = (
+    return (
       db.query(models.Province)
       .order_by(models.Province.province.asc())
       .all()
     )
-    
-    return [dtos.ProvinceDTO.model_validate(item) for item in query]
   except SQLAlchemyError as e:
     raise e
   

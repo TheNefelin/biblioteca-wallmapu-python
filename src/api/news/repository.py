@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
-from . import models, dtos
+from . import models
 
 # -----------------------------------------------------------------
 # GET ALL Pagination
@@ -55,15 +55,20 @@ def get_all_pagination(
 # GET BY ID    
 def get_by_id(id: int, db: Session):
   try:
-    return db.query(models.News).filter(models.News.id_news == id).first()
+    return (
+      db.query(models.News)
+      .options(joinedload(models.News.images))
+      .filter(models.News.id_news == id)
+      .first()
+    )
   except SQLAlchemyError as e:
     raise e
 
 # -----------------------------------------------------------------
 # CREATE
-def create(data: dtos.CreateNewsDTO, db: Session):
+def create(data: dict, db: Session):
   try:
-    new_item = models.News(**data.model_dump())
+    new_item = models.News(**data)
     
     db.add(new_item)
     db.commit()
@@ -79,15 +84,14 @@ def create(data: dtos.CreateNewsDTO, db: Session):
 
 # -----------------------------------------------------------------
 # UPDATE
-def update(id: int, data: dtos.UpdateNewsDTO, db: Session):
+def update(id: int, data: dict, db: Session):
   try:
     item = db.query(models.News).filter(models.News.id_news == id).first()
 
     if not item:
       return None
 
-    update_data = data.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
+    for key, value in data.items():
       setattr(item, key, value)
     
     db.commit()
@@ -114,7 +118,7 @@ def delete(id: int, db: Session):
 
     db.delete(item)
     db.commit()
-    return 1 
+    return True
   except IntegrityError as e:
     db.rollback()
     raise ValueError("Error de integridad en la base de datos")  

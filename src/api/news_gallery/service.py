@@ -3,9 +3,14 @@ from typing import List
 
 from src.api.news_gallery.models import NewsGallery
 from src.services import cloudinary_service
+from . import dtos, repository
 
 #STATIC_PATH = "static/news"
 PATH = "news"
+
+def get_by_news_id(news_id: int, db: Session) -> list[dtos.NewsGalleryDTO]:
+  items = repository.get_by_news_id(news_id, db)
+  return [dtos.NewsGalleryDTO.model_validate(item) for item in items]
 
 def create_news_gallery_with_images(
     news_id: int,

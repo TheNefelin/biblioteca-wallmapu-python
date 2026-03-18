@@ -10,7 +10,7 @@ from src.api.book_subjects import models as book_subjects_model
 from src.api.book_subjects import service as book_subject_service
 from src.api.editions import models as edition_models
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
-from . import models, dtos
+from . import models
 
 
 # -----------------------------------------------------------------
@@ -74,13 +74,11 @@ def get_all(
       .all()
     )
 
-    result_dto = [dtos.BookDetailDTO.model_validate(item) for item in result_model]
-
     return PaginationResponseDTO(
       page=page,
       pages=pages,
       items=items,
-      result=result_dto
+      result=result_model
     )
   except SQLAlchemyError as e:
     raise e
@@ -111,10 +109,10 @@ def get_by_id(id: int, db: Session) -> models.Book:
 
 # -----------------------------------------------------------------
 # CREATE
-def create(bookDto: dtos.CreateBookDTO, db: Session) -> models.Book:
+def create(data: dict, db: Session) -> models.Book:
   try:
     # Extraer datos del DTO
-    new_data = bookDto.model_dump(exclude_unset=True)
+    new_data = dict(data)
     author_ids = new_data.pop("author_ids", None)
     subject_ids = new_data.pop("subject_ids", None)
     author_ids = author_ids or []
@@ -143,14 +141,15 @@ def create(bookDto: dtos.CreateBookDTO, db: Session) -> models.Book:
 
 # -----------------------------------------------------------------
 # UPDATE
-def update(bookDto: dtos.UpdateBookDTO, db: Session) -> models.Book:
+def update(data: dict, db: Session) -> models.Book:
   try:
-    book = db.get(models.Book, bookDto.id_book)
+    book_id = data.get("id_book")
+    book = db.get(models.Book, book_id)
 
     if not book:
       return None
 
-    update_data = bookDto.model_dump(exclude_unset=True)
+    update_data = dict(data)
     update_data.pop("id_book", None)  # evitar sobrescribir PK
 
     for key, value in update_data.items():

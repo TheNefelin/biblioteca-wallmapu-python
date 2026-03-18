@@ -3,10 +3,8 @@ from typing import List
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from src.shared.dtos import PaginationResponseDTO, BookPaginationRequestDTO
+from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO, BookPaginationRequestDTO
 from src.api.editions import models as edition_models
-from src.api.editorials import models as editorial_models
-from src.api.books import models as book_models
 from src.api.authors import models as authors_models
 from . import dtos, models, repository
 
@@ -28,26 +26,22 @@ def get_all_pagination(pagination: BookPaginationRequestDTO, db: Session) -> Pag
     )
 
   if pagination.id_editorial:
-    editions = editions.filter(
-      models.Edition.editorial.has(
-        editorial_models.Editorial.id_editorial == pagination.id_editorial
+    books = books.filter(
+      models.Book.editions.any(
+        edition_models.Edition.editorial_id == pagination.id_editorial
       )
     )
 
   if pagination.id_author:
-    editions = editions.filter(
-      models.Edition.book.has(
-        book_models.Book.book_authors.any(
-          authors_models.Author.id_author == pagination.id_author
-        )
+    books = books.filter(
+      models.Book.book_authors.any(
+        authors_models.Author.id_author == pagination.id_author
       )
     )
 
   if pagination.id_genre:
-    editions = editions.filter(
-      models.Edition.book.has(
-        book_models.Book.genre_id == pagination.id_genre
-      )
+    books = books.filter(
+      models.Book.genre_id == pagination.id_genre
     )
 
   total_items = books.count()
@@ -73,6 +67,18 @@ def get_all_pagination(pagination: BookPaginationRequestDTO, db: Session) -> Pag
   )
 
 
+def get_all(pagination: PaginationRequestDTO, db: Session) -> PaginationResponseDTO[List[dtos.BookDetailDTO]]:
+  page = repository.get_all(pagination, db)
+  return PaginationResponseDTO[List[dtos.BookDetailDTO]](
+    page=page.page,
+    pages=page.pages,
+    items=page.items,
+    result=[dtos.BookDetailDTO.model_validate(item) for item in page.result],
+    next=page.next,
+    prev=page.prev,
+  )
+
+
 # -----------------------------------------------------------------
 # GET BY ID
 def get_book_by_id(id: int, db: Session) -> dtos.BookDetailDTO | None:
@@ -83,14 +89,14 @@ def get_book_by_id(id: int, db: Session) -> dtos.BookDetailDTO | None:
 # -----------------------------------------------------------------
 # CREATE
 def create_book(data: dtos.CreateBookDTO, db: Session) -> dtos.BookDTO:
-  item = repository.create(data, db)
+  item = repository.create(data.model_dump(exclude_unset=True), db)
   return dtos.BookDTO.model_validate(item)
 
 
 # -----------------------------------------------------------------
 # UPDATE
 def update_book(data: dtos.UpdateBookDTO, db: Session) -> dtos.BookDTO | None:
-  item = repository.update(data, db)
+  item = repository.update(data.model_dump(exclude_unset=True), db)
   return dtos.BookDTO.model_validate(item)
 
 

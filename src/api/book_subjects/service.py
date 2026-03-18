@@ -13,5 +13,4 @@ def update_subjects(id_book: int, subject_ids: list[int], db: Session) -> list[d
 # -----------------------------------------------------------------
 # DELETE (elimina una relación book-subject)
 def delete_subject(id_book: int, id_subject: int, db: Session) -> bool:
-  item = dtos.BookSubjectDTO(id_book=id_book, id_subject=id_subject)
-  return repository.delete(item, db)
+  return repository.delete(id_book, id_subject, db)

@@ -1,14 +1,13 @@
 from math import ceil
 from sqlalchemy import or_
-from sqlite3 import IntegrityError
 from sqlalchemy import UUID
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.api.user_status import models as status_models
 from src.api.user_role import models as role_models
-from . import models, dtos
+from . import models
 
 # -----------------------------------------------------------------
 # GET ALL DETAILED
@@ -66,7 +65,7 @@ def get_all_detailed(
 def get_by_id_detailed(
   id_user: UUID, 
   db: Session
-) -> dtos.UserDetailDTO | None:
+) -> models.User | None:
   try:
     entity = (
       db.query(models.User)
@@ -82,8 +81,7 @@ def get_by_id_detailed(
     if not entity:
       return None
 
-    dto = dtos.UserDetailDTO.model_validate(entity)
-    return dto
+    return entity
   except SQLAlchemyError as e:
     raise e
   
@@ -93,7 +91,7 @@ def get_or_create_user(
   email: str,
   name: str,
   db: Session
-) -> dtos.UserWithRoleDTO:
+) -> models.User:
   try:
     user = (
       db.query(models.User)
@@ -103,7 +101,7 @@ def get_or_create_user(
     )
 
     if user:
-      return dtos.UserWithRoleDTO.model_validate(user)
+      return user
 
     new_user = models.User(
       email=email,
@@ -123,7 +121,7 @@ def get_or_create_user(
         .first()
     )
     
-    return dtos.UserWithRoleDTO.model_validate(user)
+    return user
   except IntegrityError as e:
     db.rollback()
     raise ValueError("Error de integridad en la base de datos")  
@@ -135,9 +133,9 @@ def get_or_create_user(
 #UPDATE
 def update(
   id: UUID, 
-  update_dto: dtos.UpdateUserDTO, 
+  update_data: dict, 
   db: Session
-) -> dtos.UserDTO | None:
+) -> models.User | None:
   try:
     entity = db.query(models.User).filter(models.User.id_user == id).first()
     
@@ -145,15 +143,13 @@ def update(
       return None
     
     # Solo actualizar campos que vienen en el request (exclude_unset=True)
-    update_data = update_dto.model_dump(exclude_unset=True)
     for key, value in update_data.items():
       setattr(entity, key, value)
     
     db.commit()
     db.refresh(entity)
 
-    dto = dtos.UserDTO.model_validate(entity)
-    return dto
+    return entity
   except IntegrityError as e:
     db.rollback()
     if 'rut' in str(e.orig):

@@ -9,7 +9,7 @@ from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
 from src.core.url_helper import get_base_url
 from src.core.database import get_db
-from . import repository, dtos
+from . import dtos, service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
@@ -36,7 +36,7 @@ def get_all_pagination(
       search=search
     )
     
-    pagination_response = repository.get_all_pagination(pagination_request, db)
+    pagination_response = service.get_all_pagination(pagination_request, db)
 
     current_page = pagination_response.page
     total_pages = pagination_response.pages
@@ -73,7 +73,7 @@ def get_by_id(
   db: Session = Depends(get_db)
 ):
   try:
-    result = repository.get_by_id(id, db)
+    result = service.get_by_id(id, db)
 
     if not result:
       return ApiResponse.not_found()
@@ -95,7 +95,7 @@ def create(
   current_user: dict = admin_required
 ):
   try:
-    created = repository.create(news, db)
+    created = service.create(news, db)
 
     return ApiResponse.created(created)
   except ValueError as e:
@@ -120,7 +120,7 @@ def update(
     if (id != news.id_news):
       return ApiResponse.bad_request(message=f"El id: {id} no coincide")
 
-    updated = repository.update(id, news, db)
+    updated = service.update(id, news, db)
     
     if not updated:
       return ApiResponse.not_found(message=f"El id: {id} no se encontró")
@@ -144,7 +144,7 @@ def delete(
   current_user: dict = admin_required
 ):
   try:
-    deleted = repository.delete(id, db)
+    service.delete(id, db)
 
     return ApiResponse.deleted()
   except ValueError as e:
