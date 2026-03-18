@@ -1,43 +1,29 @@
 from math import ceil
 from sqlalchemy import or_
-from sqlalchemy.orm import Session, joinedload, selectinload
+from sqlalchemy.orm import Session
 
 from src.shared.dtos import BookPaginationRequestDTO, PaginationResponseDTO
 from src.services import cloudinary_service
-from . import dtos, models, repository
+from . import dtos, repository
 
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
 def get_all_pagination(pagination: BookPaginationRequestDTO, db: Session):
-  query = repository.get_all_paginated(pagination, db)
+  base_query = repository.build_query(pagination, db)
 
-  #total_items = query.count()
-  total_items = db.query(models.Edition).count()
+  total_items = repository.count_query(base_query)
 
-  total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
-  this_page = min(pagination.page, total_pages) if total_pages > 0 else 1
-  offset = (this_page - 1) * pagination.limit
+  total_pages = ceil(total_items / pagination.limit) if total_items else 0
+  page = min(pagination.page, total_pages) if total_pages else 1
+  offset = (page - 1) * pagination.limit
 
-  editions = (
-    query
-    .options(
-      joinedload(models.Edition.editorial),
-      joinedload(models.Edition.book),
-      selectinload(models.Edition.copies),
-    )
-    .order_by(models.Edition.updated_at.desc())
-    .offset(offset)
-    .limit(pagination.limit)
-    .all()
-  )
-
-  print(str(query.statement.compile(compile_kwargs={"literal_binds": True})))
+  editions = repository.get_paginated(base_query, offset, pagination.limit)
 
   editions_dto = [dtos.EditionDetailDTO.model_validate(e) for e in editions]
 
   return PaginationResponseDTO(
-    page=this_page,
+    page=page,
     pages=total_pages,
     items=total_items,
     result=editions_dto,

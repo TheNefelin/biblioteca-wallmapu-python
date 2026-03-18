@@ -10,5 +10,5 @@ class CopyStatus(Base):
   id_status = Column(Integer, primary_key=True, autoincrement=True)
   name = Column(String(45), nullable=False)
 
-  copies = relationship("EditionCopy", back_populates="status")
+  copies = relationship("Copy", back_populates="status")
   

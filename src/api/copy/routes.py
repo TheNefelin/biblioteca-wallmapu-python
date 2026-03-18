@@ -21,7 +21,7 @@ router = APIRouter(
 # GET ALL
 @router.get(
   "/", 
-  response_model=ApiResponse[List[dtos.EditionCopyDTO]],
+  response_model=ApiResponse[List[dtos.CopyDTO]],
   status_code=HTTP_200_OK
 )
 def get_all_copy(db: Session = Depends(get_db)):
@@ -35,7 +35,7 @@ def get_all_copy(db: Session = Depends(get_db)):
 # GET BY ID
 @router.get(
   "/{id}", 
-  response_model=ApiResponse[dtos.EditionCopyDTO],
+  response_model=ApiResponse[dtos.CopyDTO],
   status_code=HTTP_200_OK
 )
 def get_all_copy(
@@ -56,7 +56,7 @@ def get_all_copy(
 # GET BY EDITION ID
 @router.get(
   "/edition/{id_edition}", 
-  response_model=ApiResponse[List[dtos.EditionCopyDTO]],
+  response_model=ApiResponse[List[dtos.CopyDTO]],
   status_code=HTTP_200_OK
 )
 def get_all_copy(
@@ -73,11 +73,11 @@ def get_all_copy(
 # CREATE
 @router.post(
   "/",
-  response_model=ApiResponse[dtos.EditionCopyDTO], 
+  response_model=ApiResponse[dtos.CopyDTO], 
   status_code=HTTP_201_CREATED,
 )
 def create_copy(
-  copy: dtos.CreateEditionCopyDTO, 
+  copy: dtos.CreateCopyDTO, 
   db: Session = Depends(get_db)
 ):
   try:
@@ -102,12 +102,12 @@ def create_copy(
 # UPDATE
 @router.put(
   "/{id}",
-  response_model=ApiResponse[dtos.EditionCopyDTO], 
+  response_model=ApiResponse[dtos.CopyDTO], 
   status_code=HTTP_200_OK,
 )
 def update_copy(
   id: int, 
-  copy: dtos.UpdateEditionCopyDTO, 
+  copy: dtos.UpdateCopyDTO, 
   db: Session = Depends(get_db)
 ):
   try:

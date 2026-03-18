@@ -1,12 +1,8 @@
-from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 
-class SubjectDTO(BaseModel):
+class BookSubjectDTO(BaseModel):
+  id_book: int
   id_subject: int
-  name: str
-  created_at: datetime
-  updated_at: datetime
-  
-  model_config = ConfigDict(from_attributes=True)
 
+  model_config = ConfigDict(from_attributes=True)

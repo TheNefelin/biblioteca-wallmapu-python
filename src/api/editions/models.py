@@ -22,5 +22,5 @@ class Edition(Base):
   book_id = Column(Integer, ForeignKey('wm_books.id_book'))
   book = relationship("Book", back_populates="editions")
 
-  copies = relationship("EditionCopy", back_populates="edition")
+  copies = relationship("Copy", back_populates="edition")
   

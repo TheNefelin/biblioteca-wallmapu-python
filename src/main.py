@@ -14,17 +14,17 @@ from src.api.user_status.routes import router as users_status_router
 from src.api.users.routes import router as users_router
 from src.api.news.routes import router as news_router
 from src.api.news_gallery.routes import router as news_gallery_router
-from src.api.book_genres.routes import router as book_genres_router
+from src.api.genres.routes import router as genres_router
+from src.api.authors.routes import router as authors_router
 from src.api.book_authors.routes import router as book_authors_router
-from src.api.book_authors_step.routes import router as book_authors_step_router
+from src.api.subjects.routes import router as subjects_router
 from src.api.book_subjects.routes import router as book_subjects_router
-from src.api.book_subjects_step.routes import router as book_subjects_step_router
 from src.api.books.routes import router as books_router
 from src.api.editorials.routes import router as editorials_router
 from src.api.editions.routes import router as editions_router
 from src.api.edition_image.routes import router as edition_image_router
-from src.api.edition_copy.routes import router as edition_copy_router
-from src.api.edition_copy_status.routes import router as edition_copy_status_router
+from src.api.copy.routes import router as copy_router
+from src.api.copy_status.routes import router as copy_status_router
 
 app = FastAPI(title="Biblioteca Wallmapu API", description="In development", version="1.0")
 
@@ -66,15 +66,15 @@ app.include_router(users_status_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
 app.include_router(news_router, prefix="/api")
 app.include_router(news_gallery_router, prefix="/api")
-app.include_router(book_genres_router, prefix="/api")
+app.include_router(genres_router, prefix="/api")
+app.include_router(authors_router, prefix="/api")
 app.include_router(book_authors_router, prefix="/api")
-app.include_router(book_authors_step_router, prefix="/api")
+app.include_router(subjects_router, prefix="/api")
 app.include_router(book_subjects_router, prefix="/api")
-app.include_router(book_subjects_step_router, prefix="/api")
 app.include_router(books_router, prefix="/api")
 app.include_router(editorials_router, prefix="/api")
 app.include_router(editions_router, prefix="/api")
 app.include_router(edition_image_router, prefix="/api")
-app.include_router(edition_copy_router, prefix="/api")
-app.include_router(edition_copy_status_router, prefix="/api")
+app.include_router(copy_router, prefix="/api")
+app.include_router(copy_status_router, prefix="/api")
 

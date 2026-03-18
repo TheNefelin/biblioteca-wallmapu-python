@@ -1,10 +1,10 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
-from src.api.edition_copy_status.dtos import CopyStatusDTO
+from src.api.copy_status.dtos import CopyStatusDTO
 
 
-class CreateEditionCopyDTO(BaseModel):
+class CreateCopyDTO(BaseModel):
   signature_topography: str
   copy_number: int
   edition_id: int
@@ -13,11 +13,16 @@ class CreateEditionCopyDTO(BaseModel):
   model_config = ConfigDict(from_attributes=True)
 
 
-class UpdateEditionCopyDTO(CreateEditionCopyDTO):
+class UpdateCopyDTO(CreateCopyDTO):
   id_copy: int
 
 
-class EditionCopyDTO(BaseModel):
+class CopyDTO(UpdateCopyDTO):
+  created_at: datetime
+  updated_at: datetime
+
+
+class CopyForEditionDTO(BaseModel):
   id_copy: int
   barcode: str
   signature_topography: str

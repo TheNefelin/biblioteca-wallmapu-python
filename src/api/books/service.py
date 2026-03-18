@@ -7,7 +7,7 @@ from src.shared.dtos import PaginationResponseDTO, BookPaginationRequestDTO
 from src.api.editions import models as edition_models
 from src.api.editorials import models as editorial_models
 from src.api.books import models as book_models
-from src.api.book_authors import models as book_authors_models
+from src.api.authors import models as authors_models
 from . import dtos, models, repository
 
 
@@ -38,7 +38,7 @@ def get_all_pagination(pagination: BookPaginationRequestDTO, db: Session) -> Pag
     editions = editions.filter(
       models.Edition.book.has(
         book_models.Book.book_authors.any(
-          book_authors_models.Author.id_author == pagination.id_author
+          authors_models.Author.id_author == pagination.id_author
         )
       )
     )

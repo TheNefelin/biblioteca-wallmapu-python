@@ -2,11 +2,11 @@ from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict
 
-from src.api.book_authors.dtos import AuthorDTO
-from src.api.book_genres.dtos import GenreDTO
-from src.api.book_subjects.dtos import SubjectDTO
+from src.api.authors.dtos import AuthorDTO
+from src.api.genres.dtos import GenreDTO
+from src.api.subjects.dtos import SubjectDTO
 from src.api.editorials.dtos import EditorialDTO
-from src.api.edition_copy.dtos import EditionCopyDTO
+from src.api.copy.dtos import CopyForEditionDTO
 
 
 class BookForEditionDTO(BaseModel):
@@ -32,7 +32,7 @@ class EditionDetailDTO(BaseModel):
   created_at: datetime
   updated_at: datetime
   editorial: EditorialDTO
-  copies: List[EditionCopyDTO]
+  copies: List[CopyForEditionDTO]
   book: BookForEditionDTO
 
   model_config = ConfigDict(from_attributes=True)

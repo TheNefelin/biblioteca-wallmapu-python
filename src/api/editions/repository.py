@@ -1,15 +1,66 @@
 from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from src.shared.dtos import BookPaginationRequestDTO
 from src.api.editorials import models as editorial_models
 from src.api.books import models as book_models
+from src.api.authors import models as authors_models
 from src.api.book_authors import models as book_authors_models
-from src.api.edition_copy import models as edition_copy_models
+from src.api.copy import models as copy_models
 from . import models
 
 
+def count_query(query):
+  return query.with_entities(models.Edition.id_edition).distinct().count()
+
+def get_paginated(query, offset: int, limit: int):
+  return (
+    query
+    .options(
+      joinedload(models.Edition.editorial),
+      joinedload(models.Edition.book),
+      selectinload(models.Edition.copies),
+    )
+    .order_by(models.Edition.updated_at.desc())
+    .offset(offset)
+    .limit(limit)
+    .all()
+  )
+  
+def build_query(pagination: BookPaginationRequestDTO, db: Session):
+  query = db.query(models.Edition)
+
+  query = query.join(models.Edition.book)
+
+  if pagination.search:
+    query = query.filter(
+      or_(
+        models.Edition.isbn.ilike(f"%{pagination.search}%"),
+        book_models.Book.title.ilike(f"%{pagination.search}%"),
+        book_models.Book.summary.ilike(f"%{pagination.search}%"),
+      )
+    )
+
+  if pagination.id_author:
+    query = (
+      query.join(book_models.Book.book_authors)
+        .join(book_authors_models.BookAuthor.author)
+        .filter(authors_models.Author.id_author == pagination.id_author)
+    )
+
+  if pagination.id_editorial:
+    query = query.filter(
+      models.Edition.editorial_id == pagination.id_editorial
+    )
+
+  if pagination.id_genre:
+    query = query.filter(
+      book_models.Book.genre_id == pagination.id_genre
+    )
+
+  return query
+  
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
 def get_all_paginated(
@@ -141,8 +192,8 @@ def delete(edition: models.Edition, db: Session) -> str | None:
   try:
     # Validar dependencias
     has_copies = (
-      db.query(edition_copy_models.EditionCopy)
-      .filter(edition_copy_models.EditionCopy.edition_id == edition.id_edition)
+      db.query(copy_models.EditionCopy)
+      .filter(copy_models.EditionCopy.edition_id == edition.id_edition)
       .first()
     )
     if has_copies:

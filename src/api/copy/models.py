@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 from src.core.database import Base
 
 
-class EditionCopy(Base):
+class Copy(Base):
   __tablename__ = "wm_copies"
 
   id_copy = Column(Integer, primary_key=True, autoincrement=True)

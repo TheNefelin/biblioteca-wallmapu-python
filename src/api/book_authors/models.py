@@ -1,15 +1,15 @@
-from sqlalchemy import Column, DateTime, Integer, String, func
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, func
 from sqlalchemy.orm import relationship
 
 from src.core.database import Base
 
 
-class Author(Base):
-  __tablename__ = "wm_authors"
+class BookAuthor(Base):
+  __tablename__ = "wm_book_author"
 
-  id_author = Column(Integer, primary_key=True, autoincrement=True)
-  name = Column(String(200), nullable=False)
+  id_book = Column(Integer, ForeignKey("wm_books.id_book"), primary_key=True)
+  id_author = Column(Integer, ForeignKey("wm_authors.id_author"), primary_key=True)
   created_at = Column(DateTime, server_default=func.now())
-  updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
-  
-  book_authors = relationship("BookAuthor", back_populates="author")
+
+  book = relationship("Book", back_populates="book_authors")
+  author = relationship("Author", back_populates="book_authors")

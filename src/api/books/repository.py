@@ -4,10 +4,10 @@ from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 
-from src.api.book_authors_step import models as book_authors_step_model
-from src.api.book_authors_step import service as book_author_service
-from src.api.book_subjects_step import models as book_subjects_step_model
-from src.api.book_subjects_step import service as book_subject_service
+from src.api.book_authors import models as book_authors_model
+from src.api.book_authors import service as book_author_service
+from src.api.book_subjects import models as book_subjects_model
+from src.api.book_subjects import service as book_subject_service
 from src.api.editions import models as edition_models
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
 from . import models, dtos
@@ -23,8 +23,8 @@ def get_all_pagination(
       db.query(models.Book)
       .options(
         joinedload(models.Book.genre),
-        joinedload(models.Book.book_authors).joinedload(book_authors_step_model.BookAuthor.author),
-        joinedload(models.Book.book_subjects).joinedload(book_subjects_step_model.BookSubject.subject),
+        joinedload(models.Book.book_authors).joinedload(book_authors_model.BookAuthor.author),
+        joinedload(models.Book.book_subjects).joinedload(book_subjects_model.BookSubject.subject),
         joinedload(models.Book.editions).joinedload(edition_models.Edition.copies),
       )
     )
@@ -45,8 +45,8 @@ def get_all(
       db.query(models.Book)
       .options(
         joinedload(models.Book.genre),
-        joinedload(models.Book.book_authors).joinedload(book_authors_step_model.BookAuthor.author),
-        joinedload(models.Book.book_subjects).joinedload(book_subjects_step_model.BookSubject.subject),
+        joinedload(models.Book.book_authors).joinedload(book_authors_model.BookAuthor.author),
+        joinedload(models.Book.book_subjects).joinedload(book_subjects_model.BookSubject.subject),
         joinedload(models.Book.editions).joinedload(edition_models.Edition.copies),
       )
     )
@@ -95,8 +95,8 @@ def get_by_id(id: int, db: Session) -> models.Book:
       .filter(models.Book.id_book == id)
       .options(
         joinedload(models.Book.genre),
-        joinedload(models.Book.book_authors).joinedload(book_authors_step_model.BookAuthor.author),
-        joinedload(models.Book.book_subjects).joinedload(book_subjects_step_model.BookSubject.subject),
+        joinedload(models.Book.book_authors).joinedload(book_authors_model.BookAuthor.author),
+        joinedload(models.Book.book_subjects).joinedload(book_subjects_model.BookSubject.subject),
         joinedload(models.Book.editions).joinedload(edition_models.Edition.copies),
       )
       .first()
@@ -185,10 +185,10 @@ def delete(id: int, db: Session) -> bool:
       return None
 
     # Validar dependencias
-    if db.query(book_authors_step_model.BookAuthor).filter_by(id_book=id).first():
+    if db.query(book_authors_model.BookAuthor).filter_by(id_book=id).first():
       raise ValueError("El libro tiene autores asociados")
 
-    if db.query(book_subjects_step_model.BookSubject).filter_by(id_book=id).first():
+    if db.query(book_subjects_model.BookSubject).filter_by(id_book=id).first():
       raise ValueError("El libro tiene descriptores asociados")
 
     if db.query(edition_models.Edition).filter_by(book_id=id).first():
