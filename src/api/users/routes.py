@@ -21,8 +21,8 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.get(
   "/detailed", 
   response_model=ApiResponse[PaginationResponseDTO[List[dtos.UserDetailDTO]]],
-  dependencies=[admin_required],
-  status_code=HTTP_200_OK
+  status_code=HTTP_200_OK,
+  dependencies=[admin_required],  
 )
 def get_all_detailed(
   request: Request,
@@ -67,8 +67,8 @@ def get_all_detailed(
 @router.get(
   "/detailed/{id}", 
   response_model=ApiResponse[dtos.UserDetailDTO],
-  dependencies=[admin_or_user_required],
-  status_code=HTTP_200_OK
+  status_code=HTTP_200_OK,
+  dependencies=[admin_or_user_required],  
 )
 def get_by_id_detailed(id: UUID, db: Session = Depends(database.get_db)):
   try:  
@@ -86,8 +86,8 @@ def get_by_id_detailed(id: UUID, db: Session = Depends(database.get_db)):
 @router.put(
   "/{id}", 
   response_model=ApiResponse[dtos.UserDTO],
-  dependencies=[user_required],
-  status_code=HTTP_201_CREATED
+  status_code=HTTP_201_CREATED,
+  dependencies=[user_required],  
 )
 def update_user(
   id: UUID, update_dto: dtos.UpdateUserDTO, 
@@ -115,8 +115,8 @@ def update_user(
 @router.put(
   "/admin/{id}", 
   response_model=ApiResponse[dtos.UserDTO],
-  dependencies=[admin_required],
-  status_code=HTTP_202_ACCEPTED
+  status_code=HTTP_202_ACCEPTED,
+  dependencies=[admin_required],  
 )
 def update_user(
   id: UUID, update_dto: dtos.UpdateUserByAdminDTO, 

@@ -23,13 +23,6 @@ def get_all_paginated(
   # -------------------------
   query = query.join(models.Edition.book)
 
-  if pagination.id_author:
-    query = query.join(book_models.Book.book_authors).join(book_authors_models.BookAuthor.author)
-    query = query.filter(book_authors_models.Author.id_author == pagination.id_author)
-
-  if pagination.id_editorial:
-    query = query.join(models.Edition.editorial)
-
   # -------------------------
   # FILTROS
   # -------------------------
@@ -47,10 +40,15 @@ def get_all_paginated(
       editorial_models.Editorial.id_editorial == pagination.id_editorial
     )
 
+  #if pagination.id_author:
+  #  query = query.filter(
+  #    book_authors_models.Author.id_author == pagination.id_author
+  #  )
+
   if pagination.id_author:
-    query = query.filter(
-      book_authors_models.Author.id_author == pagination.id_author
-    )
+    query = query.join(book_models.Book.book_authors).join(book_authors_models.BookAuthor.author)
+    query = query.filter(book_authors_models.Author.id_author == pagination.id_author)
+
 
   if pagination.id_genre:
     query = query.filter(
