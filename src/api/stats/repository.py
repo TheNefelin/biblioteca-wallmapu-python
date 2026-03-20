@@ -18,16 +18,16 @@ def get_all_admin(db: Session) -> dict:
   try:
     result = db.execute(
       text("""
-        SELECT 
-          (SELECT COUNT(*) FROM users) AS users,
-          (SELECT COUNT(*) FROM news) AS news,
-          (SELECT COUNT(*) FROM division_regions) AS regions,
-          (SELECT COUNT(*) FROM division_provinces) AS provinces,
-          (SELECT COUNT(*) FROM division_communes) AS communes,
-          (SELECT COUNT(*) FROM authors) AS authors,
-          (SELECT COUNT(*) FROM editorials) AS editorials,
-          (SELECT COUNT(*) FROM subjects) AS subjects,
-          (SELECT COUNT(*) FROM books) AS books
+        SELECT
+          (SELECT COUNT(id_user) FROM wm_users) as users,
+          (SELECT COUNT(id_news) FROM wm_news) as news,	
+          (SELECT COUNT(id_region) FROM wm_regions) as regions,
+          (SELECT COUNT(id_province) FROM wm_provinces) as provinces,
+          (SELECT COUNT(id_commune) FROM wm_communes) as communes,	
+          (SELECT COUNT(id_author) FROM wm_authors) as authors,
+          (SELECT COUNT(id_editorial) FROM wm_editorials) as editorials,
+          (SELECT COUNT(id_subject) FROM wm_subjects) as subjects,
+          (SELECT COUNT(id_book) FROM wm_books) as books;
       """)
     ).fetchone()
 

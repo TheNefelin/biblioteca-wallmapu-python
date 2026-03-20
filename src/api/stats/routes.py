@@ -11,7 +11,11 @@ from . import dtos, service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
-router = APIRouter(prefix="/stat", tags=["stat"], dependencies=[admin_required])
+router = APIRouter(
+  prefix="/stat",
+  tags=["stat"], 
+  dependencies=[admin_required]
+)
 
 # -----------------------------------------------------------------
 # GET ALL 
