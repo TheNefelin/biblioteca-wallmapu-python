@@ -152,8 +152,6 @@ def update_book(
 
     if book.genre_id == 0:
       return ApiResponse.bad_request(message="El género es requerido")      
-    
-    print(book)
 
     result = service.update_book(book, db)
     

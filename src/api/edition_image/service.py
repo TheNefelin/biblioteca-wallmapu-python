@@ -37,7 +37,6 @@ def delete_edition_image(
 ) -> bool:
   try:
     item = edition_repository.get_entity_by_id(id_edition, db) 
-    print(item)
     if not item:
       raise ValueError("La edición no existe")
 

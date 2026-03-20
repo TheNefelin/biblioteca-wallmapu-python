@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import func, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -16,21 +16,32 @@ from src.api.users.models import User
 # GET ALL 
 def get_all_admin(db: Session) -> dict:
   try:
-    query = db.query(
-        select(func.count(User.id_user)).scalar_subquery().label("users"),
-        select(func.count(News.id_news)).scalar_subquery().label("news"),
-        select(func.count(Region.id_region)).scalar_subquery().label("regions"),
-        select(func.count(Province.id_province)).scalar_subquery().label("provinces"),
-        select(func.count(Commune.id_commune)).scalar_subquery().label("communes"),
-        select(func.count(Author.id_author)).scalar_subquery().label("authors"),
-        select(func.count(Editorial.id_editorial)).scalar_subquery().label("editorials"),
-        select(func.count(Subject.id_subject)).scalar_subquery().label("subjects"),
-        select(func.count(Book.id_book)).scalar_subquery().label("books"),
-    )
+    result = db.execute(
+      text("""
+        SELECT 
+          (SELECT COUNT(*) FROM users) AS users,
+          (SELECT COUNT(*) FROM news) AS news,
+          (SELECT COUNT(*) FROM division_regions) AS regions,
+          (SELECT COUNT(*) FROM division_provinces) AS provinces,
+          (SELECT COUNT(*) FROM division_communes) AS communes,
+          (SELECT COUNT(*) FROM authors) AS authors,
+          (SELECT COUNT(*) FROM editorials) AS editorials,
+          (SELECT COUNT(*) FROM subjects) AS subjects,
+          (SELECT COUNT(*) FROM books) AS books
+      """)
+    ).fetchone()
 
-    result = query.one()
-
-    return dict(result._mapping)
+    return {
+      "users": result[0],
+      "news": result[1],
+      "regions": result[2],
+      "provinces": result[3],
+      "communes": result[4],
+      "authors": result[5],
+      "editorials": result[6],
+      "subjects": result[7],
+      "books": result[8],
+    }
   except SQLAlchemyError as e:
     raise e
   

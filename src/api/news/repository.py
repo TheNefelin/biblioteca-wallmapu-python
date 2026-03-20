@@ -1,5 +1,5 @@
 from math import ceil
-from sqlalchemy import func, or_
+from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 
@@ -29,14 +29,12 @@ def get_all_pagination(
     items = query.count()
     pages = ceil(items / pagination.limit) if items > 0 else 0
 
-    # Ajuste seguro de página
     page = min(pagination.page, pages) if pages > 0 else 1
     skip = (page - 1) * pagination.limit
 
     result = (
       query
-      #.order_by(models.News.created_at.desc())
-      .order_by(func.random())
+      .order_by(models.News.created_at.desc())
       .offset(skip)
       .limit(pagination.limit)
       .all()
