@@ -8,9 +8,9 @@ class LoanDTO(BaseModel):
   loan_date: date
   due_date: date
   return_date: Optional[date] = None
-  status: str
   copy_id: int
   user_id: str
+  loan_status_id: int
 
   model_config = ConfigDict(from_attributes=True)
 
@@ -20,9 +20,10 @@ class LoanDetailDTO(BaseModel):
   loan_date: date
   due_date: date
   return_date: Optional[date] = None
-  status: str
   copy_id: int
   user_id: str
+  loan_status_id: int
+  loan_status_name: Optional[str] = None
   user_name: Optional[str] = None
   user_lastname: Optional[str] = None
   book_id: Optional[int] = None

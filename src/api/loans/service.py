@@ -42,7 +42,7 @@ def create(db: Session, dto: dtos.CreateLoanDTO) -> dtos.LoanDetailDTO:
     user_id=dto.user_id,
     loan_date=date.today(),
     due_date=dto.due_date or (date.today() + timedelta(days=max_days)),
-    status="active"
+    loan_status_id=1
   )
 
   created = repository.create(db, loan)
@@ -54,7 +54,7 @@ def return_loan(db: Session, id: int, dto: dtos.ReturnLoanDTO) -> dtos.LoanDetai
   if not loan:
     return None
 
-  if loan.status == "returned":
+  if loan.loan_status_id == 2:
     raise ValueError("Este préstamo ya fue devuelto")
 
   updated = repository.return_loan(db, id, dto.return_date)
@@ -90,9 +90,10 @@ def _to_detail_dto(db: Session, loan: models.Loan) -> dtos.LoanDetailDTO:
     loan_date=loan.loan_date,
     due_date=loan.due_date,
     return_date=loan.return_date,
-    status=loan.status,
     copy_id=loan.copy_id,
     user_id=loan.user_id,
+    loan_status_id=loan.loan_status_id,
+    loan_status_name=loan.status.status if loan.status else None,
     user_name=loan.user.name if loan.user else None,
     user_lastname=loan.user.lastname if loan.user else None,
     book_id=book_id,

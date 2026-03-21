@@ -213,32 +213,26 @@ CREATE TABLE IF NOT EXISTS wm_reservations (
   CONSTRAINT fk_res_status FOREIGN KEY (reservation_status_id) REFERENCES wm_reservation_status(id_status)
 );
 
+CREATE TABLE IF NOT EXISTS wm_loan_status (
+  id_status INTEGER PRIMARY KEY,
+  status VARCHAR(30) UNIQUE NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS wm_loans (
   id_loan INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   loan_date DATE NOT NULL DEFAULT CURRENT_DATE,
   due_date DATE NOT NULL,
   return_date DATE,
-  status VARCHAR(30) DEFAULT 'active',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   
   copy_id INTEGER NOT NULL,
   user_id UUID NOT NULL,
+  loan_status_id INTEGER NOT NULL DEFAULT 1,
 
   CONSTRAINT loans_copies_fk FOREIGN KEY (copy_id) REFERENCES wm_copies(id_copy),
-  CONSTRAINT loans_users_fk FOREIGN KEY (user_id) REFERENCES wm_users(id_user)
-);
-
-CREATE TABLE IF NOT EXISTS wm_fines (
-  id_fine INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  amount DECIMAL(10,2) NOT NULL,
-  reason VARCHAR(255),
-  paid BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-  loan_id INTEGER NOT NULL,
-
-  CONSTRAINT fk_fine_loan FOREIGN KEY (loan_id) REFERENCES wm_loans(id_loan)
+  CONSTRAINT loans_users_fk FOREIGN KEY (user_id) REFERENCES wm_users(id_user),
+  CONSTRAINT loans_status_fk FOREIGN KEY (loan_status_id) REFERENCES wm_loan_status(id_status)
 );
 
 CREATE TABLE IF NOT EXISTS wm_loan_policies (
@@ -868,4 +862,10 @@ INSERT INTO wm_reservation_status (id_status, status) VALUES
 (2, 'Completada'),
 (3, 'Cancelada'),
 (4, 'Vencida');
+
+
+INSERT INTO wm_loan_status (id_status, status) VALUES
+(1, 'Activo'),
+(2, 'Devuelto'),
+(3, 'Vencido');
 

@@ -10,7 +10,8 @@ def get_all(db: Session) -> list[models.Loan]:
       db.query(models.Loan)
       .options(
         joinedload(models.Loan.user),
-        joinedload(models.Loan.copy)
+        joinedload(models.Loan.copy),
+        joinedload(models.Loan.status)
       )
       .order_by(models.Loan.loan_date.desc())
       .all()
@@ -25,7 +26,8 @@ def get_by_id(db: Session, id: int) -> models.Loan:
       db.query(models.Loan)
       .options(
         joinedload(models.Loan.user),
-        joinedload(models.Loan.copy)
+        joinedload(models.Loan.copy),
+        joinedload(models.Loan.status)
       )
       .filter(models.Loan.id_loan == id)
       .first()
@@ -40,12 +42,13 @@ def get_active_by_user_id(db: Session, user_id: str) -> list[models.Loan]:
       db.query(models.Loan)
       .options(
         joinedload(models.Loan.user),
-        joinedload(models.Loan.copy)
+        joinedload(models.Loan.copy),
+        joinedload(models.Loan.status)
       )
       .filter(
         and_(
           models.Loan.user_id == user_id,
-          models.Loan.status.in_(["active", "overdue"])
+          models.Loan.loan_status_id.in_([1, 3])
         )
       )
       .all()
@@ -64,12 +67,13 @@ def get_active_by_book_id(db: Session, book_id: int) -> list[models.Loan]:
       .join(Edition)
       .options(
         joinedload(models.Loan.user),
-        joinedload(models.Loan.copy)
+        joinedload(models.Loan.copy),
+        joinedload(models.Loan.status)
       )
       .filter(
         and_(
           Edition.book_id == book_id,
-          models.Loan.status.in_(["active", "overdue"])
+          models.Loan.loan_status_id.in_([1, 3])
         )
       )
       .all()
@@ -85,12 +89,13 @@ def get_overdue(db: Session) -> list[models.Loan]:
       db.query(models.Loan)
       .options(
         joinedload(models.Loan.user),
-        joinedload(models.Loan.copy)
+        joinedload(models.Loan.copy),
+        joinedload(models.Loan.status)
       )
       .filter(
         and_(
           models.Loan.due_date < date.today(),
-          models.Loan.status == "active"
+          models.Loan.loan_status_id == 1
         )
       )
       .all()
@@ -110,11 +115,11 @@ def create(db: Session, loan: models.Loan) -> models.Loan:
     raise e
 
 
-def update_status(db: Session, id: int, status: str) -> models.Loan:
+def update_status(db: Session, id: int, status_id: int) -> models.Loan:
   try:
     loan = db.query(models.Loan).filter(models.Loan.id_loan == id).first()
     if loan:
-      loan.status = status
+      loan.loan_status_id = status_id
       db.commit()
       db.refresh(loan)
     return loan
@@ -128,7 +133,7 @@ def return_loan(db: Session, id: int, return_date) -> models.Loan:
     loan = db.query(models.Loan).filter(models.Loan.id_loan == id).first()
     if loan:
       loan.return_date = return_date
-      loan.status = "returned"
+      loan.loan_status_id = 2
       db.commit()
       db.refresh(loan)
     return loan
@@ -145,10 +150,10 @@ def mark_overdue_as_overdue(db: Session) -> int:
       .filter(
         and_(
           models.Loan.due_date < date.today(),
-          models.Loan.status == "active"
+          models.Loan.loan_status_id == 1
         )
       )
-      .update({"status": "overdue"})
+      .update({"loan_status_id": 3})
     )
     db.commit()
     return result
