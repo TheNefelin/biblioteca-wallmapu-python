@@ -1,5 +1,5 @@
 from math import ceil
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 
@@ -34,7 +34,7 @@ def get_all_pagination(
 
     result = (
       query
-      .order_by(models.News.created_at.desc())
+      .order_by(func.random()) #.order_by(models.News.created_at.desc())
       .offset(skip)
       .limit(pagination.limit)
       .all()
