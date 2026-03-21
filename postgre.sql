@@ -194,6 +194,25 @@ CREATE INDEX idx_book_genre ON wm_books(genre_id);
 CREATE INDEX idx_author_id ON wm_book_author(id_author);
 CREATE INDEX idx_editorial_id ON wm_editions(editorial_id);
 
+CREATE TABLE IF NOT EXISTS wm_reservation_status (
+  id_status INTEGER PRIMARY KEY,
+  status VARCHAR(30) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS wm_reservations (
+  id_reservation INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  reservation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  expiration_date TIMESTAMP NOT NULL,
+
+  user_id UUID NOT NULL,
+  book_id INTEGER NOT NULL,
+  reservation_status_id INTEGER NOT NULL DEFAULT 1,
+
+  CONSTRAINT fk_res_user FOREIGN KEY (user_id) REFERENCES wm_users(id_user),
+  CONSTRAINT fk_res_book FOREIGN KEY (book_id) REFERENCES wm_books(id_book),
+  CONSTRAINT fk_res_status FOREIGN KEY (reservation_status_id) REFERENCES wm_reservation_status(id_status)
+);
+
 CREATE TABLE IF NOT EXISTS wm_loans (
   id_loan INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   loan_date DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -210,19 +229,6 @@ CREATE TABLE IF NOT EXISTS wm_loans (
   CONSTRAINT loans_users_fk FOREIGN KEY (user_id) REFERENCES wm_users(id_user)
 );
 
-CREATE TABLE IF NOT EXISTS wm_reservations (
-  id_reservation INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  reservation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  expiration_date TIMESTAMP,
-  status VARCHAR(30) DEFAULT 'active',
-
-  user_id UUID NOT NULL,
-  book_id INTEGER NOT NULL,
-
-  CONSTRAINT fk_res_user FOREIGN KEY (user_id) REFERENCES wm_users(id_user),
-  CONSTRAINT fk_res_book FOREIGN KEY (book_id) REFERENCES wm_books(id_book)
-);
-
 CREATE TABLE IF NOT EXISTS wm_fines (
   id_fine INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   amount DECIMAL(10,2) NOT NULL,
@@ -235,15 +241,16 @@ CREATE TABLE IF NOT EXISTS wm_fines (
   CONSTRAINT fk_fine_loan FOREIGN KEY (loan_id) REFERENCES wm_loans(id_loan)
 );
 
-CREATE TABLE wm_loan_policies (
+CREATE TABLE IF NOT EXISTS wm_loan_policies (
   id_policy INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   name VARCHAR(100),
   max_books INTEGER,
   max_days INTEGER,
-  fine_per_day DECIMAL(10,2)
+  fine_per_day DECIMAL(10,2),
+  reservation_days INTEGER DEFAULT 3
 );
 
-CREATE TABLE wm_notifications (
+CREATE TABLE IF NOT EXISTS wm_notifications (
   id_notification INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   title VARCHAR(100) NOT NULL,
   message TEXT NOT NULL,
@@ -854,4 +861,11 @@ INSERT INTO wm_book_subject (id_book, id_subject) VALUES
 (10,16),(10,17),
 (11,23),(11,24),(11,25),
 (12,8),(12,9),(12,28),(12,30);
+
+
+INSERT INTO wm_reservation_status (id_status, status) VALUES
+(1, 'Pendiente de retiro'),
+(2, 'Completada'),
+(3, 'Cancelada'),
+(4, 'Vencida');
 

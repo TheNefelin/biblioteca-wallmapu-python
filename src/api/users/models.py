@@ -24,3 +24,4 @@ class User(Base):
   commune = relationship("Commune", back_populates="users")
   user_role = relationship("UserRole", back_populates="users")
   user_status = relationship("UserStatus", back_populates="users")
+  reservations = relationship("Reservation", back_populates="user")

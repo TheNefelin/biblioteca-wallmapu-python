@@ -25,6 +25,10 @@ from src.api.editions.routes import router as editions_router
 from src.api.edition_image.routes import router as edition_image_router
 from src.api.copy.routes import router as copy_router
 from src.api.copy_status.routes import router as copy_status_router
+from src.api.reservation_status.routes import router as reservation_status_router
+from src.api.reservations.routes import router as reservations_router
+from src.api.loans.routes import router as loans_router
+from src.api.loan_policies.routes import router as loan_policies_router
 
 app = FastAPI(title="Biblioteca Wallmapu API", description="In development", version="1.0")
 
@@ -77,4 +81,8 @@ app.include_router(editions_router, prefix="/api")
 app.include_router(edition_image_router, prefix="/api")
 app.include_router(copy_router, prefix="/api")
 app.include_router(copy_status_router, prefix="/api")
+app.include_router(reservation_status_router, prefix="/api")
+app.include_router(reservations_router, prefix="/api")
+app.include_router(loans_router, prefix="/api")
+app.include_router(loan_policies_router, prefix="/api")
 
