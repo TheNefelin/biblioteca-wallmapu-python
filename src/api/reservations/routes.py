@@ -1,4 +1,5 @@
 from typing import List
+from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED
@@ -38,7 +39,7 @@ def get_all_reservations(db: Session = Depends(get_db)):
   dependencies=[user_or_admin_required]
 )
 def get_reservations_by_user(
-  user_id: str,
+  user_id: UUID,
   db: Session = Depends(get_db)
 ):
   try:
@@ -87,7 +88,7 @@ def get_reservation_by_id(
   "/",
   response_model=ApiResponse[dtos.ReservationDetailDTO],
   status_code=HTTP_201_CREATED,
-  #dependencies=[user_or_admin_required]
+  dependencies=[user_or_admin_required]
 )
 def create_reservation(
   dto: dtos.CreateReservationDTO,
@@ -140,7 +141,7 @@ def cancel_reservation(
     if not reservation:
       return ApiResponse.not_found(message="Reserva no encontrada")
 
-    if reservation.user_id != current_user["sub"]:
+    if reservation.user_id != UUID(current_user["sub"]):
       return ApiResponse.forbidden(message="No puedes cancelar esta reserva")
 
     res = service.mark_as_cancelled(db, id)

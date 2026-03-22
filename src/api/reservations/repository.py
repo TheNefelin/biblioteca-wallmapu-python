@@ -1,3 +1,4 @@
+from uuid import UUID
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_
@@ -36,7 +37,7 @@ def get_by_id(db: Session, id: int) -> models.Reservation:
     raise e
 
 
-def get_by_user_id(db: Session, user_id: str) -> list[models.Reservation]:
+def get_by_user_id(db: Session, user_id: UUID) -> list[models.Reservation]:
   try:
     return (
       db.query(models.Reservation)
@@ -53,7 +54,7 @@ def get_by_user_id(db: Session, user_id: str) -> list[models.Reservation]:
     raise e
 
 
-def get_active_by_user_and_book(db: Session, user_id: str, book_id: int) -> models.Reservation:
+def get_active_by_user_and_book(db: Session, user_id: UUID, book_id: int) -> models.Reservation:
   try:
     return (
       db.query(models.Reservation)

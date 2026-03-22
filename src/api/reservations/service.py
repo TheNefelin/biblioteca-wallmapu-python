@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from uuid import UUID
 from sqlalchemy.orm import Session
 from . import dtos, repository, models
 from src.api.loans.repository import get_active_by_book_id as get_loans_by_book_id
@@ -17,7 +18,7 @@ def get_by_id(db: Session, id: int) -> dtos.ReservationDetailDTO:
   return _to_detail_dto(reservation)
 
 
-def get_by_user_id(db: Session, user_id: str) -> list[dtos.ReservationDetailDTO]:
+def get_by_user_id(db: Session, user_id: UUID) -> list[dtos.ReservationDetailDTO]:
   reservations = repository.get_by_user_id(db, user_id)
   return [_to_detail_dto(r) for r in reservations]
 
@@ -27,7 +28,7 @@ def get_active_by_book_id(db: Session, book_id: int) -> list[dtos.ReservationDet
   return [_to_detail_dto(r) for r in reservations]
 
 
-def create(db: Session, user_id: str, dto: dtos.CreateReservationDTO) -> dtos.ReservationDetailDTO:
+def create(db: Session, user_id: UUID, dto: dtos.CreateReservationDTO) -> dtos.ReservationDetailDTO:
   existing = repository.get_active_by_user_and_book(db, user_id, dto.book_id)
   if existing:
     raise ValueError("Ya tienes una reserva activa para este libro")

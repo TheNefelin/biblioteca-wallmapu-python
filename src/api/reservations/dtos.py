@@ -1,5 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
+from uuid import UUID
 from typing import Optional
 
 
@@ -7,7 +8,7 @@ class ReservationDTO(BaseModel):
   id_reservation: int
   reservation_date: datetime
   expiration_date: datetime
-  user_id: str
+  user_id: UUID
   book_id: int
   reservation_status_id: int
 
@@ -18,7 +19,7 @@ class ReservationDetailDTO(BaseModel):
   id_reservation: int
   reservation_date: datetime
   expiration_date: datetime
-  user_id: str
+  user_id: UUID
   user_name: Optional[str] = None
   user_lastname: Optional[str] = None
   user_email: Optional[str] = None
@@ -31,7 +32,6 @@ class ReservationDetailDTO(BaseModel):
 
 
 class CreateReservationDTO(BaseModel):
-  user_id: str = Field(..., description="ID del usuario que reserva")
   book_id: int = Field(..., description="ID del libro a reservar")
 
 

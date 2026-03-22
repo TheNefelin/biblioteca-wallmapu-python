@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, DateTime, ForeignKey, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -12,7 +12,7 @@ class Reservation(Base):
   reservation_date = Column(DateTime, server_default=func.now())
   expiration_date = Column(DateTime, nullable=False)
 
-  user_id = Column(String(36), ForeignKey("wm_users.id_user"), nullable=False)
+  user_id = Column(UUID(as_uuid=True), ForeignKey("wm_users.id_user"), nullable=False)
   book_id = Column(Integer, ForeignKey("wm_books.id_book"), nullable=False)
   reservation_status_id = Column(Integer, ForeignKey("wm_reservation_status.id_status"), nullable=False, default=1)
 
