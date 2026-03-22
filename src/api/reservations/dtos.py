@@ -31,6 +31,7 @@ class ReservationDetailDTO(BaseModel):
 
 
 class CreateReservationDTO(BaseModel):
+  user_id: str = Field(..., description="ID del usuario que reserva")
   book_id: int = Field(..., description="ID del libro a reservar")
 
 

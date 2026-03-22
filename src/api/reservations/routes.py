@@ -87,7 +87,7 @@ def get_reservation_by_id(
   "/",
   response_model=ApiResponse[dtos.ReservationDetailDTO],
   status_code=HTTP_201_CREATED,
-  dependencies=[user_or_admin_required]
+  #dependencies=[user_or_admin_required]
 )
 def create_reservation(
   dto: dtos.CreateReservationDTO,
