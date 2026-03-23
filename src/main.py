@@ -85,9 +85,9 @@ app.include_router(copy_router, prefix="/api")
 app.include_router(copy_status_router, prefix="/api")
 app.include_router(reservation_status_router, prefix="/api")
 app.include_router(reservations_router, prefix="/api")
-app.include_router(loan_status_router, prefix="/api")
 app.include_router(loans_router, prefix="/api")
 app.include_router(loan_policies_router, prefix="/api")
+app.include_router(loan_status_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api")
 
 
