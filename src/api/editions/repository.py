@@ -192,8 +192,8 @@ def delete(edition: models.Edition, db: Session) -> str | None:
   try:
     # Validar dependencias
     has_copies = (
-      db.query(copy_models.EditionCopy)
-      .filter(copy_models.EditionCopy.edition_id == edition.id_edition)
+      db.query(copy_models.Copy)
+      .filter(copy_models.Copy.edition_id == edition.id_edition)
       .first()
     )
     if has_copies:

@@ -85,7 +85,7 @@ def create_edition(item: dtos.CreateEditionDTO, db: Session = Depends(get_db)):
   except ValueError as e:
     return ApiResponse.bad_request(message=str(e))
   except Exception as e:
-    return ApiResponse.internal_error(message=str(e))
+    return ApiResponse.server_error(message=str(e))
 
 # -----------------------------------------------------------------
 # UPDATE
@@ -107,7 +107,7 @@ def update_edition(id: int, item: dtos.UpdateEditionDTO, db: Session = Depends(g
   except ValueError as e:
     return ApiResponse.bad_request(message=str(e))
   except Exception as e:
-    return ApiResponse.internal_error(message=str(e))
+    return ApiResponse.server_error(message=str(e))
 
 
 # -----------------------------------------------------------------
@@ -116,7 +116,7 @@ def update_edition(id: int, item: dtos.UpdateEditionDTO, db: Session = Depends(g
   "/{id}", 
   response_model=ApiResponse[bool], 
   status_code=HTTP_200_OK,
-  dependencies=[admin_required],
+  #dependencies=[admin_required],
 )
 def delete_edition(id: int, db: Session = Depends(get_db)):
   try:
@@ -125,4 +125,4 @@ def delete_edition(id: int, db: Session = Depends(get_db)):
   except ValueError as e:
     return ApiResponse.bad_request(message=str(e))
   except Exception as e:
-    return ApiResponse.internal_error(message=str(e))
+    return ApiResponse.server_error(message=str(e))
