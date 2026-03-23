@@ -116,7 +116,7 @@ def update_edition(id: int, item: dtos.UpdateEditionDTO, db: Session = Depends(g
   "/{id}", 
   response_model=ApiResponse[bool], 
   status_code=HTTP_200_OK,
-  #dependencies=[admin_required],
+  dependencies=[admin_required],
 )
 def delete_edition(id: int, db: Session = Depends(get_db)):
   try:
