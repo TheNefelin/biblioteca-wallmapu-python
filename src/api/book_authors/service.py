@@ -14,3 +14,9 @@ def update_authors(id_book: int, author_ids: list[int], db: Session) -> list[dto
 # DELETE (elimina una relación book-author)
 def delete_author(id_book: int, id_author: int, db: Session) -> bool:
   return repository.delete(id_book, id_author, db)
+
+
+# -----------------------------------------------------------------
+# DELETE (elimina toda las relaciónes book-author)
+def delete_author_by_book(id_book: int, db: Session) -> bool:
+  return repository.delete_by_book(id_book, db)

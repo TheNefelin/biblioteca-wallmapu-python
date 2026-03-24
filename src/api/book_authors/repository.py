@@ -35,6 +35,7 @@ def update(id_book: int, author_ids: list[int], db: Session) -> list[models.Book
     db.rollback()
     raise e
 
+
 # -----------------------------------------------------------------  
 # DELETE
 def delete(id_book: int, id_author: int, db: Session) -> bool:
@@ -57,3 +58,37 @@ def delete(id_book: int, id_author: int, db: Session) -> bool:
   except SQLAlchemyError as e:
     db.rollback()
     raise e  
+
+
+# -----------------------------------------------------------------  
+# GET BY BOOK
+def get_by_book(id_book: int, db: Session) -> list[models.BookAuthor]:
+  try:
+    return (
+      db.query(models.BookAuthor)
+      .filter(models.BookAuthor.id_book == id_book)
+      .all()
+    )
+  except SQLAlchemyError as e:
+    raise e
+
+
+# -----------------------------------------------------------------  
+# DELETE BY ID BOOK
+def delete_by_book(id_book: int, db: Session) -> bool:
+  try:
+    rows_deleted = (
+      db.query(models.BookAuthor)
+      .filter(models.BookAuthor.id_book == id_book)
+      .delete(synchronize_session=False)
+    )
+
+    db.commit()
+
+    return rows_deleted > 0
+  except IntegrityError as e:
+    db.rollback()
+    raise ValueError(e.orig)
+  except SQLAlchemyError as e:
+    db.rollback()
+    raise e

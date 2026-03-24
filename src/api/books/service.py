@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO, BookPaginationRequestDTO
 from src.api.editions import models as edition_models
 from src.api.authors import models as authors_models
+from src.api.book_authors import repository as book_authors_repository
+from src.api.book_subjects import repository as book_subjects_repository
 from . import dtos, models, repository
 
 
@@ -103,5 +105,24 @@ def update_book(data: dtos.UpdateBookDTO, db: Session) -> dtos.BookDTO | None:
 # -----------------------------------------------------------------
 # DELETE
 def delete_book(id: int, db: Session) -> bool:
+  from src.api.reservations import repository as reservations_repository
+  from src.api.loans import repository as loans_repository
+
+  dependencies = []
+
+  active_reservations = reservations_repository.get_active_by_book_id(db, id)
+  if active_reservations:
+    dependencies.append("reservas activas")
+
+  active_loans = loans_repository.get_active_by_book_id(db, id)
+  if active_loans:
+    dependencies.append("préstamos activos")
+
+  if dependencies:
+    raise ValueError(f"No se puede eliminar el libro. Dependencias: {', '.join(dependencies)}")
+
+  book_authors_repository.delete_by_book(id, db)
+  book_subjects_repository.delete_by_book(id, db)
+
   return repository.delete(id, db)
 

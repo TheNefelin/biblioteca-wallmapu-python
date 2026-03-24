@@ -57,3 +57,26 @@ def delete_book_subject(
     return ApiResponse.bad_request(message=str(e))
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
+
+
+# -----------------------------------------------------------------
+# DELETE BY ID BOOK
+@router.delete(
+  "/book/{id_book}",
+  response_model=ApiResponse[bool],
+  status_code=HTTP_200_OK
+)
+def delete_book_author_by_book(
+  id_book: int,
+  db: Session = Depends(get_db)
+):
+  try:
+    res = service.delete_subject_by_book(id_book, db)
+    if not res:
+      return ApiResponse.not_found()
+    return ApiResponse.success(data=res)
+  except ValueError as e:
+    return ApiResponse.bad_request(message=str(e))
+  except Exception as e:
+    return ApiResponse.server_error(message=str(e))
+
