@@ -240,7 +240,6 @@ CREATE TABLE IF NOT EXISTS wm_loan_policies (
   name VARCHAR(100),
   max_books INTEGER,
   max_days INTEGER,
-  fine_per_day DECIMAL(10,2),
   reservation_days INTEGER DEFAULT 3
 );
 
