@@ -10,5 +10,4 @@ class LoanPolicy(Base):
   name = Column(String(100))
   max_books = Column(Integer)
   max_days = Column(Integer)
-  fine_per_day = Column(Numeric(10, 2))
   reservation_days = Column(Integer, default=3)

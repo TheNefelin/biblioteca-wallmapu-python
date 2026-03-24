@@ -1,14 +1,13 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
 
 
 class LoanPolicyDTO(BaseModel):
-  id_policy: int
-  name: Optional[str] = None
-  max_books: Optional[int] = None
-  max_days: Optional[int] = None
-  fine_per_day: Optional[float] = None
-  reservation_days: Optional[int] = 3
+  id_policy: int = Field(..., description="Identificador único de la política de préstamo")
+  name: Optional[str] = Field(None, description="Nombre de la política (ej: General, Estudiantes)")
+  max_books: Optional[int] = Field(None, description="Cantidad máxima de libros que se pueden prestar")
+  max_days: Optional[int] = Field(None, description="Número máximo de días de préstamo")
+  reservation_days: Optional[int] = Field(3, description="Días que se mantiene una reserva activa")
 
   model_config = ConfigDict(from_attributes=True)
 
@@ -17,7 +16,6 @@ class CreateLoanPolicyDTO(BaseModel):
   name: str
   max_books: int
   max_days: int
-  fine_per_day: float
   reservation_days: int = 3
 
 
@@ -25,5 +23,4 @@ class UpdateLoanPolicyDTO(BaseModel):
   name: Optional[str] = None
   max_books: Optional[int] = None
   max_days: Optional[int] = None
-  fine_per_day: Optional[float] = None
   reservation_days: Optional[int] = None
