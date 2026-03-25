@@ -22,6 +22,7 @@ router = APIRouter(
   "/",
   response_model=ApiResponse[List[dtos.ReservationDetailDTO]],
   status_code=HTTP_200_OK,
+  summary="Listar todas las reservas",
   dependencies=[admin_required]
 )
 def get_all_reservations(db: Session = Depends(get_db)):
@@ -36,6 +37,7 @@ def get_all_reservations(db: Session = Depends(get_db)):
   "/user/{user_id}",
   response_model=ApiResponse[List[dtos.ReservationDetailDTO]],
   status_code=HTTP_200_OK,
+  summary="Listar reservas de un usuario",
   dependencies=[user_or_admin_required]
 )
 def get_reservations_by_user(
@@ -53,6 +55,7 @@ def get_reservations_by_user(
   "/book/{book_id}",
   response_model=ApiResponse[List[dtos.ReservationDetailDTO]],
   status_code=HTTP_200_OK,
+  summary="Listar reservas activas de un libro",
   dependencies=[admin_required]
 )
 def get_active_reservations_by_book(
@@ -69,7 +72,8 @@ def get_active_reservations_by_book(
 @router.get(
   "/{id}",
   response_model=ApiResponse[dtos.ReservationDetailDTO],
-  status_code=HTTP_200_OK
+  status_code=HTTP_200_OK,
+  summary="Obtener una reserva por ID"
 )
 def get_reservation_by_id(
   id: int,
@@ -88,6 +92,7 @@ def get_reservation_by_id(
   "/",
   response_model=ApiResponse[dtos.ReservationDetailDTO],
   status_code=HTTP_201_CREATED,
+  summary="Crear una nueva reserva",
   dependencies=[user_or_admin_required]
 )
 def create_reservation(
@@ -108,6 +113,7 @@ def create_reservation(
   "/{id}/pickup",
   response_model=ApiResponse[dtos.ReservationDetailDTO],
   status_code=HTTP_200_OK,
+  summary="Marcar reserva como retirada (libro recogido)",
   dependencies=[admin_required]
 )
 def mark_reservation_as_pickup(
@@ -129,6 +135,7 @@ def mark_reservation_as_pickup(
   "/{id}/cancel",
   response_model=ApiResponse[dtos.ReservationDetailDTO],
   status_code=HTTP_200_OK,
+  summary="Cancelar una reserva (solo el dueño o admin)",
   dependencies=[user_or_admin_required]
 )
 def cancel_reservation(
@@ -156,6 +163,7 @@ def cancel_reservation(
   "/expire-overdue",
   response_model=ApiResponse[int],
   status_code=HTTP_200_OK,
+  summary="Marcar como vencidas las reservas cuya fecha límite pasó",
   dependencies=[admin_required]
 )
 def expire_overdue_reservations(db: Session = Depends(get_db)):
@@ -170,6 +178,7 @@ def expire_overdue_reservations(db: Session = Depends(get_db)):
   "/{id}",
   response_model=ApiResponse[bool],
   status_code=HTTP_200_OK,
+  summary="Eliminar una reserva",
   dependencies=[admin_required]
 )
 def delete_reservation(
