@@ -14,8 +14,20 @@ admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 router = APIRouter(
   prefix="/stat",
   tags=["stat"], 
-  dependencies=[admin_required]
+  #dependencies=[admin_required]
 )
+
+
+# -----------------------------------------------------------------
+# GET ADMIN STATS 
+@router.get(
+  "/admin-stats", 
+  response_model=ApiResponse[dtos.AdminStatsDTO],
+  status_code=HTTP_200_OK
+)
+def get_all_status_admin(db: Session = Depends(get_db)):
+  res = service.get_admin_stats(db)
+  return ApiResponse.success(data=res)
 
 # -----------------------------------------------------------------
 # GET ALL 
