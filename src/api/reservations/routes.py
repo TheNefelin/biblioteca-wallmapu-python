@@ -136,7 +136,7 @@ def mark_reservation_as_pickup(
   "/{id}/cancel",
   response_model=ApiResponse[dtos.ReservationDetailDTO],
   status_code=HTTP_200_OK,
-  summary="Cancelar una reserva (solo el dueño o admin)",
+  summary="Cancelar una reserva (usuario dueño o admin)",
   dependencies=[user_or_admin_required]
 )
 def cancel_reservation(
@@ -145,11 +145,16 @@ def cancel_reservation(
   current_user = Depends(get_current_user())
 ):
   try:
+    from src.core.roles import UserRole
+    
     reservation = service.get_by_id(db, id)
     if not reservation:
       return ApiResponse.not_found(message="Reserva no encontrada")
 
-    if reservation.user_id != UUID(current_user["sub"]):
+    is_admin = current_user.get("role") == UserRole.ADMIN.value
+    is_owner = str(reservation.user_id) == current_user["sub"]
+
+    if not is_admin and not is_owner:
       return ApiResponse.forbidden(message="No puedes cancelar esta reserva")
 
     res = service.mark_as_cancelled(db, id)
