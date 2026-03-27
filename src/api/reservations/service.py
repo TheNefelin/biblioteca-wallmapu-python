@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 from uuid import UUID
 from sqlalchemy.orm import Session
 from . import dtos, repository, models
-from src.api.loans.repository import get_active_by_book_id as get_loans_by_book_id
 from src.api.loans.repository import create as create_loan
+from src.api.copy.models import Copy
 
 
 def get_all(db: Session) -> list[dtos.ReservationDetailDTO]:
@@ -47,7 +47,9 @@ def create(db: Session, user_id: UUID, dto: dtos.CreateReservationDTO) -> dtos.R
   return get_by_id(db, created.id_reservation)
 
 
-def mark_as_pickup(db: Session, id: int) -> dtos.ReservationDetailDTO:
+def mark_as_pickup(db: Session, id: int, copy_id: int) -> dtos.ReservationDetailDTO:
+  from datetime import datetime
+  
   reservation = repository.get_by_id(db, id)
   if not reservation:
     return None
@@ -55,11 +57,15 @@ def mark_as_pickup(db: Session, id: int) -> dtos.ReservationDetailDTO:
   if reservation.reservation_status_id != 1:
     raise ValueError("Solo se puede marcar como retirada una reserva pendiente")
 
-  copies = get_available_copies(db, reservation.book_id)
-  if not copies:
-    raise ValueError("No hay ejemplares disponibles de este libro")
+  if reservation.expiration_date < datetime.now():
+    raise ValueError("No se puede entregar una reserva vencida. Debe generar una nueva.")
 
-  copy = copies[0]
+  copy = db.query(Copy).filter(Copy.id_copy == copy_id).first()
+  if not copy:
+    raise ValueError("Ejemplar no encontrado")
+
+  if copy.status_id != 1:
+    raise ValueError("El ejemplar no está disponible")
 
   from src.api.loans.models import Loan
   from datetime import date
@@ -148,18 +154,3 @@ def _get_max_loan_days(db: Session) -> int:
   from src.api.loan_policies.repository import get_default_policy
   policy = get_default_policy(db)
   return policy.max_days if policy else 14
-
-
-def get_available_copies(db: Session, book_id: int) -> list:
-  from src.api.copy.models import Copy
-  from src.api.editions.models import Edition
-
-  return (
-    db.query(Copy)
-    .join(Edition)
-    .filter(
-      Edition.book_id == book_id,
-      Copy.status_id == 1
-    )
-    .all()
-  )

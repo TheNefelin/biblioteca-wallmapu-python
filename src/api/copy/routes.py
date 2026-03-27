@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 
@@ -10,12 +10,31 @@ from src.core.roles import UserRole
 from . import dtos, service
 
 admin_or_user_required = Depends(get_current_user(required_roles=[UserRole.ADMIN, UserRole.LECTOR]))
+admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
 router = APIRouter(
   prefix="/edition-copy", 
   tags=["edition-copy"], 
-  dependencies=[admin_or_user_required]
 )
+
+# -----------------------------------------------------------------
+# GET AVAILABLE COPIES BY BOOK ID (for pickup)
+@router.get(
+  "/book/{book_id}/available",
+  response_model=ApiResponse[List[dtos.CopyDTO]],
+  status_code=HTTP_200_OK,
+  summary="Listar ejemplares disponibles de un libro",
+  dependencies=[admin_required]
+)
+def get_available_copies_by_book(
+  book_id: int,
+  db: Session = Depends(get_db)
+):
+  try:
+    res = service.get_available_by_book_id(db, book_id)
+    return ApiResponse.success(data=res)
+  except Exception as e:
+    return ApiResponse.server_error(message=str(e))
 
 # -----------------------------------------------------------------
 # GET ALL

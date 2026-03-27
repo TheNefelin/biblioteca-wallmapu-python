@@ -101,6 +101,28 @@ def update(id: int, data: dict, db: Session) -> models.Copy | None:
     raise e
 
 # -----------------------------------------------------------------
+# GET BY BOOK ID AND STATUS
+def get_by_book_id_and_status(db: Session, book_id: int, status_id: int) -> list[models.Copy]:
+  try:
+    from src.api.editions.models import Edition
+    items = (
+      db.query(models.Copy)
+      .options(
+        joinedload(models.Copy.status)
+      )
+      .join(Edition)
+      .filter(
+        Edition.book_id == book_id,
+        models.Copy.status_id == status_id
+      )
+      .order_by(models.Copy.id_copy.asc())
+      .all()
+    )
+    return items
+  except SQLAlchemyError as e:
+    raise e
+
+# -----------------------------------------------------------------
 # DELETE
 def delete(id: int, db: Session) -> bool:
   try:

@@ -45,5 +45,10 @@ def update(id: int, data: dtos.UpdateCopyDTO, db: Session) -> dtos.CopyDTO | Non
 
 
 def delete(id: int, db: Session) -> bool:
-  return repository.delete(id, db)
+  return repository.delete(db, id)
+
+
+def get_available_by_book_id(db: Session, book_id: int) -> list[dtos.CopyDTO]:
+  items = repository.get_by_book_id_and_status(db, book_id, 1)
+  return [dtos.CopyDTO.model_validate(item) for item in items]
 

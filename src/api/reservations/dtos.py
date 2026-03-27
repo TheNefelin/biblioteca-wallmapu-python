@@ -36,4 +36,4 @@ class CreateReservationDTO(BaseModel):
 
 
 class ReservationPickupDTO(BaseModel):
-  reservation_status_id: int = Field(default=2, description="Estado completado (2)")
+    copy_id: int = Field(..., description="ID del ejemplar a entregar")

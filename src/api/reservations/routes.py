@@ -118,10 +118,11 @@ def create_reservation(
 )
 def mark_reservation_as_pickup(
   id: int,
+  dto: dtos.ReservationPickupDTO,
   db: Session = Depends(get_db)
 ):
   try:
-    res = service.mark_as_pickup(db, id)
+    res = service.mark_as_pickup(db, id, dto.copy_id)
     if not res:
       return ApiResponse.not_found(message="Reserva no encontrada")
     return ApiResponse.success(data=res, message="Reserva marcada como retirada")
