@@ -45,7 +45,7 @@ def update(id: int, data: dtos.UpdateCopyDTO, db: Session) -> dtos.CopyDTO | Non
 
 
 def delete(id: int, db: Session) -> bool:
-  return repository.delete(db, id)
+  return repository.delete(id, db)
 
 
 def get_available_by_book_id(db: Session, book_id: int) -> list[dtos.CopyDTO]:
