@@ -21,3 +21,4 @@ class Copy(Base):
   status_id = Column(Integer, ForeignKey('wm_copy_status.id_status'))
   status = relationship("CopyStatus", back_populates="copies")
   loans = relationship("Loan", back_populates="copy")
+  reservations = relationship("Reservation", back_populates="copy")

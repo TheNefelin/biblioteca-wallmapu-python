@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from uuid import UUID
 from sqlalchemy.orm import Session
 from . import dtos, repository, models
@@ -23,22 +23,29 @@ def get_by_user_id(db: Session, user_id: UUID) -> list[dtos.ReservationDetailDTO
   return [_to_detail_dto(r) for r in reservations]
 
 
-def get_active_by_book_id(db: Session, book_id: int) -> list[dtos.ReservationDetailDTO]:
-  reservations = repository.get_active_by_book_id(db, book_id)
+def get_active_by_copy_id(db: Session, copy_id: int) -> list[dtos.ReservationDetailDTO]:
+  reservations = repository.get_active_by_copy_id(db, copy_id)
   return [_to_detail_dto(r) for r in reservations]
 
 
 def create(db: Session, user_id: UUID, dto: dtos.CreateReservationDTO) -> dtos.ReservationDetailDTO:
-  existing = repository.get_active_by_user_and_book(db, user_id, dto.book_id)
+  copy = db.query(Copy).filter(Copy.id_copy == dto.copy_id).first()
+  if not copy:
+    raise ValueError("Ejemplar no encontrado")
+
+  if copy.status_id != 1:
+    raise ValueError("El ejemplar no está disponible")
+
+  existing = repository.get_active_by_user_and_copy(db, user_id, dto.copy_id)
   if existing:
-    raise ValueError("Ya tienes una reserva activa para este libro")
+    raise ValueError("Ya tienes una reserva activa para este ejemplar")
 
   reservation_days = _get_reservation_days(db)
   expiration_date = datetime.now() + timedelta(days=reservation_days)
 
   reservation = models.Reservation(
     user_id=user_id,
-    book_id=dto.book_id,
+    copy_id=dto.copy_id,
     expiration_date=expiration_date,
     reservation_status_id=1
   )
@@ -48,8 +55,6 @@ def create(db: Session, user_id: UUID, dto: dtos.CreateReservationDTO) -> dtos.R
 
 
 def mark_as_pickup(db: Session, id: int, copy_id: int) -> dtos.ReservationDetailDTO:
-  from datetime import datetime
-  
   reservation = repository.get_by_id(db, id)
   if not reservation:
     return None
@@ -68,7 +73,6 @@ def mark_as_pickup(db: Session, id: int, copy_id: int) -> dtos.ReservationDetail
     raise ValueError("El ejemplar no está disponible")
 
   from src.api.loans.models import Loan
-  from datetime import date
   max_days = _get_max_loan_days(db)
   due_date = date.today() + timedelta(days=max_days)
 
@@ -129,6 +133,9 @@ def delete(db: Session, id: int) -> bool:
 
 
 def _to_detail_dto(reservation: models.Reservation) -> dtos.ReservationDetailDTO:
+  copy = reservation.copy
+  book = copy.edition.book if copy and copy.edition else None
+  
   return dtos.ReservationDetailDTO(
     id_reservation=reservation.id_reservation,
     reservation_date=reservation.reservation_date,
@@ -137,8 +144,11 @@ def _to_detail_dto(reservation: models.Reservation) -> dtos.ReservationDetailDTO
     user_name=reservation.user.name if reservation.user else None,
     user_lastname=reservation.user.lastname if reservation.user else None,
     user_email=reservation.user.email if reservation.user else None,
-    book_id=reservation.book_id,
-    book_title=reservation.book.title if reservation.book else None,
+    copy_id=copy.id_copy if copy else None,
+    copy_barcode=str(copy.barcode) if copy else None,
+    copy_signature=copy.signature_topography if copy else None,
+    book_id=book.id_book if book else None,
+    book_title=book.title if book else None,
     reservation_status_id=reservation.reservation_status_id,
     reservation_status_name=reservation.status.status if reservation.status else None
   )

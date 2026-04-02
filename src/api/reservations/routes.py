@@ -52,18 +52,18 @@ def get_reservations_by_user(
 
 
 @router.get(
-  "/book/{book_id}",
+  "/copy/{copy_id}",
   response_model=ApiResponse[List[dtos.ReservationDetailDTO]],
   status_code=HTTP_200_OK,
-  summary="Listar reservas activas de un libro",
+  summary="Listar reservas activas de un ejemplar",
   dependencies=[admin_required]
 )
-def get_active_reservations_by_book(
-  book_id: int,
+def get_active_reservations_by_copy(
+  copy_id: int,
   db: Session = Depends(get_db)
 ):
   try:
-    res = service.get_active_by_book_id(db, book_id)
+    res = service.get_active_by_copy_id(db, copy_id)
     return ApiResponse.success(data=res)
   except Exception as e:
     return ApiResponse.server_error(str(e))

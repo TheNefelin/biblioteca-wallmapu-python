@@ -3,6 +3,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_
 from . import models
+from src.api.copy.models import Copy
+from src.api.editions.models import Edition
 
 
 def get_all(db: Session) -> list[models.Reservation]:
@@ -11,7 +13,7 @@ def get_all(db: Session) -> list[models.Reservation]:
       db.query(models.Reservation)
       .options(
         joinedload(models.Reservation.user),
-        joinedload(models.Reservation.book),
+        joinedload(models.Reservation.copy).joinedload(Copy.edition).joinedload(Edition.book),
         joinedload(models.Reservation.status)
       )
       .order_by(models.Reservation.reservation_date.desc())
@@ -27,7 +29,7 @@ def get_by_id(db: Session, id: int) -> models.Reservation:
       db.query(models.Reservation)
       .options(
         joinedload(models.Reservation.user),
-        joinedload(models.Reservation.book),
+        joinedload(models.Reservation.copy).joinedload(Copy.edition).joinedload(Edition.book),
         joinedload(models.Reservation.status)
       )
       .filter(models.Reservation.id_reservation == id)
@@ -43,7 +45,7 @@ def get_by_user_id(db: Session, user_id: UUID) -> list[models.Reservation]:
       db.query(models.Reservation)
       .options(
         joinedload(models.Reservation.user),
-        joinedload(models.Reservation.book),
+        joinedload(models.Reservation.copy).joinedload(Copy.edition).joinedload(Edition.book),
         joinedload(models.Reservation.status)
       )
       .filter(models.Reservation.user_id == user_id)
@@ -54,14 +56,14 @@ def get_by_user_id(db: Session, user_id: UUID) -> list[models.Reservation]:
     raise e
 
 
-def get_active_by_user_and_book(db: Session, user_id: UUID, book_id: int) -> models.Reservation:
+def get_active_by_user_and_copy(db: Session, user_id: UUID, copy_id: int) -> models.Reservation:
   try:
     return (
       db.query(models.Reservation)
       .filter(
         and_(
           models.Reservation.user_id == user_id,
-          models.Reservation.book_id == book_id,
+          models.Reservation.copy_id == copy_id,
           models.Reservation.reservation_status_id == 1
         )
       )
@@ -71,18 +73,45 @@ def get_active_by_user_and_book(db: Session, user_id: UUID, book_id: int) -> mod
     raise e
 
 
-def get_active_by_book_id(db: Session, book_id: int) -> list[models.Reservation]:
+def get_active_by_copy_id(db: Session, copy_id: int) -> list[models.Reservation]:
   try:
     return (
       db.query(models.Reservation)
       .options(
         joinedload(models.Reservation.user),
-        joinedload(models.Reservation.book),
+        joinedload(models.Reservation.copy),
         joinedload(models.Reservation.status)
       )
       .filter(
         and_(
-          models.Reservation.book_id == book_id,
+          models.Reservation.copy_id == copy_id,
+          models.Reservation.reservation_status_id == 1
+        )
+      )
+      .order_by(models.Reservation.reservation_date.asc())
+      .all()
+    )
+  except SQLAlchemyError as e:
+    raise e
+
+
+def get_active_by_book_id(db: Session, book_id: int) -> list[models.Reservation]:
+  try:
+    from src.api.copy.models import Copy
+    from src.api.editions.models import Edition
+    
+    return (
+      db.query(models.Reservation)
+      .join(Copy, models.Reservation.copy_id == Copy.id_copy)
+      .join(Edition, Copy.edition_id == Edition.id_edition)
+      .options(
+        joinedload(models.Reservation.user),
+        joinedload(models.Reservation.copy),
+        joinedload(models.Reservation.status)
+      )
+      .filter(
+        and_(
+          Edition.book_id == book_id,
           models.Reservation.reservation_status_id == 1
         )
       )
@@ -100,7 +129,7 @@ def get_expired(db: Session) -> list[models.Reservation]:
       db.query(models.Reservation)
       .options(
         joinedload(models.Reservation.user),
-        joinedload(models.Reservation.book),
+        joinedload(models.Reservation.copy),
         joinedload(models.Reservation.status)
       )
       .filter(

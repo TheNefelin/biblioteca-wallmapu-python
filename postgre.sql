@@ -187,13 +187,6 @@ CREATE TABLE IF NOT EXISTS wm_book_subject (
   CONSTRAINT fk_bs_subject FOREIGN KEY (id_subject) REFERENCES wm_subjects(id_subject)
 );
 
-CREATE INDEX idx_edition_isbn ON wm_editions(isbn);
-CREATE INDEX idx_book_title ON wm_books(title);
-CREATE INDEX idx_book_summary ON wm_books(summary);
-CREATE INDEX idx_book_genre ON wm_books(genre_id);
-CREATE INDEX idx_author_id ON wm_book_author(id_author);
-CREATE INDEX idx_editorial_id ON wm_editions(editorial_id);
-
 CREATE TABLE IF NOT EXISTS wm_reservation_status (
   id_status INTEGER PRIMARY KEY,
   status VARCHAR(30) UNIQUE NOT NULL
@@ -205,11 +198,11 @@ CREATE TABLE IF NOT EXISTS wm_reservations (
   expiration_date TIMESTAMP NOT NULL,
 
   user_id UUID NOT NULL,
-  book_id INTEGER NOT NULL,
+  copy_id INTEGER NOT NULL,
   reservation_status_id INTEGER NOT NULL DEFAULT 1,
 
   CONSTRAINT fk_res_user FOREIGN KEY (user_id) REFERENCES wm_users(id_user),
-  CONSTRAINT fk_res_book FOREIGN KEY (book_id) REFERENCES wm_books(id_book),
+  CONSTRAINT fk_res_copy FOREIGN KEY (copy_id) REFERENCES wm_copies(id_copy),
   CONSTRAINT fk_res_status FOREIGN KEY (reservation_status_id) REFERENCES wm_reservation_status(id_status)
 );
 
@@ -254,6 +247,16 @@ CREATE TABLE IF NOT EXISTS wm_notifications (
 
   CONSTRAINT fk_notif_user FOREIGN KEY (user_id) REFERENCES wm_users(id_user)
 );
+
+
+CREATE INDEX idx_edition_isbn ON wm_editions(isbn);
+CREATE INDEX idx_book_title ON wm_books(title);
+CREATE INDEX idx_book_summary ON wm_books(summary);
+CREATE INDEX idx_book_genre ON wm_books(genre_id);
+CREATE INDEX idx_author_id ON wm_book_author(id_author);
+CREATE INDEX idx_editorial_id ON wm_editions(editorial_id);
+CREATE INDEX idx_reservation_copy ON wm_reservations(copy_id);
+CREATE INDEX idx_reservation_user ON wm_reservations(user_id);
 
 
 INSERT INTO wm_regions (region) VALUES
