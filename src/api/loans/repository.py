@@ -82,6 +82,27 @@ def get_active_by_book_id(db: Session, book_id: int) -> list[models.Loan]:
     raise e
 
 
+def get_active_loan_by_copy_id(db: Session, copy_id: int) -> models.Loan | None:
+  try:
+    return (
+      db.query(models.Loan)
+      .options(
+        joinedload(models.Loan.user),
+        joinedload(models.Loan.copy),
+        joinedload(models.Loan.status)
+      )
+      .filter(
+        and_(
+          models.Loan.copy_id == copy_id,
+          models.Loan.loan_status_id.in_([1, 3])
+        )
+      )
+      .first()
+    )
+  except SQLAlchemyError as e:
+    raise e
+
+
 def get_overdue(db: Session) -> list[models.Loan]:
   try:
     from datetime import date

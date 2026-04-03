@@ -112,6 +112,29 @@ def get_by_id(
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
+
+# -----------------------------------------------------------------
+# GET BY ID WITH AVAILABILITY (copies filtered by availability)
+@router.get(
+  "/{id}/availability", 
+  response_model=ApiResponse[dtos.BookDetailDTO], 
+  status_code=HTTP_200_OK,
+  summary="Obtener libro con disponibilidad de copias"
+)
+def get_by_id_with_availability(
+  id: int, 
+  db: Session = Depends(get_db)
+):
+  try:
+    result = service.get_book_with_availability(id, db)
+    
+    if not result:
+      return ApiResponse.not_found()
+
+    return ApiResponse.success(result)
+  except Exception as e:
+    return ApiResponse.server_error(str(e))
+
 # -----------------------------------------------------------------
 # CREATE
 @router.post(

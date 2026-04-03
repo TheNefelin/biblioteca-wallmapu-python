@@ -731,9 +731,8 @@ INSERT INTO wm_genres (name) VALUES
 
 INSERT INTO wm_copy_status (id_status, name) VALUES
 (1,'Disponible'),
-(2,'Prestado'),
-(3,'En reparación'),
-(4,'Extraviado');
+(2,'En reparación'),
+(3,'Extraviado');
 
 
 INSERT INTO wm_books (title, summary, genre_id) VALUES
@@ -863,7 +862,7 @@ INSERT INTO wm_reservation_status (id_status, status) VALUES
 (1, 'Pendiente de retiro'),
 (2, 'Completada'),
 (3, 'Cancelada'),
-(4, 'Vencida');
+(4, 'Vencido');
 
 
 INSERT INTO wm_loan_status (id_status, status) VALUES

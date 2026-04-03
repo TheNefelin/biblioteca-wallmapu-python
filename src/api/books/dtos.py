@@ -8,6 +8,7 @@ from src.api.authors.dtos import AuthorDTO
 from src.api.subjects.dtos import SubjectDTO
 from src.api.genres.dtos import GenreDTO
 
+
 class EditionForBookDTO(BaseModel):
   id_edition: int
   edition: str
@@ -61,4 +62,3 @@ class BookDTO(BaseModel):
   subjects: List[SubjectDTO]
 
   model_config = ConfigDict(from_attributes=True)
-  

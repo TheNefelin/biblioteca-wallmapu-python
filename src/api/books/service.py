@@ -89,6 +89,37 @@ def get_book_by_id(id: int, db: Session) -> dtos.BookDetailDTO | None:
 
 
 # -----------------------------------------------------------------
+# GET BY ID WITH AVAILABILITY
+def get_book_with_availability(id: int, db: Session) -> dtos.BookDetailDTO | None:
+  from src.api.reservations.repository import get_active_reservation_by_copy_id
+  from src.api.loans.repository import get_active_loan_by_copy_id
+  
+  book = repository.get_by_id(id, db)
+  if not book:
+    return None
+  
+  book_dto = dtos.BookDetailDTO.model_validate(book)
+  
+  for edition_dto in book_dto.editions:
+    for copy in edition_dto.copies:
+      if copy.status_id != 1:
+        edition_dto.copies.remove(copy)
+        continue
+      
+      active_loan = get_active_loan_by_copy_id(db, copy.id_copy)
+      if active_loan:
+        copy.availability_status = "prestado"
+      else:
+        active_reservation = get_active_reservation_by_copy_id(db, copy.id_copy)
+        if active_reservation:
+          copy.availability_status = "reservado"
+        else:
+          copy.availability_status = "disponible"
+  
+  return book_dto
+
+
+# -----------------------------------------------------------------
 # CREATE
 def create_book(data: dtos.CreateBookDTO, db: Session) -> dtos.BookDTO:
   item = repository.create(data.model_dump(exclude_unset=True), db)

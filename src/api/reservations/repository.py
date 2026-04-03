@@ -95,6 +95,28 @@ def get_active_by_copy_id(db: Session, copy_id: int) -> list[models.Reservation]
     raise e
 
 
+def get_active_reservation_by_copy_id(db: Session, copy_id: int) -> models.Reservation | None:
+  try:
+    return (
+      db.query(models.Reservation)
+      .options(
+        joinedload(models.Reservation.user),
+        joinedload(models.Reservation.copy),
+        joinedload(models.Reservation.status)
+      )
+      .filter(
+        and_(
+          models.Reservation.copy_id == copy_id,
+          models.Reservation.reservation_status_id == 1
+        )
+      )
+      .order_by(models.Reservation.reservation_date.asc())
+      .first()
+    )
+  except SQLAlchemyError as e:
+    raise e
+
+
 def get_active_by_book_id(db: Session, book_id: int) -> list[models.Reservation]:
   try:
     from src.api.copy.models import Copy

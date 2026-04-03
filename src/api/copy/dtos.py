@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 from src.api.copy_status.dtos import CopyStatusDTO
@@ -26,10 +27,12 @@ class CopyForEditionDTO(BaseModel):
   id_copy: int
   barcode: str
   signature_topography: str
-  copy_number: int
+  copy_number: str
   edition_id: int
   created_at: datetime
   updated_at: datetime
   status: CopyStatusDTO
+  status_id: int
+  availability_status: Optional[str] = None
   
   model_config = ConfigDict(from_attributes=True)
