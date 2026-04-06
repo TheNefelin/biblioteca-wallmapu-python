@@ -9,6 +9,7 @@ from src.api.book_authors import service as book_author_service
 from src.api.book_subjects import models as book_subjects_model
 from src.api.book_subjects import service as book_subject_service
 from src.api.editions import models as edition_models
+from src.api.copy import models as copy_model
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
 from . import models
 
@@ -25,7 +26,7 @@ def get_all_pagination(
         joinedload(models.Book.genre),
         joinedload(models.Book.book_authors).joinedload(book_authors_model.BookAuthor.author),
         joinedload(models.Book.book_subjects).joinedload(book_subjects_model.BookSubject.subject),
-        joinedload(models.Book.editions).joinedload(edition_models.Edition.copies),
+        joinedload(models.Book.editions).joinedload(edition_models.Edition.copies).joinedload(copy_model.Copy.status),
       )
     )
 
@@ -47,7 +48,7 @@ def get_all(
         joinedload(models.Book.genre),
         joinedload(models.Book.book_authors).joinedload(book_authors_model.BookAuthor.author),
         joinedload(models.Book.book_subjects).joinedload(book_subjects_model.BookSubject.subject),
-        joinedload(models.Book.editions).joinedload(edition_models.Edition.copies),
+        joinedload(models.Book.editions).joinedload(edition_models.Edition.copies).joinedload(copy_model.Copy.status),
       )
     )
 
@@ -95,7 +96,7 @@ def get_by_id(id: int, db: Session) -> models.Book:
         joinedload(models.Book.genre),
         joinedload(models.Book.book_authors).joinedload(book_authors_model.BookAuthor.author),
         joinedload(models.Book.book_subjects).joinedload(book_subjects_model.BookSubject.subject),
-        joinedload(models.Book.editions).joinedload(edition_models.Edition.copies),
+        joinedload(models.Book.editions).joinedload(edition_models.Edition.copies).joinedload(copy_model.Copy.status),
       )
       .first()
     )

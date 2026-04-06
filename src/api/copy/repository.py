@@ -122,6 +122,28 @@ def get_by_book_id_and_status(db: Session, book_id: int, status_id: int) -> list
   except SQLAlchemyError as e:
     raise e
 
+
+# -----------------------------------------------------------------
+# GET ALL BY BOOK ID (with edition)
+def get_all_by_book_id(db: Session, book_id: int) -> list[models.Copy]:
+  try:
+    from src.api.editions.models import Edition
+    from src.api.editorials.models import Editorial
+    items = (
+      db.query(models.Copy)
+      .options(
+        joinedload(models.Copy.status),
+        joinedload(models.Copy.edition).joinedload(Edition.editorial)
+      )
+      .join(Edition)
+      .filter(Edition.book_id == book_id)
+      .order_by(Edition.id_edition.asc(), models.Copy.id_copy.asc())
+      .all()
+    )
+    return items
+  except SQLAlchemyError as e:
+    raise e
+
 # -----------------------------------------------------------------
 # DELETE
 def delete(id: int, db: Session) -> bool:

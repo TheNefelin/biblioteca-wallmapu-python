@@ -93,8 +93,31 @@ def get_all(
 # -----------------------------------------------------------------
 # GET ALL BY ID
 @router.get(
-  "/{id}", 
+  "/detail/{id}", 
   response_model=ApiResponse[dtos.BookDetailDTO], 
+  status_code=HTTP_200_OK
+)
+def get_by_id(
+  request: Request,
+  id: int, 
+  db: Session = Depends(get_db)
+):
+  try:
+    result = service.get_book_detail_by_id(id, db)
+    
+    if not result:
+      return ApiResponse.not_found()
+
+    return ApiResponse.success(result)
+  except Exception as e:
+    return ApiResponse.server_error(str(e))
+
+
+# -----------------------------------------------------------------
+# GET BY ID
+@router.get(
+  "/{id}", 
+  response_model=ApiResponse[dtos.BookDTO], 
   status_code=HTTP_200_OK
 )
 def get_by_id(
@@ -111,7 +134,6 @@ def get_by_id(
     return ApiResponse.success(result)
   except Exception as e:
     return ApiResponse.server_error(str(e))
-
 
 # -----------------------------------------------------------------
 # GET BY ID WITH AVAILABILITY (copies filtered by availability)

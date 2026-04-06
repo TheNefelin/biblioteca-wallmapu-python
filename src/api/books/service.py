@@ -83,38 +83,42 @@ def get_all(pagination: PaginationRequestDTO, db: Session) -> PaginationResponse
 
 # -----------------------------------------------------------------
 # GET BY ID
-def get_book_by_id(id: int, db: Session) -> dtos.BookDetailDTO | None:
+def get_book_detail_by_id(id: int, db: Session) -> dtos.BookDetailDTO | None:
   item = repository.get_by_id(id, db)
   return dtos.BookDetailDTO.model_validate(item)
 
 
 # -----------------------------------------------------------------
+# GET BY ID
+def get_book_by_id(id: int, db: Session) -> dtos.BookDTO | None:
+  item = repository.get_by_id(id, db)
+  return dtos.BookDTO.model_validate(item)
+
+# -----------------------------------------------------------------
 # GET BY ID WITH AVAILABILITY
 def get_book_with_availability(id: int, db: Session) -> dtos.BookDetailDTO | None:
-  from src.api.reservations.repository import get_active_reservation_by_copy_id
-  from src.api.loans.repository import get_active_loan_by_copy_id
+  from src.api.reservations.repository import get_active_by_book_id as get_reservations_by_book
+  from src.api.loans.repository import get_active_by_book_id as get_loans_by_book
   
   book = repository.get_by_id(id, db)
   if not book:
     return None
+  
+  active_loans = {loan.copy_id for loan in get_loans_by_book(db, id)}
+  active_reservations = {res.copy_id for res in get_reservations_by_book(db, id)}
   
   book_dto = dtos.BookDetailDTO.model_validate(book)
   
   for edition_dto in book_dto.editions:
     for copy in edition_dto.copies:
       if copy.status_id != 1:
-        edition_dto.copies.remove(copy)
-        continue
-      
-      active_loan = get_active_loan_by_copy_id(db, copy.id_copy)
-      if active_loan:
+        copy.availability_status = copy.status.name
+      elif copy.id_copy in active_loans:
         copy.availability_status = "prestado"
+      elif copy.id_copy in active_reservations:
+        copy.availability_status = "reservado"
       else:
-        active_reservation = get_active_reservation_by_copy_id(db, copy.id_copy)
-        if active_reservation:
-          copy.availability_status = "reservado"
-        else:
-          copy.availability_status = "disponible"
+        copy.availability_status = "disponible"
   
   return book_dto
 

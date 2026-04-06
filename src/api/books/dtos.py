@@ -55,9 +55,9 @@ class BookDTO(BaseModel):
   id_book: int
   title: str
   summary: str
-  genre_id: int
   created_at: datetime
   updated_at: datetime
+  genre: GenreDTO  
   authors: List[AuthorDTO]
   subjects: List[SubjectDTO]
 

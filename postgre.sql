@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS wm_communes (
   commune VARCHAR(100),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  
-  province_id INTEGER,
+  province_id INTEGER NOT NULL,
   CONSTRAINT communes_provinces_fk FOREIGN KEY (province_id) REFERENCES wm_provinces(id_province)
 );
 
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS wm_news_gallery (
   id_news_gallery INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY (INCREMENT 1),
   alt VARCHAR(100) NOT NULL,
   url VARCHAR(256) NOT NULL,
-  news_id INTEGER,
+  news_id INTEGER NOT NULL,
   CONSTRAINT news_gallery_fk FOREIGN KEY (news_id) REFERENCES wm_news(id_news)
 );
 

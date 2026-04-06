@@ -36,6 +36,25 @@ def get_available_copies_by_book(
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
 
+
+# -----------------------------------------------------------------
+# GET ALL COPIES BY BOOK ID WITH AVAILABILITY STATUS
+@router.get(
+  "/book/{book_id}",
+  response_model=ApiResponse[List[dtos.CopyWithAvailabilityDTO]],
+  status_code=HTTP_200_OK,
+  summary="Listar todos los ejemplares de un libro con estado de disponibilidad"
+)
+def get_all_copies_by_book(
+  book_id: int,
+  db: Session = Depends(get_db)
+):
+  try:
+    res = service.get_all_by_book_id_with_availability(db, book_id)
+    return ApiResponse.success(data=res)
+  except Exception as e:
+    return ApiResponse.server_error(message=str(e))
+
 # -----------------------------------------------------------------
 # GET ALL
 @router.get(

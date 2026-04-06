@@ -52,3 +52,45 @@ def get_available_by_book_id(db: Session, book_id: int) -> list[dtos.CopyDTO]:
   items = repository.get_by_book_id_and_status(db, book_id, 1)
   return [dtos.CopyDTO.model_validate(item) for item in items]
 
+
+def get_all_by_book_id_with_availability(db: Session, book_id: int) -> list[dtos.CopyWithAvailabilityDTO]:
+  from src.api.loans.repository import get_active_by_book_id as get_loans_by_book
+  from src.api.reservations.repository import get_active_by_book_id as get_reservations_by_book
+
+  copies = repository.get_all_by_book_id(db, book_id)
+
+  active_loans = {loan.copy_id for loan in get_loans_by_book(db, book_id)}
+  active_reservations = {res.copy_id for res in get_reservations_by_book(db, book_id)}
+
+  result = []
+  for copy in copies:
+    if copy.status_id != 1:
+      availability = copy.status.name
+    elif copy.id_copy in active_loans:
+      availability = "prestado"
+    elif copy.id_copy in active_reservations:
+      availability = "reservado"
+    else:
+      availability = "disponible"
+
+    result.append(dtos.CopyWithAvailabilityDTO(
+      id_copy=copy.id_copy,
+      barcode=copy.barcode,
+      signature_topography=copy.signature_topography,
+      copy_number=copy.copy_number,
+      edition_id=copy.edition_id,
+      edition=dtos.EditionBasicDTO(
+        id_edition=copy.edition.id_edition,
+        edition=copy.edition.edition,
+        isbn=copy.edition.isbn,
+        publication_year=copy.edition.publication_year,
+        pages=copy.edition.pages,
+        cover_image=copy.edition.cover_image,
+        editorial_id=copy.edition.editorial_id,
+        editorial_name=copy.edition.editorial.name if copy.edition.editorial else None
+      ),
+      availability_status=availability
+    ))
+
+  return result
+
