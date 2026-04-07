@@ -101,6 +101,22 @@ def update(id: int, data: dict, db: Session) -> models.Copy | None:
     raise e
 
 # -----------------------------------------------------------------
+# CHECK IF SIGNATURE EXISTS IN OTHER COPY
+def signature_exists_for_other(db: Session, signature: str, exclude_id: int) -> bool:
+  try:
+    item = (
+      db.query(models.Copy)
+      .filter(
+        models.Copy.signature_topography == signature,
+        models.Copy.id_copy != exclude_id
+      )
+      .first()
+    )
+    return item is not None
+  except SQLAlchemyError as e:
+    raise e
+
+# -----------------------------------------------------------------
 # GET BY BOOK ID AND STATUS
 def get_by_book_id_and_status(db: Session, book_id: int, status_id: int) -> list[models.Copy]:
   try:

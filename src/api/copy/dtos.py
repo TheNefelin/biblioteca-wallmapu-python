@@ -6,10 +6,11 @@ from src.api.copy_status.dtos import CopyStatusDTO
 
 
 class CreateCopyDTO(BaseModel):
-  signature_topography: str
   copy_number: int
   edition_id: int
   status_id: int
+  signature_topography: Optional[str] = None
+  barcode: Optional[str] = None
 
   model_config = ConfigDict(from_attributes=True)
 

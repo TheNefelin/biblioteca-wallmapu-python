@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from src.api.copy_status import models as status_models
 from src.api.editions import models as edition_models
+from src.services.signature_generator import generate_signature_topography, generate_barcode
 from . import dtos, models, repository
 
 
@@ -28,7 +29,14 @@ def create(data: dtos.CreateCopyDTO, db: Session) -> dtos.CopyDTO:
   if not db.get(status_models.CopyStatus, data.status_id):
     raise ValueError("No se encontro el estado")
 
-  entity = repository.create(data.model_dump(), db)
+  signature = generate_signature_topography(db, data.edition_id)
+  barcode = generate_barcode(db, data.edition_id)
+
+  entity_data = data.model_dump()
+  entity_data["signature_topography"] = signature
+  entity_data["barcode"] = barcode
+
+  entity = repository.create(entity_data, db)
   return dtos.CopyDTO.model_validate(entity)
 
 
@@ -38,7 +46,20 @@ def update(id: int, data: dtos.UpdateCopyDTO, db: Session) -> dtos.CopyDTO | Non
   if not db.get(status_models.CopyStatus, data.status_id):
     raise ValueError("No se encontro el estado")
 
-  entity = repository.update(id, data.model_dump(exclude_unset=True), db)
+  current = repository.get_by_id(id, db)
+  if not current:
+    return None
+
+  update_data = data.model_dump(exclude_unset=True)
+
+  if "signature_topography" in update_data and update_data["signature_topography"] is not None:
+    new_signature = update_data["signature_topography"]
+    if new_signature != current.signature_topography:
+      if repository.signature_exists_for_other(db, new_signature, id):
+        raise ValueError("La signatura topográfica ya está en uso por otro ejemplar")
+      update_data["barcode"] = new_signature
+
+  entity = repository.update(id, update_data, db)
   if not entity:
     return None
   return dtos.CopyDTO.model_validate(entity)

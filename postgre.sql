@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS wm_editions (
 
 CREATE TABLE IF NOT EXISTS wm_copies (
   id_copy INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  barcode UUID DEFAULT gen_random_uuid() UNIQUE,
+  barcode VARCHAR(100) NOT NULL,
   signature_topography VARCHAR(100) NOT NULL,
   copy_number VARCHAR(20) NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -193,7 +193,7 @@ CREATE TABLE IF NOT EXISTS wm_reservation_status (
 );
 
 CREATE TABLE IF NOT EXISTS wm_reservations (
-  id_reservation INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  id_reservation INTEGER GENERATED ALWAYS AS IDENTITY (START WITH 10000) PRIMARY KEY,
   reservation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   expiration_date TIMESTAMP NOT NULL,
 
@@ -212,7 +212,7 @@ CREATE TABLE IF NOT EXISTS wm_loan_status (
 );
 
 CREATE TABLE IF NOT EXISTS wm_loans (
-  id_loan INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  id_loan INTEGER GENERATED ALWAYS AS IDENTITY (START WITH 10000) PRIMARY KEY,
   loan_date DATE NOT NULL DEFAULT CURRENT_DATE,
   due_date DATE NOT NULL,
   return_date DATE,
@@ -799,33 +799,33 @@ INSERT INTO wm_editions
 VALUES
 ('1ra edición','9789561111851',1947,200,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773089263/edition/d0y1qsplzftnalveumcl.webp',1,1),
 ('1ra edición','9788483835302',1989,250,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773089263/edition/aniuzgtkfw2yknukydix.webp',2,2),
-('1ra edición','9780375826680',2003,500,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773089263/edition/g8aug3ov198rkumybpcf.webp',3,3),
-('1ra edición','9788416035342',1996,700,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773089263/edition/pt9kf9rqzva50pjsbrcj.webp',4,4),
+('1ra edición','9781631420608',2003,500,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773089263/edition/g8aug3ov198rkumybpcf.webp',3,3),
+('1ra edición','9788416035342',1996,700,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195682/edition/pt9kf9rqzva50pjsbrcj.webp',4,4),
 ('1ra edición','9780385182443',1983,350,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195682/edition/gaz9ueno8r0ja9nshprf.jpg',5,5),
 ('1ra edición','9780486294380',1928,150,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773182339/edition/qan097holp6dqnow2z0g.webp',6,6),
 ('1ra edición','9788408175728',2003,450,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195606/edition/mgetonnzlujkwplxghni.jpg',7,7),
 ('1ra edición','9788433906489',-800,600,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195104/edition/sy07b8kgsfx6dx23swoz.webp',8,8),
 ('1ra edición','9781401278919',2018,120,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195135/edition/bcb10klmstviynx6iygi.webp',9,9),
 ('1ra edición','9780312927226',1988,350,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195005/edition/s8fd6qiku0ugqotftsgm.webp',10,10),
-('1ra edición','9788445077009',1985,280,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773194942/edition/dvikpgxy3xqiuqn1yecw.webp',11,11),
-('1ra edición','9786070797217',1937,310,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773194862/edition/quwflvgijtzwlvu48pju.webp',12,12);
+('1ra edición','9780553293358',1985,280,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773194942/edition/dvikpgxy3xqiuqn1yecw.webp',11,11),
+('1ra edición','9780547928227',1937,310,'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773194862/edition/quwflvgijtzwlvu48pju.webp',12,12);
 
 
 INSERT INTO wm_copies
 (barcode, signature_topography, copy_number, edition_id, status_id)
 VALUES
-('BC001','863 P348','1',1,1),
-('BC002','863 S479','1',2,1),
-('BC003','813.6 P195','1',3,1),
-('BC004','813.54 M379','1',4,1),
-('BC005','813.54 K54','1',5,1),
-('BC006','813.52 L897','1',6,1),
-('BC007','813.54 B877','1',7,1),
-('BC008','883 H767','1',8,1),
-('BC009','741.5 T655','1',9,1),
-('BC010','813.54 H316','1',10,1),
-('BC011','823.914 C592','1',11,1),
-('BC012','823.912 T649','1',12,1);
+('14-C185-1947-001','14-C185-1947-001','1',1,1),
+('1-C530-1989-001','1-C530-1989-001','1',2,1),
+('7-C142-2003-001','7-C142-2003-001','1',3,1),
+('18-C534-1996-001','18-C534-1996-001','1',4,1),
+('8-C244-1983-001','8-C244-1983-001','1',5,1),
+('2-C438-1928-001','2-C438-1928-001','1',6,1),
+('10-C572-2003-001','10-C572-2003-001','1',7,1),
+('29-C648--800-001','29-C648--800-001','1',8,1),
+('15-C891-2018-001','15-C891-2018-001','1',9,1),
+('10-C722-1988-001','10-C722-1988-001','1',10,1),
+('6-C335-1985-001','6-C335-1985-001','1',11,1),
+('7-C822-1937-001','7-C822-1937-001','1',12,1);
 
 
 INSERT INTO wm_book_author (id_book, id_author) VALUES
