@@ -6,59 +6,33 @@ from src.api.copy_status.dtos import CopyStatusDTO
 
 
 class CreateCopyDTO(BaseModel):
-  copy_number: int
+  signature_topography: str
   edition_id: int
-  status_id: int
-  signature_topography: Optional[str] = None
-  barcode: Optional[str] = None
+  copy_number: int
 
   model_config = ConfigDict(from_attributes=True)
 
 
 class UpdateCopyDTO(CreateCopyDTO):
   id_copy: int
+  status_id: int
 
 
 class CopyDTO(UpdateCopyDTO):
+  barcode: str  
   created_at: datetime
   updated_at: datetime
 
 
-class CopyForEditionDTO(BaseModel):
+class CopyWithStatusDTO(UpdateCopyDTO):
   id_copy: int
-  barcode: str
   signature_topography: str
-  copy_number: str
   edition_id: int
+  copy_number: int
+  barcode: str  
   created_at: datetime
   updated_at: datetime
-  status: CopyStatusDTO
-  status_id: int
+  status: CopyStatusDTO  
   availability_status: Optional[str] = None
-  
-  model_config = ConfigDict(from_attributes=True)
-
-
-class EditionBasicDTO(BaseModel):
-  id_edition: int
-  edition: str
-  isbn: str
-  publication_year: int
-  pages: int
-  cover_image: Optional[str]
-  editorial_id: int
-  editorial_name: str
-
-  model_config = ConfigDict(from_attributes=True)
-
-
-class CopyWithAvailabilityDTO(BaseModel):
-  id_copy: int
-  barcode: str
-  signature_topography: str
-  copy_number: str
-  edition_id: int
-  edition: EditionBasicDTO
-  availability_status: str
 
   model_config = ConfigDict(from_attributes=True)

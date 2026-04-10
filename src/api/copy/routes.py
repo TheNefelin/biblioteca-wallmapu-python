@@ -7,59 +7,22 @@ from src.core.database import get_db
 from src.shared.dtos import ApiResponse
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
-from . import dtos, service
+from . import dtos, service, schema
 
 admin_or_user_required = Depends(get_current_user(required_roles=[UserRole.ADMIN, UserRole.LECTOR]))
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
 router = APIRouter(
-  prefix="/edition-copy", 
-  tags=["edition-copy"], 
+  prefix="/copy", 
+  tags=["copy"], 
 )
 
-# -----------------------------------------------------------------
-# GET AVAILABLE COPIES BY BOOK ID (for pickup)
-@router.get(
-  "/book/{book_id}/available",
-  response_model=ApiResponse[List[dtos.CopyDTO]],
-  status_code=HTTP_200_OK,
-  summary="Listar ejemplares disponibles de un libro",
-  dependencies=[admin_required]
-)
-def get_available_copies_by_book(
-  book_id: int,
-  db: Session = Depends(get_db)
-):
-  try:
-    res = service.get_available_by_book_id(db, book_id)
-    return ApiResponse.success(data=res)
-  except Exception as e:
-    return ApiResponse.server_error(message=str(e))
-
-
-# -----------------------------------------------------------------
-# GET ALL COPIES BY BOOK ID WITH AVAILABILITY STATUS
-@router.get(
-  "/book/{book_id}",
-  response_model=ApiResponse[List[dtos.CopyWithAvailabilityDTO]],
-  status_code=HTTP_200_OK,
-  summary="Listar todos los ejemplares de un libro con estado de disponibilidad"
-)
-def get_all_copies_by_book(
-  book_id: int,
-  db: Session = Depends(get_db)
-):
-  try:
-    res = service.get_all_by_book_id_with_availability(db, book_id)
-    return ApiResponse.success(data=res)
-  except Exception as e:
-    return ApiResponse.server_error(message=str(e))
 
 # -----------------------------------------------------------------
 # GET ALL
 @router.get(
   "/", 
-  response_model=ApiResponse[List[dtos.CopyDTO]],
+  response_model=ApiResponse[List[dtos.CopyWithStatusDTO]],
   status_code=HTTP_200_OK
 )
 def get_all_copy(db: Session = Depends(get_db)):
@@ -69,14 +32,15 @@ def get_all_copy(db: Session = Depends(get_db)):
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
 
+
 # -----------------------------------------------------------------
 # GET BY ID
 @router.get(
   "/{id}", 
-  response_model=ApiResponse[dtos.CopyDTO],
+  response_model=ApiResponse[dtos.CopyWithStatusDTO],
   status_code=HTTP_200_OK
 )
-def get_all_copy(
+def get_copy_by_id(
   id: int,
   db: Session = Depends(get_db)
 ):
@@ -90,14 +54,15 @@ def get_all_copy(
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
 
+
 # -----------------------------------------------------------------
 # GET BY EDITION ID
 @router.get(
   "/edition/{id_edition}", 
-  response_model=ApiResponse[List[dtos.CopyDTO]],
+  response_model=ApiResponse[List[dtos.CopyWithStatusDTO]],
   status_code=HTTP_200_OK
 )
-def get_all_copy(
+def get_all_copy_by_edition_id(
   id_edition: int,
   db: Session = Depends(get_db)
 ):
@@ -106,6 +71,7 @@ def get_all_copy(
     return ApiResponse.success(data=res)    
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
+
 
 # -----------------------------------------------------------------
 # CREATE
@@ -119,14 +85,10 @@ def create_copy(
   db: Session = Depends(get_db)
 ):
   try:
-    if copy.status_id == 0:
-      return ApiResponse.bad_request(message="El estado es requerido")      
-    
     if not copy.edition_id:
-      return ApiResponse.bad_request(message="El edition_id es requerido")      
-      
-    if not copy.status_id:
-      return ApiResponse.bad_request(message="El status_id es requerido")      
+      return ApiResponse.bad_request(message="El edition_id es requerido")    
+    if not copy.copy_number > 0:
+      return ApiResponse.bad_request(message="El numero de copia debe ser mayor a 0")      
           
     res = service.create(copy, db)
 
@@ -135,7 +97,8 @@ def create_copy(
     return ApiResponse.bad_request(message=str(e))
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
-      
+
+
 # -----------------------------------------------------------------
 # UPDATE
 @router.put(
@@ -169,6 +132,7 @@ def update_copy(
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
 
+
 # -----------------------------------------------------------------
 # DELETE
 @router.delete(
@@ -191,3 +155,24 @@ def delete_copy(
     return ApiResponse.bad_request(message=str(e))
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
+
+
+# -----------------------------------------------------------------
+# GET ALL COPIES BY BOOK ID WITH AVAILABILITY STATUS
+@router.get(
+  "/book/{id_book}/available",
+  response_model=ApiResponse[list[schema.CopyAvailabilityDTO]],
+  status_code=HTTP_200_OK,
+  summary="Listar todos los ejemplares de un libro con estado de disponibilidad"
+)
+def get_all_copies_by_book(
+  id_book: int,
+  db: Session = Depends(get_db)
+):
+  try:
+    res = service.get_all_availability_copies_by_book(db, id_book)
+    return ApiResponse.success(data=res)
+  except Exception as e:
+    return ApiResponse.server_error(message=str(e))
+
+

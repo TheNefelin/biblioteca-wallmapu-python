@@ -17,9 +17,10 @@ class Loan(Base):
   updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
   copy_id = Column(Integer, ForeignKey("wm_copies.id_copy"), nullable=False)
-  user_id = Column(String(36), ForeignKey("wm_users.id_user"), nullable=False)
-  loan_status_id = Column(Integer, ForeignKey("wm_loan_status.id_status"), nullable=False, default=1)
-
   copy = relationship("Copy")
+
+  user_id = Column(String(36), ForeignKey("wm_users.id_user"), nullable=False)
   user = relationship("User")
-  status = relationship("LoanStatus")
+  
+  loan_status_id = Column(Integer, ForeignKey("wm_loan_status.id_status"), nullable=False, default=1)
+  loan_status = relationship("LoanStatus")

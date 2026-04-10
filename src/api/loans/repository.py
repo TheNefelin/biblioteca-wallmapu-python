@@ -68,7 +68,7 @@ def get_active_by_book_id(db: Session, book_id: int) -> list[models.Loan]:
       .options(
         joinedload(models.Loan.user),
         joinedload(models.Loan.copy),
-        joinedload(models.Loan.status)
+        joinedload(models.Loan.loan_status)
       )
       .filter(
         and_(

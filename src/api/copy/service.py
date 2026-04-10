@@ -1,50 +1,66 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 
 from src.api.copy_status import models as status_models
 from src.api.editions import models as edition_models
-from src.services.signature_generator import generate_signature_topography, generate_barcode
-from . import dtos, models, repository
+from src.api.loans import repository as loan_repository
+from src.api.reservations import repository as reservation_repository
+from . import dtos, repository, schema
 
 
-def get_all(db: Session) -> list[dtos.CopyDTO]:
+# -----------------------------------------------------------------
+# GET ALL COPIES
+def get_all(db: Session) -> list[dtos.CopyWithStatusDTO]:
   items = repository.get_all(db)
-  return [dtos.CopyDTO.model_validate(item) for item in items]
+  return [dtos.CopyWithStatusDTO.model_validate(item) for item in items]
 
 
-def get_by_id(id: int, db: Session) -> dtos.CopyDTO | None:
+# -----------------------------------------------------------------
+# GET COPY BY ID
+def get_by_id(id: int, db: Session) -> dtos.CopyWithStatusDTO | None:
   item = repository.get_by_id(id, db)
   if not item:
     return None
-  return dtos.CopyDTO.model_validate(item)
+  return dtos.CopyWithStatusDTO.model_validate(item)
 
 
-def get_by_edition_id(id_edition: int, db: Session) -> list[dtos.CopyDTO]:
+# -----------------------------------------------------------------
+# GET ALL COPIES BY EDITION ID
+def get_by_edition_id(id_edition: int, db: Session) -> list[dtos.CopyWithStatusDTO]:
   items = repository.get_by_edition_id(id_edition, db)
-  return [dtos.CopyDTO.model_validate(item) for item in items]
+  return [dtos.CopyWithStatusDTO.model_validate(item) for item in items]
 
 
+# -----------------------------------------------------------------
+# CREATE COPY
 def create(data: dtos.CreateCopyDTO, db: Session) -> dtos.CopyDTO:
   if not db.get(edition_models.Edition, data.edition_id):
-    raise ValueError("No se encontro la edición")
-  if not db.get(status_models.CopyStatus, data.status_id):
-    raise ValueError("No se encontro el estado")
+    raise ValueError("No se encontró la edición")
 
-  signature = generate_signature_topography(db, data.edition_id)
-  barcode = generate_barcode(db, data.edition_id)
+  if repository.signature_exists(db, data.signature_topography):
+    raise ValueError("La Firma Topográfica ya existe")
 
-  entity_data = data.model_dump()
-  entity_data["signature_topography"] = signature
-  entity_data["barcode"] = barcode
+  if repository.copy_number_exists(db, data.edition_id, data.copy_number):
+    raise ValueError(f"El número de ejemplar {data.copy_number} ya existe para esta edición")
 
-  entity = repository.create(entity_data, db)
-  return dtos.CopyDTO.model_validate(entity)
+  try:
+    entity_data = data.model_dump()
+    entity_data["barcode"] = data.signature_topography
+    entity_data["status_id"] = 1
+
+    entity = repository.create(entity_data, db)
+    return dtos.CopyDTO.model_validate(entity)
+  except SQLAlchemyError:
+    raise ValueError("Error al crear el ejemplar")
 
 
+# -----------------------------------------------------------------
+# UPDATE COPY
 def update(id: int, data: dtos.UpdateCopyDTO, db: Session) -> dtos.CopyDTO | None:
   if not db.get(edition_models.Edition, data.edition_id):
-    raise ValueError("No se encontro la edición")
+    raise ValueError("No se encontró la edición")
   if not db.get(status_models.CopyStatus, data.status_id):
-    raise ValueError("No se encontro el estado")
+    raise ValueError("No se encontró el estado")
 
   current = repository.get_by_id(id, db)
   if not current:
@@ -65,53 +81,30 @@ def update(id: int, data: dtos.UpdateCopyDTO, db: Session) -> dtos.CopyDTO | Non
   return dtos.CopyDTO.model_validate(entity)
 
 
+# -----------------------------------------------------------------
+# DELETE COPY
 def delete(id: int, db: Session) -> bool:
   return repository.delete(id, db)
 
 
-def get_available_by_book_id(db: Session, book_id: int) -> list[dtos.CopyDTO]:
-  items = repository.get_by_book_id_and_status(db, book_id, 1)
-  return [dtos.CopyDTO.model_validate(item) for item in items]
+# -----------------------------------------------------------------
+# GET ALL COPIES BY BOOK ID WITH AVAILABILITY
+def get_all_availability_copies_by_book(db: Session, book_id: int) -> list[schema.CopyAvailabilityDTO]:
+  copies = repository.get_by_book_id_and_status(db, book_id, 1)
+  dtos = [schema.CopyAvailabilityDTO.model_validate(item) for item in copies]
 
+  active_loans = loan_repository.get_active_by_book_id(db, book_id)
+  active_reservations = reservation_repository.get_active_by_book_id(db, book_id)
 
-def get_all_by_book_id_with_availability(db: Session, book_id: int) -> list[dtos.CopyWithAvailabilityDTO]:
-  from src.api.loans.repository import get_active_by_book_id as get_loans_by_book
-  from src.api.reservations.repository import get_active_by_book_id as get_reservations_by_book
+  loans_status_map = {int(loan.copy_id): str(loan.status.status) for loan in active_loans}
+  reservations_status_map = {int(res.copy_id): res.status.status for res in active_reservations}
 
-  copies = repository.get_all_by_book_id(db, book_id)
-
-  active_loans = {loan.copy_id for loan in get_loans_by_book(db, book_id)}
-  active_reservations = {res.copy_id for res in get_reservations_by_book(db, book_id)}
-
-  result = []
-  for copy in copies:
-    if copy.status_id != 1:
-      availability = copy.status.name
-    elif copy.id_copy in active_loans:
-      availability = "prestado"
-    elif copy.id_copy in active_reservations:
-      availability = "reservado"
+  for dto in dtos:
+    if dto.id_copy in loans_status_map:
+      dto.availability_status = loans_status_map[dto.id_copy]
+    elif dto.id_copy in reservations_status_map:
+      dto.availability_status = reservations_status_map[dto.id_copy]
     else:
-      availability = "disponible"
+      dto.availability_status = "disponible"
 
-    result.append(dtos.CopyWithAvailabilityDTO(
-      id_copy=copy.id_copy,
-      barcode=copy.barcode,
-      signature_topography=copy.signature_topography,
-      copy_number=copy.copy_number,
-      edition_id=copy.edition_id,
-      edition=dtos.EditionBasicDTO(
-        id_edition=copy.edition.id_edition,
-        edition=copy.edition.edition,
-        isbn=copy.edition.isbn,
-        publication_year=copy.edition.publication_year,
-        pages=copy.edition.pages,
-        cover_image=copy.edition.cover_image,
-        editorial_id=copy.edition.editorial_id,
-        editorial_name=copy.edition.editorial.name if copy.edition.editorial else None
-      ),
-      availability_status=availability
-    ))
-
-  return result
-
+  return dtos

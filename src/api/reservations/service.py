@@ -11,7 +11,7 @@ def get_all(db: Session) -> list[dtos.ReservationDetailDTO]:
   return [_to_detail_dto(r) for r in reservations]
 
 
-def get_by_id(db: Session, id: int) -> dtos.ReservationDetailDTO:
+def get_by_id(db: Session, id: int) -> dtos.ReservationDetailDTO | None:
   reservation = repository.get_by_id(db, id)
   if not reservation:
     return None
@@ -33,7 +33,7 @@ def create(db: Session, user_id: UUID, dto: dtos.CreateReservationDTO) -> dtos.R
   if not copy:
     raise ValueError("Ejemplar no encontrado")
 
-  if copy.status_id != 1:
+  if int(copy.status_id) != 1:
     raise ValueError("El ejemplar no está disponible")
 
   existing = repository.get_active_by_user_and_copy(db, user_id, dto.copy_id)
@@ -51,15 +51,18 @@ def create(db: Session, user_id: UUID, dto: dtos.CreateReservationDTO) -> dtos.R
   )
 
   created = repository.create(db, reservation)
-  return get_by_id(db, created.id_reservation)
+  result = get_by_id(db, int(created.id_reservation))
+  if result is None:
+    raise ValueError("Error al crear la reserva")
+  return result
 
 
-def mark_as_pickup(db: Session, id: int, copy_id: int) -> dtos.ReservationDetailDTO:
+def mark_as_pickup(db: Session, id: int, copy_id: int) -> dtos.ReservationDetailDTO | None:
   reservation = repository.get_by_id(db, id)
   if not reservation:
     return None
 
-  if reservation.reservation_status_id != 1:
+  if int(reservation.reservation_status_id) != 1:
     raise ValueError("Solo se puede marcar como retirada una reserva pendiente")
 
   if reservation.expiration_date < datetime.now():
@@ -69,7 +72,7 @@ def mark_as_pickup(db: Session, id: int, copy_id: int) -> dtos.ReservationDetail
   if not copy:
     raise ValueError("Ejemplar no encontrado")
 
-  if copy.status_id != 1:
+  if int(copy.status_id) != 1:
     raise ValueError("El ejemplar no está disponible")
 
   from src.api.loans.models import Loan
@@ -90,6 +93,80 @@ def mark_as_pickup(db: Session, id: int, copy_id: int) -> dtos.ReservationDetail
 
   repository.update_status(db, id, 2)
   return get_by_id(db, id)
+
+
+def mark_as_cancelled(db: Session, id: int) -> dtos.ReservationDetailDTO | None:
+  reservation = repository.get_by_id(db, id)
+  if not reservation:
+    return None
+
+  if int(reservation.reservation_status_id) != 1:
+    raise ValueError("Solo se puede cancelar una reserva pendiente")
+
+  repository.update_status(db, id, 3)
+  return get_by_id(db, id)
+
+
+def mark_as_expired(db: Session, id: int) -> dtos.ReservationDetailDTO | None:
+  reservation = repository.get_by_id(db, id)
+  if not reservation:
+    return None
+
+  if int(reservation.reservation_status_id) != 1:
+    raise ValueError("Solo se puede marcar como vencida una reserva pendiente")
+
+  repository.update_status(db, id, 4)
+  return get_by_id(db, id)
+
+
+def expire_overdue_reservations(db: Session) -> int:
+  expired = repository.get_expired(db)
+  count = 0
+  for reservation in expired:
+    repository.update_status(db, int(reservation.id_reservation), 4)
+    count += 1
+  return count
+
+
+def delete(db: Session, id: int) -> bool | None:
+  reservation = repository.get_by_id(db, id)
+  if not reservation:
+    return None
+  return repository.delete(db, id)
+
+
+def _to_detail_dto(reservation: models.Reservation) -> dtos.ReservationDetailDTO:
+  copy = reservation.copy
+  book = copy.edition.book if copy and copy.edition else None
+  
+  return dtos.ReservationDetailDTO(
+    id_reservation=int(reservation.id_reservation),
+    reservation_date=reservation.reservation_date,
+    expiration_date=reservation.expiration_date,
+    user_id=reservation.user_id,
+    user_name=str(reservation.user.name) if reservation.user else None,
+    user_lastname=str(reservation.user.lastname) if reservation.user else None,
+    user_email=str(reservation.user.email) if reservation.user else None,
+    copy_id=int(copy.id_copy) if copy else None,
+    copy_barcode=str(copy.barcode) if copy else None,
+    copy_signature=copy.signature_topography if copy else None,
+    book_id=int(book.id_book) if book else None,
+    book_title=str(book.title) if book else None,
+    reservation_status_id=int(reservation.reservation_status_id),
+    reservation_status_name=str(reservation.status.status) if reservation.status else None
+  )
+
+
+def _get_reservation_days(db: Session) -> int:
+  from src.api.loan_policies.repository import get_default_policy
+  policy = get_default_policy(db)
+  return int(policy.reservation_days) if policy and policy.reservation_days else 3
+
+
+def _get_max_loan_days(db: Session) -> int:
+  from src.api.loan_policies.repository import get_default_policy
+  policy = get_default_policy(db)
+  return int(policy.max_days) if policy and policy.max_days else 14
 
 
 def mark_as_cancelled(db: Session, id: int) -> dtos.ReservationDetailDTO:

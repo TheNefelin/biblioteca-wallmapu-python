@@ -38,6 +38,7 @@ def get_by_id(id: int, db: Session) -> models.Copy | None:
   except SQLAlchemyError as e:
     raise e
 
+
 # -----------------------------------------------------------------
 # GET BY EDITION ID
 def get_by_edition_id(id: int, db: Session) -> list[models.Copy]:
@@ -54,6 +55,30 @@ def get_by_edition_id(id: int, db: Session) -> list[models.Copy]:
     return items
   except SQLAlchemyError as e:
     raise e
+
+
+# -----------------------------------------------------------------
+# CHECK IF SIGNATURE EXISTS
+def signature_exists(db: Session, signature: str) -> bool:
+  try:
+    return db.query(models.Copy.signature_topography).filter(
+      models.Copy.signature_topography == signature
+    ).first() is not None
+  except SQLAlchemyError as e:
+    raise e
+
+
+# -----------------------------------------------------------------
+# CHECK IF COPY NUMBER EXISTS FOR EDITION
+def copy_number_exists(db: Session, edition_id: int, copy_number: int) -> bool:
+  try:
+    return db.query(models.Copy.copy_number).filter(
+      models.Copy.edition_id == edition_id,
+      models.Copy.copy_number == copy_number
+    ).first() is not None
+  except SQLAlchemyError as e:
+    raise e
+
 
 # -----------------------------------------------------------------
 # CREATE
@@ -117,34 +142,10 @@ def signature_exists_for_other(db: Session, signature: str, exclude_id: int) -> 
     raise e
 
 # -----------------------------------------------------------------
-# GET BY BOOK ID AND STATUS
+# GET BY BOOK ID AND STATUS (with edition and editorial)
 def get_by_book_id_and_status(db: Session, book_id: int, status_id: int) -> list[models.Copy]:
   try:
     from src.api.editions.models import Edition
-    items = (
-      db.query(models.Copy)
-      .options(
-        joinedload(models.Copy.status)
-      )
-      .join(Edition)
-      .filter(
-        Edition.book_id == book_id,
-        models.Copy.status_id == status_id
-      )
-      .order_by(models.Copy.id_copy.asc())
-      .all()
-    )
-    return items
-  except SQLAlchemyError as e:
-    raise e
-
-
-# -----------------------------------------------------------------
-# GET ALL BY BOOK ID (with edition)
-def get_all_by_book_id(db: Session, book_id: int) -> list[models.Copy]:
-  try:
-    from src.api.editions.models import Edition
-    from src.api.editorials.models import Editorial
     items = (
       db.query(models.Copy)
       .options(
@@ -152,13 +153,17 @@ def get_all_by_book_id(db: Session, book_id: int) -> list[models.Copy]:
         joinedload(models.Copy.edition).joinedload(Edition.editorial)
       )
       .join(Edition)
-      .filter(Edition.book_id == book_id)
+      .filter(
+        Edition.book_id == book_id,
+        models.Copy.status_id == status_id
+      )
       .order_by(Edition.id_edition.asc(), models.Copy.id_copy.asc())
       .all()
     )
     return items
   except SQLAlchemyError as e:
     raise e
+
 
 # -----------------------------------------------------------------
 # DELETE

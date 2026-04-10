@@ -11,7 +11,7 @@ def get_all(db: Session) -> list[dtos.LoanDetailDTO]:
   return [_to_detail_dto(db, loan) for loan in loans]
 
 
-def get_by_id(db: Session, id: int) -> dtos.LoanDetailDTO:
+def get_by_id(db: Session, id: int) -> dtos.LoanDetailDTO | None:
   loan = repository.get_by_id(db, id)
   if not loan:
     return None
@@ -35,7 +35,7 @@ def get_overdue(db: Session) -> list[dtos.LoanDetailDTO]:
 
 def create(db: Session, dto: dtos.CreateLoanDTO) -> dtos.LoanDetailDTO:
   policy = get_default_policy(db)
-  max_days = policy.max_days if policy else 14
+  max_days = int(policy.max_days) if policy and policy.max_days else 14
 
   loan = models.Loan(
     copy_id=dto.copy_id,
@@ -46,24 +46,27 @@ def create(db: Session, dto: dtos.CreateLoanDTO) -> dtos.LoanDetailDTO:
   )
 
   created = repository.create(db, loan)
-  return get_by_id(db, created.id_loan)
+  result = get_by_id(db, int(created.id_loan))
+  if result is None:
+    raise ValueError("Error al crear el préstamo")
+  return result
 
 
-def return_loan(db: Session, id: int, dto: dtos.ReturnLoanDTO) -> dtos.LoanDetailDTO:
+def return_loan(db: Session, id: int, dto: dtos.ReturnLoanDTO) -> dtos.LoanDetailDTO | None:
   loan = repository.get_by_id(db, id)
   if not loan:
     return None
 
-  if loan.loan_status_id == 2:
+  if int(loan.loan_status_id) == 2:
     raise ValueError("Este préstamo ya fue devuelto")
 
   updated = repository.return_loan(db, id, dto.return_date)
 
-  copy = db.query(Copy).filter(Copy.id_copy == loan.copy_id).first()
+  copy = db.query(Copy).filter(Copy.id_copy == int(loan.copy_id)).first()
   if copy:
     copy.status_id = 1
-    db.commit()
 
+  db.commit()
   return get_by_id(db, id)
 
 
@@ -77,25 +80,25 @@ def _to_detail_dto(db: Session, loan: models.Loan) -> dtos.LoanDetailDTO:
   copy_barcode = None
 
   if loan.copy:
-    copy_barcode = loan.copy.barcode
+    copy_barcode = str(loan.copy.barcode)
     if loan.copy.edition_id:
-      edition = db.query(Edition).filter(Edition.id_edition == loan.copy.edition_id).first()
+      edition = db.query(Edition).filter(Edition.id_edition == int(loan.copy.edition_id)).first()
       if edition:
-        book_id = edition.book_id
+        book_id = int(edition.book_id) if edition.book_id else None
         if edition.book:
-          book_title = edition.book.title
+          book_title = str(edition.book.title)
 
   return dtos.LoanDetailDTO(
-    id_loan=loan.id_loan,
+    id_loan=int(loan.id_loan),
     loan_date=loan.loan_date,
     due_date=loan.due_date,
     return_date=loan.return_date,
-    copy_id=loan.copy_id,
-    user_id=loan.user_id,
-    loan_status_id=loan.loan_status_id,
-    loan_status_name=loan.status.status if loan.status else None,
-    user_name=loan.user.name if loan.user else None,
-    user_lastname=loan.user.lastname if loan.user else None,
+    copy_id=int(loan.copy_id),
+    user_id=str(loan.user_id),
+    loan_status_id=int(loan.loan_status_id),
+    loan_status_name=str(loan.status.status) if loan.status else None,
+    user_name=str(loan.user.name) if loan.user else None,
+    user_lastname=str(loan.user.lastname) if loan.user else None,
     book_id=book_id,
     book_title=book_title,
     copy_barcode=copy_barcode
