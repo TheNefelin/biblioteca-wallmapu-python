@@ -114,7 +114,7 @@ def create_reservation(
   response_model=ApiResponse[dtos.ReservationDetailDTO],
   status_code=HTTP_200_OK,
   summary="Marcar reserva como retirada (libro recogido)",
-  dependencies=[admin_required]
+  #dependencies=[admin_required]
 )
 def mark_reservation_as_pickup(
   id: int,
