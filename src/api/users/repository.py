@@ -32,7 +32,7 @@ def get_all_detailed(
           models.User.lastname.ilike(f"%{pagination.search}%"),
           models.User.email.ilike(f"%{pagination.search}%"),
           models.User.user_role.has(role_models.UserRole.role.ilike(f"%{pagination.search}%")),
-          models.User.user_status.has(status_models.UserStatus.status.ilike(f"%{pagination.search}%")),          
+          models.User.user_status.has(status_models.UserStatus.name.ilike(f"%{pagination.search}%")),          
         )
       )
 

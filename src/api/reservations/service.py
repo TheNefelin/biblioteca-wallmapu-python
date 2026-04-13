@@ -84,7 +84,7 @@ def mark_as_pickup(db: Session, id: int, copy_id: int) -> dtos.ReservationDetail
     user_id=reservation.user_id,
     loan_date=date.today(),
     due_date=due_date,
-    status="active"
+    loan_status_id=1
   )
   create_loan(db, loan)
 
@@ -153,7 +153,7 @@ def _to_detail_dto(reservation: models.Reservation) -> dtos.ReservationDetailDTO
     book_id=int(book.id_book) if book else None,
     book_title=str(book.title) if book else None,
     reservation_status_id=int(reservation.reservation_status_id),
-    reservation_status_name=str(reservation.status.status) if reservation.status else None
+    reservation_status_name=str(reservation.status.name) if reservation.status else None
   )
 
 
@@ -227,7 +227,7 @@ def _to_detail_dto(reservation: models.Reservation) -> dtos.ReservationDetailDTO
     book_id=book.id_book if book else None,
     book_title=book.title if book else None,
     reservation_status_id=reservation.reservation_status_id,
-    reservation_status_name=reservation.status.status if reservation.status else None
+    reservation_status_name=reservation.status.name if reservation.status else None
   )
 
 

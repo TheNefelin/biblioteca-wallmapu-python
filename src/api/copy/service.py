@@ -96,8 +96,8 @@ def get_all_availability_copies_by_book(db: Session, book_id: int) -> list[schem
   active_loans = loan_repository.get_active_by_book_id(db, book_id)
   active_reservations = reservation_repository.get_active_by_book_id(db, book_id)
 
-  loans_status_map = {int(loan.copy_id): str(loan.status.status) for loan in active_loans}
-  reservations_status_map = {int(res.copy_id): res.status.status for res in active_reservations}
+  loans_status_map = {int(loan.copy_id): str(loan.loan_status.name) for loan in active_loans}
+  reservations_status_map = {int(res.copy_id): res.status.name for res in active_reservations}
 
   for dto in dtos:
     if dto.id_copy in loans_status_map:

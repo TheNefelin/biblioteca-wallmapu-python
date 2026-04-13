@@ -96,7 +96,7 @@ def _to_detail_dto(db: Session, loan: models.Loan) -> dtos.LoanDetailDTO:
     copy_id=int(loan.copy_id),
     user_id=str(loan.user_id),
     loan_status_id=int(loan.loan_status_id),
-    loan_status_name=str(loan.status.status) if loan.status else None,
+    loan_status_name=str(loan.status.name) if loan.status else None,
     user_name=str(loan.user.name) if loan.user else None,
     user_lastname=str(loan.user.lastname) if loan.user else None,
     book_id=book_id,

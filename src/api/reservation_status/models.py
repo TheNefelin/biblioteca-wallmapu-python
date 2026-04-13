@@ -7,4 +7,4 @@ class ReservationStatus(Base):
   __tablename__ = "wm_reservation_status"
 
   id_status = Column(Integer, primary_key=True, autoincrement=True)
-  status = Column(String(30), nullable=False)
+  name = Column(String(30), nullable=False)
