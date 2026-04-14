@@ -9,6 +9,35 @@ from src.api.subjects.dtos import SubjectDTO
 from src.api.genres.dtos import GenreDTO
 
 
+class CreateBookDTO(BaseModel):
+  title: str
+  summary: str
+  genre_id: int
+  author_ids: List[int]
+  subject_ids: List[int]
+
+  model_config = ConfigDict(from_attributes=True)
+
+
+class UpdateBookDTO(CreateBookDTO):
+  id_book: int
+
+
+class BookDTO(BaseModel):
+  id_book: int
+  title: str
+  summary: str
+  created_at: datetime
+  updated_at: datetime
+  genre: GenreDTO  
+  authors: List[AuthorDTO]
+  subjects: List[SubjectDTO]
+
+  model_config = ConfigDict(from_attributes=True)
+
+
+# ------------------------------------------------
+
 class EditionForBookDTO(BaseModel):
   id_edition: int
   edition: str
@@ -37,28 +66,3 @@ class BookDetailDTO(BaseModel):
 
   model_config = ConfigDict(from_attributes=True)
 
-
-class CreateBookDTO(BaseModel):
-  title: str
-  summary: str
-  genre_id: int
-  author_ids: List[int]
-  subject_ids: List[int]
-
-  model_config = ConfigDict(from_attributes=True)
-
-class UpdateBookDTO(CreateBookDTO):
-  id_book: int
-
-
-class BookDTO(BaseModel):
-  id_book: int
-  title: str
-  summary: str
-  created_at: datetime
-  updated_at: datetime
-  genre: GenreDTO  
-  authors: List[AuthorDTO]
-  subjects: List[SubjectDTO]
-
-  model_config = ConfigDict(from_attributes=True)

@@ -1,8 +1,5 @@
-from math import ceil
-from typing import List
-from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Query, Session, joinedload
 
 from src.api.book_authors import models as book_authors_model
 from src.api.book_authors import service as book_author_service
@@ -10,7 +7,7 @@ from src.api.book_subjects import models as book_subjects_model
 from src.api.book_subjects import service as book_subject_service
 from src.api.editions import models as edition_models
 from src.api.copy import models as copy_model
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+
 from . import models
 
 
@@ -18,7 +15,7 @@ from . import models
 # GET ALL PAGINATION
 def get_all_pagination(
   db: Session
-) -> List[models.Book]:
+) -> Query[models.Book]:
   try:
     books = (
       db.query(models.Book)
@@ -36,58 +33,8 @@ def get_all_pagination(
 
 
 # -----------------------------------------------------------------
-# GET ALL
-def get_all(
-  pagination: PaginationRequestDTO, 
-  db: Session
-) -> PaginationResponseDTO:
-  try:
-    query = (
-      db.query(models.Book)
-      .options(
-        joinedload(models.Book.genre),
-        joinedload(models.Book.book_authors).joinedload(book_authors_model.BookAuthor.author),
-        joinedload(models.Book.book_subjects).joinedload(book_subjects_model.BookSubject.subject),
-        joinedload(models.Book.editions).joinedload(edition_models.Edition.copies).joinedload(copy_model.Copy.status),
-      )
-    )
-
-    if pagination.search:
-      query = query.filter(
-        or_(
-          models.Book.title.ilike(f"%{pagination.search}%"),
-          models.Book.editions.any(
-            edition_models.Edition.edition.ilike(f"%{pagination.search}%")
-          )
-        )
-      )
-
-    items = query.count()
-    pages = ceil(items / pagination.limit) if items > 0 else 0
-    page = min(pagination.page, pages) if pages > 0 else 1
-    skip = (page - 1) * pagination.limit
-
-    result_model = (
-      query
-      .order_by(models.Book.updated_at.desc())
-      .offset(skip)
-      .limit(pagination.limit)
-      .all()
-    )
-
-    return PaginationResponseDTO(
-      page=page,
-      pages=pages,
-      items=items,
-      result=result_model
-    )
-  except SQLAlchemyError as e:
-    raise e
-
-
-# -----------------------------------------------------------------
 # GET BY ID    
-def get_by_id(id: int, db: Session) -> models.Book:
+def get_by_id(id: int, db: Session) -> models.Book | None:
   try:
     entity = (
       db.query(models.Book)
@@ -142,7 +89,7 @@ def create(data: dict, db: Session) -> models.Book:
 
 # -----------------------------------------------------------------
 # UPDATE
-def update(data: dict, db: Session) -> models.Book:
+def update(data: dict, db: Session) -> models.Book | None:
   try:
     book_id = data.get("id_book")
     book = db.get(models.Book, book_id)
@@ -177,7 +124,7 @@ def update(data: dict, db: Session) -> models.Book:
     
 # -----------------------------------------------------------------
 # DELETE
-def delete(id: int, db: Session) -> bool:
+def delete(id: int, db: Session) -> bool | None:
   try:
     book = db.get(models.Book, id)
     

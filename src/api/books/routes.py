@@ -42,52 +42,6 @@ def get_all_pagination(
 
   pagination_response = service.get_all_pagination(pagination_request, db)
   return ApiResponse.success(pagination_response)
-  
-
-# -----------------------------------------------------------------
-# GET ALL
-@router.get(
-  "/", 
-  response_model=ApiResponse[PaginationResponseDTO[List[dtos.BookDetailDTO]]], 
-  status_code=HTTP_200_OK
-)
-def get_all(
-  request: Request,
-  page: int = Query(default=1, ge=1, description="Número de página a mostrar"),
-  limit: int = Query(default=10, ge=1, le=100, description="Cantidad de elementos por página"),
-  search: Optional[str] = Query(default=None, description="Buscar opcional"),   
-  db: Session = Depends(get_db)
-):
-  try:
-    pagination_request = PaginationRequestDTO(
-      page=page,
-      limit=limit,
-      search=search
-    )
-
-    pagination_response = service.get_all(pagination_request, db)
-
-    current_page = pagination_response.page
-    total_pages = pagination_response.pages
-
-    base_url = get_base_url(request)
-    search_param = f"&search={search}" if search else ""
-
-    # NEXT
-    if current_page < total_pages:
-      pagination_response.next = (
-        f"{base_url}?page={current_page + 1}&limit={limit}{search_param}"
-      )
-
-    # PREV
-    if current_page > 1:
-      pagination_response.prev = (
-        f"{base_url}?page={current_page - 1}&limit={limit}{search_param}"
-      )
-
-    return ApiResponse.success(pagination_response)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
 
 
 # -----------------------------------------------------------------
@@ -135,27 +89,6 @@ def get_by_id(
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
-# -----------------------------------------------------------------
-# GET BY ID WITH AVAILABILITY (copies filtered by availability)
-@router.get(
-  "/{id}/availability", 
-  response_model=ApiResponse[dtos.BookDetailDTO], 
-  status_code=HTTP_200_OK,
-  summary="Obtener libro con disponibilidad de copias"
-)
-def get_by_id_with_availability(
-  id: int, 
-  db: Session = Depends(get_db)
-):
-  try:
-    result = service.get_book_with_availability(id, db)
-    
-    if not result:
-      return ApiResponse.not_found()
-
-    return ApiResponse.success(result)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
 
 # -----------------------------------------------------------------
 # CREATE
@@ -177,7 +110,8 @@ def create_book(
     return ApiResponse.success(data=result)
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
-      
+
+
 # -----------------------------------------------------------------
 # UPDATE
 @router.put(
@@ -206,6 +140,7 @@ def update_book(
     return ApiResponse.success(data=result)
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
+
 
 # -----------------------------------------------------------------
 # DELETE

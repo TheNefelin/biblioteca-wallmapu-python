@@ -1,3 +1,4 @@
+from calendar import c
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, ConfigDict
@@ -33,6 +34,5 @@ class CopyWithStatusDTO(UpdateCopyDTO):
   created_at: datetime
   updated_at: datetime
   status: CopyStatusDTO  
-  availability_status: Optional[str] = None
 
   model_config = ConfigDict(from_attributes=True)
