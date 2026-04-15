@@ -59,23 +59,29 @@ def get_by_edition_id(id: int, db: Session) -> list[models.Copy]:
 
 # -----------------------------------------------------------------
 # CHECK IF SIGNATURE EXISTS
-def signature_exists(db: Session, signature: str) -> bool:
+def signature_exists(db: Session, signature: str, exclude_id: int = 0) -> bool:
   try:
-    return db.query(models.Copy.signature_topography).filter(
+    query = db.query(models.Copy.signature_topography).filter(
       models.Copy.signature_topography == signature
-    ).first() is not None
+    )
+    if exclude_id > 0:
+      query = query.filter(models.Copy.id_copy != exclude_id)
+    return query.first() is not None
   except SQLAlchemyError as e:
     raise e
 
 
 # -----------------------------------------------------------------
 # CHECK IF COPY NUMBER EXISTS FOR EDITION
-def copy_number_exists(db: Session, edition_id: int, copy_number: int) -> bool:
+def copy_number_exists(db: Session, edition_id: int, copy_number: int, exclude_id: int = 0) -> bool:
   try:
-    return db.query(models.Copy.copy_number).filter(
+    query = db.query(models.Copy.copy_number).filter(
       models.Copy.edition_id == edition_id,
       models.Copy.copy_number == copy_number
-    ).first() is not None
+    )
+    if exclude_id > 0:
+      query = query.filter(models.Copy.id_copy != exclude_id)
+    return query.first() is not None
   except SQLAlchemyError as e:
     raise e
 
@@ -125,21 +131,7 @@ def update(id: int, data: dict, db: Session) -> models.Copy | None:
     db.rollback()
     raise e
 
-# -----------------------------------------------------------------
-# CHECK IF SIGNATURE EXISTS IN OTHER COPY
-def signature_exists_for_other(db: Session, signature: str, exclude_id: int) -> bool:
-  try:
-    item = (
-      db.query(models.Copy)
-      .filter(
-        models.Copy.signature_topography == signature,
-        models.Copy.id_copy != exclude_id
-      )
-      .first()
-    )
-    return item is not None
-  except SQLAlchemyError as e:
-    raise e
+
 
 # -----------------------------------------------------------------
 # GET BY BOOK ID AND STATUS (with edition and editorial)

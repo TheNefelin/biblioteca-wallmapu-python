@@ -71,9 +71,15 @@ def update(id: int, data: dtos.UpdateCopyDTO, db: Session) -> dtos.CopyDTO | Non
   if "signature_topography" in update_data and update_data["signature_topography"] is not None:
     new_signature = update_data["signature_topography"]
     if new_signature != current.signature_topography:
-      if repository.signature_exists_for_other(db, new_signature, id):
+      if repository.signature_exists(db, new_signature, exclude_id=id):
         raise ValueError("La signatura topográfica ya está en uso por otro ejemplar")
       update_data["barcode"] = new_signature
+
+  if "copy_number" in update_data and update_data["copy_number"] is not None:
+    new_copy_number = update_data["copy_number"]
+    if new_copy_number != current.copy_number:
+      if repository.copy_number_exists(db, data.edition_id, new_copy_number, exclude_id=id):
+        raise ValueError(f"El número de ejemplar {new_copy_number} ya existe para esta edición")
 
   entity = repository.update(id, update_data, db)
   if not entity:
@@ -97,7 +103,7 @@ def get_all_availability_copies_by_book(db: Session, book_id: int) -> list[schem
   active_reservations = reservation_repository.get_active_by_book_id(db, book_id)
 
   loans_status_map = {int(loan.copy_id): str(loan.loan_status.name) for loan in active_loans}
-  reservations_status_map = {int(res.copy_id): res.status.name for res in active_reservations}
+  reservations_status_map = {int(res.copy_id): str(res.status.name) for res in active_reservations}
 
   for dto in dtos:
     if dto.id_copy in loans_status_map:
