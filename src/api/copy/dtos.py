@@ -1,6 +1,4 @@
-from calendar import c
 from datetime import datetime
-from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 from src.api.copy_status.dtos import CopyStatusDTO
@@ -25,7 +23,7 @@ class CopyDTO(UpdateCopyDTO):
   updated_at: datetime
 
 
-class CopyWithStatusDTO(UpdateCopyDTO):
+class CopyWithStatusDTO(BaseModel):
   id_copy: int
   signature_topography: str
   edition_id: int

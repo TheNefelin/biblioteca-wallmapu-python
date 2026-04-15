@@ -39,12 +39,20 @@ def get_all_editions(db: Session) -> list[dtos.EditionDetailDTO]:
 
 # -----------------------------------------------------------------
 # GET BY ID
-def get_edition_by_id(id: int, db: Session) -> dtos.EditionDetailDTO | None:
-  edition = repository.get_by_id(id, db)
+def get_edition_detail_by_id(id: int, db: Session) -> dtos.EditionDetailDTO | None:
+  edition = repository.get_detail_by_id(id, db)
   if not edition:
     return None
   return dtos.EditionDetailDTO.model_validate(edition)
 
+
+# -----------------------------------------------------------------
+# GET BY ID
+def get_edition_by_id(id: int, db: Session) -> dtos.EditionDTO | None:
+  edition = repository.get_entity_by_id(id, db)
+  if not edition:
+    return None
+  return dtos.EditionDTO.model_validate(edition)
 
 # -----------------------------------------------------------------
 # CREATE

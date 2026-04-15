@@ -128,7 +128,7 @@ def get_all(db: Session) -> list[models.Edition]:
 
 # -----------------------------------------------------------------
 # GET BY ID
-def get_by_id(id: int, db: Session) -> models.Edition | None:
+def get_detail_by_id(id: int, db: Session) -> models.Edition | None:
   stmt = (
     select(models.Edition)
     .options(

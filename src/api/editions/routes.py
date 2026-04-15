@@ -58,12 +58,27 @@ def get_all_edition(db: Session = Depends(get_db)):
 # -----------------------------------------------------------------
 # GET BY ID
 @router.get(
-  "/{id}", 
+  "/{id}/detail", 
   response_model=ApiResponse[dtos.EditionDetailDTO], 
   status_code=HTTP_200_OK,
   dependencies=[admin_required],
 )
 def get_edition(id: int, db: Session = Depends(get_db)):
+  res = service.get_edition_detail_by_id(id, db)
+  if not res:
+    return ApiResponse.not_found()
+  return ApiResponse.success(data=res)
+
+
+# -----------------------------------------------------------------
+# GET BY ID
+@router.get(
+  "/{id}", 
+  response_model=ApiResponse[dtos.EditionDTO], 
+  status_code=HTTP_200_OK,
+  #dependencies=[admin_required],
+)
+def get_edition_by_id(id: int, db: Session = Depends(get_db)):
   res = service.get_edition_by_id(id, db)
   if not res:
     return ApiResponse.not_found()
@@ -86,6 +101,7 @@ def create_edition(item: dtos.CreateEditionDTO, db: Session = Depends(get_db)):
     return ApiResponse.bad_request(message=str(e))
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
+
 
 # -----------------------------------------------------------------
 # UPDATE
