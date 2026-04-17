@@ -26,36 +26,28 @@ router = APIRouter(prefix="/users", tags=["users"])
 )
 def get_all_detailed(
   request: Request,
-  page: int = Query(default=1, ge=1, description="Número de página a mostrar"),
-  limit: int = Query(default=10, ge=1, le=100, description="Cantidad de elementos por página"),
-  search: Optional[str] = Query(default=None, description="Buscar en título o subtítulo"),
+  pagination_request: PaginationRequestDTO = Depends(),
   db: Session = Depends(database.get_db)
 ):
   try:
-    pagination_request = PaginationRequestDTO(
-      page=page,
-      limit=limit,
-      search=search
-    )
-
     pagination_response = service.get_all_detailed(pagination_request, db)
 
     current_page = pagination_response.page
     total_pages = pagination_response.pages
 
     base_url = get_base_url(request)
-    search_param = f"&search={search}" if search else ""
+    search_param = f"&search={pagination_request.search}" if pagination_request.search else ""
 
     # NEXT
     if current_page < total_pages:
       pagination_response.next = (
-        f"{base_url}?page={current_page + 1}&limit={limit}{search_param}"
+        f"{base_url}?page={current_page + 1}&limit={pagination_request.limit}{search_param}"
       )
 
     # PREV
     if current_page > 1:
       pagination_response.prev = (
-        f"{base_url}?page={current_page - 1}&limit={limit}{search_param}"
+        f"{base_url}?page={current_page - 1}&limit={pagination_request.limit}{search_param}"
       )
 
     return ApiResponse.success(pagination_response)

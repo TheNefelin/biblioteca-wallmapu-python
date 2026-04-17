@@ -7,6 +7,7 @@ from . import dtos, repository
 
 def get_all_detailed(pagination: PaginationRequestDTO, db: Session) -> PaginationResponseDTO[list[dtos.UserDetailDTO]]:
   page = repository.get_all_detailed(pagination, db)
+  
   return PaginationResponseDTO[list[dtos.UserDetailDTO]](
     page=page.page,
     pages=page.pages,

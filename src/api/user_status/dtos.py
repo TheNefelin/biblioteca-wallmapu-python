@@ -3,7 +3,7 @@ from pydantic import BaseModel, ConfigDict
 
 class UserStatusDTO(BaseModel):
   id_user_status: int
-  status: str
+  name: str
   created_at: datetime
   updated_at: datetime
 

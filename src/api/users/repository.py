@@ -115,10 +115,10 @@ def get_or_create_user(
     db.refresh(new_user)
 
     user = (
-        db.query(models.User)
-        .options(joinedload(models.User.user_role))
-        .filter(models.User.id_user == new_user.id_user)
-        .first()
+      db.query(models.User)
+      .options(joinedload(models.User.user_role))
+      .filter(models.User.id_user == new_user.id_user)
+      .first()
     )
     
     return user

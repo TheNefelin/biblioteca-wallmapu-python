@@ -7,6 +7,46 @@ from src.api.division_communes.dtos import CommuneDTO
 from src.api.user_role.dtos import UserRoleDTO
 from src.api.user_status.dtos import UserStatusDTO
 
+
+# No se usa, el trabajo lo hace AUTH
+class CreateUserDTO2(BaseModel): 
+  email: str
+  name: str
+
+  model_config = ConfigDict(from_attributes=True) 
+
+class UpdateUserDTO2(CreateUserDTO2):
+  id_user: UUID4
+  lastname: Optional[str] = None
+  rut: Optional[str] = None
+  address: Optional[str] = None
+  phone: Optional[str] = None
+  commune_id: Optional[int] = None
+  user_role_id: Optional[int] = None 
+  user_status_id: Optional[int] = None 
+
+  @field_validator('rut')
+  @classmethod
+  def validate_rut(cls, v):
+    if v is None:
+      return v
+    if not re.match(r'^\d{7,8}-[\dkK]$', v):
+      raise ValueError('RUT debe tener formato 12345678-9')
+    return v
+  
+  @field_validator('phone')
+  @classmethod
+  def validate_phone(cls, v):
+    if v is None:
+      return v
+    if not re.match(r'^\d{1,10}$', v):
+      raise ValueError('Teléfono debe contener solo números (máximo 10 dígitos)')
+    return v
+
+class UserDTO2(UpdateUserDTO2): 
+  created_at: datetime
+  updated_at: datetime
+
 # -----------------------------------------------------------------
 # USER DTO
 class UserDTO(BaseModel): 
