@@ -65,7 +65,7 @@ def get_all_pagination(pagination: BookPaginationRequestDTO, db: Session) -> Pag
     page=this_page,
     pages=total_pages,
     items=total_items,
-    result=books_dto
+    data=books_dto
   )
 
 # -----------------------------------------------------------------

@@ -11,7 +11,7 @@ def get_all_detailed(pagination: PaginationRequestDTO, db: Session) -> Paginatio
     page=page.page,
     pages=page.pages,
     items=page.items,
-    result=[dtos.UserDetailDTO.model_validate(item) for item in page.result],
+    data=[dtos.UserDetailDTO.model_validate(item) for item in page.data],
     next=page.next,
     prev=page.prev,
   )

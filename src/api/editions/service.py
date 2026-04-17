@@ -26,7 +26,7 @@ def get_all_pagination(pagination: BookPaginationRequestDTO, db: Session):
     page=page,
     pages=total_pages,
     items=total_items,
-    result=editions_dto,
+    data=editions_dto,
   )
   
 

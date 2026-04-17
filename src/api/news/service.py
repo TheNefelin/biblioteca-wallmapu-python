@@ -10,7 +10,7 @@ def get_all_pagination(pagination: PaginationRequestDTO, db: Session) -> Paginat
     page=page.page,
     pages=page.pages,
     items=page.items,
-    result=[dtos.NewsWithGalleryDTO.model_validate(item) for item in page.result],
+    data=[dtos.NewsWithGalleryDTO.model_validate(item) for item in page.data],
     next=page.next,
     prev=page.prev,
   )

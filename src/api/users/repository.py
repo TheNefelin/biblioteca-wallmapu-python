@@ -55,7 +55,7 @@ def get_all_detailed(
       page=page,
       pages=pages,
       items=items,
-      result=result
+      data=result
     )
   except SQLAlchemyError as e:
     raise e

@@ -44,7 +44,7 @@ def get_all_pagination(
       page=page,
       pages=pages,
       items=items,
-      result=result
+      data=result
     )
   except SQLAlchemyError as e:
     raise e
