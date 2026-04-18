@@ -2,7 +2,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload, selectinload
 
-from src.shared.dtos import BookPaginationRequestDTO
+from src.shared.dtos import PaginationRequestDTO, BookFilterDTO
 from src.api.editorials import models as editorial_models
 from src.api.books import models as book_models
 from src.api.authors import models as authors_models
@@ -28,7 +28,7 @@ def get_paginated(query, offset: int, limit: int):
     .all()
   )
   
-def build_query(pagination: BookPaginationRequestDTO, db: Session):
+def build_query(pagination: PaginationRequestDTO[BookFilterDTO], db: Session):
   query = db.query(models.Edition)
 
   query = query.join(models.Edition.book)
@@ -42,29 +42,30 @@ def build_query(pagination: BookPaginationRequestDTO, db: Session):
       )
     )
 
-  if pagination.id_author:
-    query = (
-      query.join(book_models.Book.book_authors)
-        .join(book_authors_models.BookAuthor.author)
-        .filter(authors_models.Author.id_author == pagination.id_author)
-    )
+  if pagination.filter:
+    if pagination.filter.id_author:
+      query = (
+        query.join(book_models.Book.book_authors)
+          .join(book_authors_models.BookAuthor.author)
+          .filter(authors_models.Author.id_author == pagination.filter.id_author)
+      )
 
-  if pagination.id_editorial:
-    query = query.filter(
-      models.Edition.editorial_id == pagination.id_editorial
-    )
+    if pagination.filter.id_editorial:
+      query = query.filter(
+        models.Edition.editorial_id == pagination.filter.id_editorial
+      )
 
-  if pagination.id_genre:
-    query = query.filter(
-      book_models.Book.genre_id == pagination.id_genre
-    )
+    if pagination.filter.id_genre:
+      query = query.filter(
+        book_models.Book.genre_id == pagination.filter.id_genre
+      )
 
   return query
   
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
 def get_all_paginated(
-  pagination: BookPaginationRequestDTO,
+  pagination,
   db: Session,
 ):
   query = db.query(models.Edition)
@@ -91,15 +92,9 @@ def get_all_paginated(
       editorial_models.Editorial.id_editorial == pagination.id_editorial
     )
 
-  #if pagination.id_author:
-  #  query = query.filter(
-  #    book_authors_models.Author.id_author == pagination.id_author
-  #  )
-
   if pagination.id_author:
     query = query.join(book_models.Book.book_authors).join(book_authors_models.BookAuthor.author)
     query = query.filter(book_authors_models.Author.id_author == pagination.id_author)
-
 
   if pagination.id_genre:
     query = query.filter(

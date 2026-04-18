@@ -1,15 +1,16 @@
 from math import ceil
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
+from typing import Optional
 
-from src.shared.dtos import BookPaginationRequestDTO, PaginationResponseDTO
+from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO, BookFilterDTO
 from src.services import cloudinary_service
 from . import dtos, repository
 
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
-def get_all_pagination(pagination: BookPaginationRequestDTO, db: Session):
+def get_all_pagination(pagination: PaginationRequestDTO[BookFilterDTO], db: Session):
   base_query = repository.build_query(pagination, db)
 
   total_items = repository.count_query(base_query)
@@ -27,6 +28,8 @@ def get_all_pagination(pagination: BookPaginationRequestDTO, db: Session):
     pages=total_pages,
     items=total_items,
     data=editions_dto,
+    next=None,
+    prev=None,
   )
   
 

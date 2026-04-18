@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED
@@ -7,7 +7,7 @@ from src.core.url_helper import get_base_url
 from src.core.database import get_db
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
-from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO, BookPaginationRequestDTO
+from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
 from . import dtos, service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
@@ -23,23 +23,10 @@ router = APIRouter(prefix="/books", tags=["books"])
   status_code=HTTP_200_OK
 )
 def get_all_pagination(
-  page: int = Query(default=1, ge=1, description="Número de página a mostrar"),
-  limit: int = Query(default=10, ge=1, le=100, description="Cantidad de elementos por página"),
-  search: Optional[str] = Query(default=None, description="Buscar opcional"),
-  id_author: Optional[int] = Query(default=None, description="Buscar por autor opcional"),
-  id_editorial: Optional[int] = Query(default=None, description="Buscar por editorial opcional"),
-  id_genre: Optional[int] = Query(default=None, description="Buscar por generlo opcional"),   
+  request: Request,
+  pagination_request: PaginationRequestDTO = Depends(),
   db: Session = Depends(get_db)
 ):
-  pagination_request = BookPaginationRequestDTO(
-    page=page,
-    limit=limit,
-    search=search,
-    id_author=id_author,
-    id_editorial=id_editorial,
-    id_genre=id_genre,
-  )
-
   pagination_response = service.get_all_pagination(pagination_request, db)
   return ApiResponse.success(pagination_response)
 

@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO, BookPaginationRequestDTO
+from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.api.editions import models as edition_models
 from src.api.authors import models as authors_models
 from src.api.book_authors import repository as book_authors_repository
@@ -13,7 +13,7 @@ from . import dtos, models, repository
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
-def get_all_pagination(pagination: BookPaginationRequestDTO, db: Session) -> PaginationResponseDTO[List[dtos.BookDetailDTO]]:
+def get_all_pagination(pagination: PaginationRequestDTO, db: Session) -> PaginationResponseDTO[List[dtos.BookDetailDTO]]:
   books = repository.get_all_pagination(db)
 
   if pagination.search:
@@ -27,23 +27,25 @@ def get_all_pagination(pagination: BookPaginationRequestDTO, db: Session) -> Pag
       )
     )
 
-  if pagination.id_editorial:
+  filters = None
+
+  if filters and filters.id_editorial:
     books = books.filter(
       models.Book.editions.any(
-        edition_models.Edition.editorial_id == pagination.id_editorial
+        edition_models.Edition.editorial_id == filters.id_editorial
       )
     )
 
-  if pagination.id_author:
+  if filters and filters.id_author:
     books = books.filter(
       models.Book.book_authors.any(
-        authors_models.Author.id_author == pagination.id_author
+        authors_models.Author.id_author == filters.id_author
       )
     )
 
-  if pagination.id_genre:
+  if filters and filters.id_genre:
     books = books.filter(
-      models.Book.genre_id == pagination.id_genre
+      models.Book.genre_id == filters.id_genre
     )
 
   total_items = books.count()
@@ -65,7 +67,9 @@ def get_all_pagination(pagination: BookPaginationRequestDTO, db: Session) -> Pag
     page=this_page,
     pages=total_pages,
     items=total_items,
-    data=books_dto
+    data=books_dto,
+    next=None,
+    prev=None
   )
 
 # -----------------------------------------------------------------
