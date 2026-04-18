@@ -23,13 +23,16 @@ def get_all_pagination(pagination: PaginationRequestDTO[BookFilterDTO], db: Sess
 
   editions_dto = [dtos.EditionDetailDTO.model_validate(e) for e in editions]
 
+  next_url = f"/api/editions/pagination?page={page + 1}&limit={pagination.limit}" if page < total_pages else None
+  prev_url = f"/api/editions/pagination?page={page - 1}&limit={pagination.limit}" if page > 1 else None
+
   return PaginationResponseDTO(
     page=page,
     pages=total_pages,
     items=total_items,
     data=editions_dto,
-    next=None,
-    prev=None,
+    next=next_url,
+    prev=prev_url,
   )
   
 

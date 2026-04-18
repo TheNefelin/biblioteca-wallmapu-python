@@ -63,13 +63,16 @@ def get_all_pagination(pagination: PaginationRequestDTO, db: Session) -> Paginat
 
   books_dto = [dtos.BookDetailDTO.model_validate(item) for item in book_paginated]
 
+  next_url = f"/api/books/pagination?page={this_page + 1}&limit={pagination.limit}" if this_page < total_pages else None
+  prev_url = f"/api/books/pagination?page={this_page - 1}&limit={pagination.limit}" if this_page > 1 else None
+
   return PaginationResponseDTO[List[dtos.BookDetailDTO]](
     page=this_page,
     pages=total_pages,
     items=total_items,
     data=books_dto,
-    next=None,
-    prev=None
+    next=next_url,
+    prev=prev_url
   )
 
 # -----------------------------------------------------------------

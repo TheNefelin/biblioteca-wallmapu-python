@@ -51,11 +51,16 @@ def get_all_detailed(
       .all()
     )
 
+    next_url = f"/api/users/pagination?page={page + 1}&limit={pagination.limit}" if page < pages else None
+    prev_url = f"/api/users/pagination?page={page - 1}&limit={pagination.limit}" if page > 1 else None
+
     return PaginationResponseDTO(
       page=page,
       pages=pages,
       items=items,
-      data=result
+      data=result,
+      next=next_url,
+      prev=prev_url
     )
   except SQLAlchemyError as e:
     raise e
