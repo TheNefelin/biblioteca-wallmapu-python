@@ -40,3 +40,7 @@ class CreateReservationDTO(BaseModel):
 
 class ReservationPickupDTO(BaseModel):
   copy_id: int = Field(..., description="ID del ejemplar a entregar")
+
+
+class ReservationFilterDTO(BaseModel):
+  id_status: int = Field(default=0, description="ID del Reservation Status para filtrar (0 = todos)")
