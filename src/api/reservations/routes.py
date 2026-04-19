@@ -11,6 +11,7 @@ from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationRespons
 from . import dtos, service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
+user_required = Depends(get_current_user(required_roles=[UserRole.LECTOR]))
 user_or_admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN, UserRole.LECTOR]))
 
 router = APIRouter(
@@ -26,6 +27,7 @@ router = APIRouter(
   response_model=ApiResponse[PaginationResponseDTO[List[dtos.ReservationDetailDTO]]],
   status_code=HTTP_200_OK,
   summary="Listar todas las reservas con paginación",
+  dependencies=[admin_required]
 )
 def get_reservations_paginated(
   page: int = Query(default=1, ge=1),
@@ -46,54 +48,35 @@ def get_reservations_paginated(
   pagination_response = service.get_all_pagination(pagination_request, db)
   return ApiResponse.success(data=pagination_response)
 
-
 # -----------------------------------------------------------------
-# GET ALL
+# GET MY RESERVATIONS PAGINATION (Usuario actual)
 @router.get(
-  "/",
-  response_model=ApiResponse[List[dtos.ReservationDetailDTO]],
+  "/pagination/user",
+  response_model=ApiResponse[PaginationResponseDTO[List[dtos.ReservationDetailDTO]]],
   status_code=HTTP_200_OK,
-  summary="Listar todas las reservas",
-  dependencies=[admin_required],
+  summary="Listar mis reservas con paginación",
+  dependencies=[user_required]
 )
-def get_all_reservations(db: Session = Depends(get_db)):
-  res = service.get_all(db)
-  return ApiResponse.success(data=res)
-
-
-# -----------------------------------------------------------------
-# GET BY USER
-@router.get(
-  "/user/{user_id}",
-  response_model=ApiResponse[List[dtos.ReservationDetailDTO]],
-  status_code=HTTP_200_OK,
-  summary="Listar reservas de un usuario",
-  dependencies=[user_or_admin_required]
-)
-def get_reservations_by_user(
-  user_id: UUID,
+def get_my_reservations_paginated(
+  page: int = Query(default=1, ge=1),
+  limit: int = Query(default=10, ge=1, le=100),
+  id_status: int = Query(default=0),
+  current_user = Depends(get_current_user()),
   db: Session = Depends(get_db)
 ):
-  res = service.get_by_user_id(db, user_id)
-  return ApiResponse.success(data=res)
-
-
-# -----------------------------------------------------------------
-# GET BY COPY
-@router.get(
-  "/copy/{copy_id}",
-  response_model=ApiResponse[List[dtos.ReservationDetailDTO]],
-  status_code=HTTP_200_OK,
-  summary="Listar reservas activas de un ejemplar",
-  dependencies=[admin_required]
-)
-def get_active_reservations_by_copy(
-  copy_id: int,
-  db: Session = Depends(get_db)
-):
-  res = service.get_active_by_copy_id(db, copy_id)
-  return ApiResponse.success(data=res)
-
+  user_id = UUID(current_user["sub"])
+  
+  filter = dtos.ReservationFilterDTO(id_status=id_status) if id_status > 0 else None
+  
+  pagination_request = PaginationRequestDTO[dtos.ReservationFilterDTO](
+    page=page,
+    limit=limit,
+    search="",
+    filter=filter
+  )
+  
+  pagination_response = service.get_user_pagination(user_id, pagination_request, db)
+  return ApiResponse.success(data=pagination_response)
 
 # -----------------------------------------------------------------
 # GET BY ID
@@ -194,20 +177,4 @@ def expire_overdue_reservations(db: Session = Depends(get_db)):
   return ApiResponse.success(data=count, message=f"{count} reservas marcadas como vencidas")
 
 
-# -----------------------------------------------------------------
-# DELETE
-@router.delete(
-  "/{id}",
-  response_model=ApiResponse[bool],
-  status_code=HTTP_200_OK,
-  summary="Eliminar una reserva",
-  dependencies=[admin_required]
-)
-def delete_reservation(
-  id: int,
-  db: Session = Depends(get_db)
-):
-  res = service.delete(db, id)
-  if res is None:
-    return ApiResponse.not_found(message="Reserva no encontrada")
-  return ApiResponse.success(data=res, message="Reserva eliminada")
+

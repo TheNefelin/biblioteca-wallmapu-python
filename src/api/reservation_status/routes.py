@@ -9,12 +9,12 @@ from src.core.roles import UserRole
 from src.shared.dtos import ApiResponse
 from . import dtos, service
 
-admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
+user_or_admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN, UserRole.LECTOR]))
 
 router = APIRouter(
   prefix="/reservation-status", 
   tags=["reservation-status"], 
-  dependencies=[admin_required]
+  dependencies=[user_or_admin_required]
 )
 
 # -----------------------------------------------------------------

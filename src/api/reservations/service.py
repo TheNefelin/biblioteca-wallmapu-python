@@ -23,13 +23,6 @@ def get_all_pagination(pagination: PaginationRequestDTO, db: Session) -> Paginat
 
 
 # -----------------------------------------------------------------
-# GET ALL
-def get_all(db: Session):
-  reservations = repository.get_all(db)
-  return [_to_detail_dto(r) for r in reservations]
-
-
-# -----------------------------------------------------------------
 # GET BY ID
 def get_by_id(db: Session, id: int):
   reservation = repository.get_by_id(db, id)
@@ -39,17 +32,17 @@ def get_by_id(db: Session, id: int):
 
 
 # -----------------------------------------------------------------
-# GET BY USER
-def get_by_user_id(db: Session, user_id: UUID):
-  reservations = repository.get_by_user_id(db, user_id)
-  return [_to_detail_dto(r) for r in reservations]
-
-
-# -----------------------------------------------------------------
-# GET BY COPY
-def get_active_by_copy_id(db: Session, copy_id: int):
-  reservations = repository.get_active_by_copy_id(db, copy_id)
-  return [_to_detail_dto(r) for r in reservations]
+# GET USER PAGINATION
+def get_user_pagination(user_id: UUID, pagination: PaginationRequestDTO, db: Session):
+  page = repository.get_user_pagination(user_id, pagination, db)
+  return PaginationResponseDTO(
+    page=page.page,
+    pages=page.pages,
+    items=page.items,
+    data=[_to_detail_dto(r) for r in page.data],
+    next=page.next,
+    prev=page.prev,
+  )
 
 
 # -----------------------------------------------------------------
@@ -181,15 +174,6 @@ def expire_overdue_reservations(db: Session) -> int:
     repository.update_status(db, int(reservation.id_reservation), 4)
     count += 1
   return count
-
-
-# -----------------------------------------------------------------
-# DELETE
-def delete(db: Session, id: int):
-  reservation = repository.get_by_id(db, id)
-  if not reservation:
-    return None
-  return repository.delete(db, id)
 
 
 # -----------------------------------------------------------------
