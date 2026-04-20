@@ -121,16 +121,22 @@ def create_reservation(
   response_model=ApiResponse[dtos.ReservationDetailDTO],
   status_code=HTTP_200_OK,
   summary="Marcar reserva como retirada (libro recogido)",
+  dependencies=[admin_required]
 )
 def mark_reservation_as_pickup(
   id: int,
   dto: dtos.ReservationPickupDTO,
   db: Session = Depends(get_db)
 ):
-  res = service.mark_as_pickup(db, id, dto.copy_id)
-  if not res:
-    return ApiResponse.not_found(message="Reserva no encontrada")
-  return ApiResponse.success(data=res, message="Reserva marcada como retirada")
+  try:
+    res = service.mark_as_pickup(db, id, dto.copy_id)
+    if not res:
+      return ApiResponse.not_found(message="Reserva no encontrada")
+    return ApiResponse.success(data=res, message="Reserva marcada como retirada")
+  except ValueError as e:
+    return ApiResponse.bad_request(message=str(e))
+  except Exception as e:
+    return ApiResponse.server_error(message=str(e))
 
 
 # -----------------------------------------------------------------
@@ -149,18 +155,23 @@ def cancel_reservation(
 ):
   from src.core.roles import UserRole
   
-  reservation = service.get_by_id(db, id)
-  if not reservation:
-    return ApiResponse.not_found(message="Reserva no encontrada")
+  try:
+    reservation = service.get_by_id(db, id)
+    if not reservation:
+      return ApiResponse.not_found(message="Reserva no encontrada")
 
-  is_admin = current_user.get("role") == UserRole.ADMIN.value
-  is_owner = str(reservation.user_id) == current_user["sub"]
+    is_admin = current_user.get("role") == UserRole.ADMIN.value
+    is_owner = str(reservation.user_id) == current_user["sub"]
 
-  if not is_admin and not is_owner:
-    return ApiResponse.forbidden(message="No puedes cancelar esta reserva")
+    if not is_admin and not is_owner:
+      return ApiResponse.forbidden(message="No puedes cancelar esta reserva")
 
-  res = service.mark_as_cancelled(db, id)
-  return ApiResponse.success(data=res, message="Reserva cancelada")
+    res = service.mark_as_cancelled(db, id)
+    return ApiResponse.success(data=res, message="Reserva cancelada")
+  except ValueError as e:
+    return ApiResponse.bad_request(message=str(e))
+  except Exception as e:
+    return ApiResponse.server_error(message=str(e))
 
 
 # -----------------------------------------------------------------
