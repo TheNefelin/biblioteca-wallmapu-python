@@ -9,6 +9,8 @@ from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
 from . import models
 
 
+# -----------------------------------------------------------------
+# GET ALL PAGINATION
 def get_all_pagination(pagination: PaginationRequestDTO, db: Session) -> PaginationResponseDTO:
   try:
     query = (
@@ -54,24 +56,10 @@ def get_all_pagination(pagination: PaginationRequestDTO, db: Session) -> Paginat
     )
   except SQLAlchemyError as e:
     raise e
-    
-
-def get_by_id(db: Session, id: int) -> models.Reservation:
-  try:
-    return (
-      db.query(models.Reservation)
-      .options(
-        joinedload(models.Reservation.user),
-        joinedload(models.Reservation.copy).joinedload(Copy.edition).joinedload(Edition.book),
-        joinedload(models.Reservation.status)
-      )
-      .filter(models.Reservation.id_reservation == id)
-      .first()
-    )
-  except SQLAlchemyError as e:
-    raise e
 
 
+# -----------------------------------------------------------------
+# GET MY RESERVATIONS PAGINATION (Usuario actual)
 def get_user_pagination(user_id: UUID, pagination: PaginationRequestDTO, db: Session) -> PaginationResponseDTO:
   try:
     query = (
@@ -114,6 +102,24 @@ def get_user_pagination(user_id: UUID, pagination: PaginationRequestDTO, db: Ses
       data=result,
       next=next_url,
       prev=prev_url
+    )
+  except SQLAlchemyError as e:
+    raise e
+
+
+# -----------------------------------------------------------------
+# GET BY ID
+def get_by_id(db: Session, id: int) -> models.Reservation:
+  try:
+    return (
+      db.query(models.Reservation)
+      .options(
+        joinedload(models.Reservation.user),
+        joinedload(models.Reservation.copy).joinedload(Copy.edition).joinedload(Edition.book),
+        joinedload(models.Reservation.status)
+      )
+      .filter(models.Reservation.id_reservation == id)
+      .first()
     )
   except SQLAlchemyError as e:
     raise e

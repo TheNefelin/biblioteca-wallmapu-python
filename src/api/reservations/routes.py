@@ -84,7 +84,8 @@ def get_my_reservations_paginated(
   "/{id}",
   response_model=ApiResponse[dtos.ReservationDetailDTO],
   status_code=HTTP_200_OK,
-  summary="Obtener una reserva por ID"
+  summary="Obtener una reserva por ID",
+  dependencies=[admin_required]
 )
 def get_reservation_by_id(
   id: int,
