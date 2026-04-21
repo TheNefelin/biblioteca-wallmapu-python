@@ -1,5 +1,5 @@
 from typing import Any, List
-from datetime import date
+from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED
@@ -11,6 +11,7 @@ from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationRespons
 from . import dtos, service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
+user_required = Depends(get_current_user(required_roles=[UserRole.LECTOR]))
 user_or_admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN, UserRole.LECTOR]))
 
 router = APIRouter(
@@ -25,10 +26,11 @@ router = APIRouter(
   "/pagination",
   response_model=ApiResponse[PaginationResponseDTO[Any]],
   status_code=HTTP_200_OK,
-  summary="Listar todos los prestamos con paginación",
-  #dependencies=[admin_required]
+  summary="Listar todos los préstamos con paginación",
+  description="Retorna lista paginada de préstamos. Filtros: id_status (1=activo, 2=devuelto, 3=vencido)",
+  dependencies=[admin_required]
 )
-def get_loans_paginate(
+def get_loans_paginated(
   page: int = Query(default=1, ge=1),
   limit: int = Query(default=10, ge=1, le=100),
   search: str = Query(default=""),
@@ -57,7 +59,9 @@ def get_loans_paginate(
   "/overdue",
   response_model=ApiResponse[List[dtos.LoanDTO]],
   status_code=HTTP_200_OK,
-  #dependencies=[admin_required]
+  summary="Listar préstamos vencidos",
+  description="Retorna todos los préstamos cuya fecha de vencimiento pasó y aún no han sido devueltos",
+  dependencies=[admin_required]
 )
 def get_overdue_loans(db: Session = Depends(get_db)):
   try:
@@ -73,7 +77,8 @@ def get_overdue_loans(db: Session = Depends(get_db)):
   "/{id}",
   response_model=ApiResponse[dtos.LoanDTO],
   status_code=HTTP_200_OK,
-  #dependencies=[user_or_admin_required],
+  summary="Obtener un préstamo por ID",
+  dependencies=[user_or_admin_required]
 )
 def get_loan_by_id(
   id: int,
@@ -94,7 +99,9 @@ def get_loan_by_id(
   "/",
   response_model=ApiResponse[dtos.LoanDTO],
   status_code=HTTP_201_CREATED,
-  #dependencies=[admin_required]
+  summary="Crear un nuevo préstamo",
+  description="Crea un nuevo préstamo. La fecha de vencimiento se calcula automáticamente según las políticas de préstamo",
+  dependencies=[admin_required]
 )
 def create_loan(
   dto: dtos.CreateLoanDTO,
@@ -110,12 +117,14 @@ def create_loan(
 
 
 # -----------------------------------------------------------------
-# RETURN
+# UPDATE - RETURN
 @router.put(
   "/{id}/return",
   response_model=ApiResponse[dtos.LoanDTO],
   status_code=HTTP_200_OK,
-  #dependencies=[admin_required]
+  summary="Registrar devolución de préstamo",
+  description="Marca un préstamo como devuelto, actualiza la fecha de devolución y el estado del ejemplar a disponible",
+  dependencies=[admin_required]
 )
 def return_loan(
   id: int,
@@ -139,7 +148,9 @@ def return_loan(
   "/expire-overdue",
   response_model=ApiResponse[int],
   status_code=HTTP_200_OK,
-  #dependencies=[admin_required]
+  summary="Marcar como vencidos los préstamos vencidos",
+  description="Actualiza el estado de préstamos vencidos (fecha de vencimiento pasada y no devueltos) a estado vencido",
+  dependencies=[admin_required]
 )
 def expire_overdue_loans(db: Session = Depends(get_db)):
   try:
