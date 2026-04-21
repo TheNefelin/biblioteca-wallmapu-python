@@ -1,13 +1,13 @@
-from typing import List
+from typing import Any, List
 from datetime import date
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 
 from src.core.database import get_db
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
-from src.shared.dtos import ApiResponse
+from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
 from . import dtos, service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
@@ -18,59 +18,46 @@ router = APIRouter(
   tags=["loans"],
 )
 
-@router.get(
-  "/",
-  response_model=ApiResponse[List[dtos.LoanDetailDTO]],
-  status_code=HTTP_200_OK,
-  dependencies=[admin_required]
-)
-def get_all_loans(db: Session = Depends(get_db)):
-  try:
-    res = service.get_all(db)
-    return ApiResponse.success(data=res)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
 
-
+# -----------------------------------------------------------------
+# GET ALL PAGINATION
 @router.get(
-  "/user/{user_id}",
-  response_model=ApiResponse[List[dtos.LoanDetailDTO]],
+  "/pagination",
+  response_model=ApiResponse[PaginationResponseDTO[Any]],
   status_code=HTTP_200_OK,
-  dependencies=[user_or_admin_required]
+  summary="Listar todos los prestamos con paginación",
+  #dependencies=[admin_required]
 )
-def get_loans_by_user(
-  user_id: str,
+def get_loans_paginate(
+  page: int = Query(default=1, ge=1),
+  limit: int = Query(default=10, ge=1, le=100),
+  search: str = Query(default=""),
+  id_status: int = Query(default=0),
   db: Session = Depends(get_db)
 ):
   try:
-    res = service.get_active_by_user_id(db, user_id)
-    return ApiResponse.success(data=res)
+    filter = dtos.LoanFilterDTO(id_status=id_status) if id_status > 0 else None
+    
+    pagination_request = PaginationRequestDTO[dtos.LoanFilterDTO](
+      page=page,
+      limit=limit,
+      search=search or "",
+      filter=filter
+    )
+
+    pagination_response = service.get_all_pagination(pagination_request, db)
+    return ApiResponse.success(data=pagination_response)
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
 
-@router.get(
-  "/book/{book_id}",
-  response_model=ApiResponse[List[dtos.LoanDetailDTO]],
-  status_code=HTTP_200_OK,
-  dependencies=[admin_required]
-)
-def get_loans_by_book(
-  book_id: int,
-  db: Session = Depends(get_db)
-):
-  try:
-    res = service.get_active_by_book_id(db, book_id)
-    return ApiResponse.success(data=res)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
-
-
+# -----------------------------------------------------------------
+# GET ALL OVERDUE
 @router.get(
   "/overdue",
-  response_model=ApiResponse[List[dtos.LoanDetailDTO]],
+  response_model=ApiResponse[List[dtos.LoanDTO]],
   status_code=HTTP_200_OK,
-  dependencies=[admin_required]
+  #dependencies=[admin_required]
 )
 def get_overdue_loans(db: Session = Depends(get_db)):
   try:
@@ -80,10 +67,13 @@ def get_overdue_loans(db: Session = Depends(get_db)):
     return ApiResponse.server_error(str(e))
 
 
+# -----------------------------------------------------------------
+# GET BY ID
 @router.get(
   "/{id}",
-  response_model=ApiResponse[dtos.LoanDetailDTO],
-  status_code=HTTP_200_OK
+  response_model=ApiResponse[dtos.LoanDTO],
+  status_code=HTTP_200_OK,
+  #dependencies=[user_or_admin_required],
 )
 def get_loan_by_id(
   id: int,
@@ -98,11 +88,13 @@ def get_loan_by_id(
     return ApiResponse.server_error(str(e))
 
 
+# -----------------------------------------------------------------
+# CREATE
 @router.post(
   "/",
-  response_model=ApiResponse[dtos.LoanDetailDTO],
+  response_model=ApiResponse[dtos.LoanDTO],
   status_code=HTTP_201_CREATED,
-  dependencies=[admin_required]
+  #dependencies=[admin_required]
 )
 def create_loan(
   dto: dtos.CreateLoanDTO,
@@ -117,11 +109,13 @@ def create_loan(
     return ApiResponse.server_error(str(e))
 
 
+# -----------------------------------------------------------------
+# RETURN
 @router.put(
   "/{id}/return",
-  response_model=ApiResponse[dtos.LoanDetailDTO],
+  response_model=ApiResponse[dtos.LoanDTO],
   status_code=HTTP_200_OK,
-  dependencies=[admin_required]
+  #dependencies=[admin_required]
 )
 def return_loan(
   id: int,
@@ -139,15 +133,17 @@ def return_loan(
     return ApiResponse.server_error(str(e))
 
 
+# -----------------------------------------------------------------
+# UPDATE - EXPIRE OVERDUE
 @router.put(
-  "/mark-overdue",
+  "/expire-overdue",
   response_model=ApiResponse[int],
   status_code=HTTP_200_OK,
-  dependencies=[admin_required]
+  #dependencies=[admin_required]
 )
-def mark_overdue_loans(db: Session = Depends(get_db)):
+def expire_overdue_loans(db: Session = Depends(get_db)):
   try:
-    count = service.mark_overdue_loans(db)
+    count = service.expire_overdue_loans(db)
     return ApiResponse.success(data=count, message=f"{count} préstamos marcados como vencidos")
   except Exception as e:
     return ApiResponse.server_error(str(e))

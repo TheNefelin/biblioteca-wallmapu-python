@@ -15,6 +15,7 @@ class CreateUserDTO2(BaseModel):
 
   model_config = ConfigDict(from_attributes=True) 
 
+
 class UpdateUserDTO2(CreateUserDTO2):
   id_user: UUID4
   lastname: Optional[str] = None
@@ -43,9 +44,19 @@ class UpdateUserDTO2(CreateUserDTO2):
       raise ValueError('Teléfono debe contener solo números (máximo 10 dígitos)')
     return v
 
+
 class UserDTO2(UpdateUserDTO2): 
   created_at: datetime
   updated_at: datetime
+
+
+class UserMinimalDTO(BaseModel):
+  id_user: UUID4
+  email: str
+  name: str
+  lastname: Optional[str] = None
+
+  model_config = ConfigDict(from_attributes=True) 
 
 # -----------------------------------------------------------------
 # USER DTO

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey
+from sqlalchemy import UUID, Column, Integer, Date, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -19,7 +19,7 @@ class Loan(Base):
   copy_id = Column(Integer, ForeignKey("wm_copies.id_copy"), nullable=False)
   copy = relationship("Copy")
 
-  user_id = Column(String(36), ForeignKey("wm_users.id_user"), nullable=False)
+  user_id = Column(UUID(as_uuid=True), ForeignKey("wm_users.id_user"), nullable=False)
   user = relationship("User")
   
   loan_status_id = Column(Integer, ForeignKey("wm_loan_status.id_status"), nullable=False, default=1)

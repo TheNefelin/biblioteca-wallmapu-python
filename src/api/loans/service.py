@@ -1,105 +1,120 @@
 from datetime import date, timedelta
 from sqlalchemy.orm import Session
-from . import dtos, repository, models
+
+from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.api.copy.models import Copy
 from src.api.editions.models import Edition
 from src.api.loan_policies.repository import get_default_policy
+from . import dtos, repository, models, schema
 
 
-def get_all(db: Session) -> list[dtos.LoanDetailDTO]:
-  loans = repository.get_all(db)
-  return [_to_detail_dto(db, loan) for loan in loans]
+# -----------------------------------------------------------------
+# GET ALL PAGINATION
+def get_all_pagination(pagination: PaginationRequestDTO, db: Session) -> PaginationResponseDTO[list[schema.LoanDetailDTO]]:
+  try:
+    pagination_response = repository.get_all_pagination(pagination, db)
+    data = [schema.LoanDetailDTO.model_validate(loan) for loan in (pagination_response.data or [])]
+
+    return PaginationResponseDTO(
+      page=pagination_response.page,
+      pages=pagination_response.pages,
+      items=pagination_response.items,
+      data=data,
+      next=pagination_response.next,
+      prev=pagination_response.prev,
+    )
+  except Exception as e:
+    raise e
 
 
-def get_by_id(db: Session, id: int) -> dtos.LoanDetailDTO | None:
-  loan = repository.get_by_id(db, id)
-  if not loan:
-    return None
-  return _to_detail_dto(db, loan)
+# -----------------------------------------------------------------
+# GET ALL OVERDUE
+def get_overdue(db: Session) -> list[dtos.LoanDTO]:
+  try:
+    items = repository.get_overdue(db)
+    return [dtos.LoanDTO.model_validate(item) for item in (items or [])]
+  except Exception as e:
+    raise e
 
 
-def get_active_by_user_id(db: Session, user_id: str) -> list[dtos.LoanDetailDTO]:
-  loans = repository.get_active_by_user_id(db, user_id)
-  return [_to_detail_dto(db, loan) for loan in loans]
+# -----------------------------------------------------------------
+# GET BY ID
+def get_by_id(db: Session, id: int) -> dtos.LoanDTO | None:
+  try:
+    item = repository.get_by_id(db, id)
+    if not item:
+      return None
+    return dtos.LoanDTO.model_validate(item)
+  except Exception as e:
+    raise e
 
 
-def get_active_by_book_id(db: Session, book_id: int) -> list[dtos.LoanDetailDTO]:
-  loans = repository.get_active_by_book_id(db, book_id)
-  return [_to_detail_dto(db, loan) for loan in loans]
+# -----------------------------------------------------------------
+# CREATE
+def create(db: Session, dto: dtos.CreateLoanDTO) -> dtos.LoanDTO:
+  try:
+    policy = get_default_policy(db)
+    max_days = int(policy.max_days) if policy and policy.max_days else 14
+
+    loan_date = date.today()
+    due_date = loan_date + timedelta(days=max_days)
+
+    loan = models.Loan(
+      copy_id=dto.copy_id,
+      user_id=dto.user_id,
+      loan_date=loan_date,
+      due_date=due_date,
+      loan_status_id=1
+    )
+
+    created = repository.create(db, loan)
+    result = get_by_id(db, int(created.id_loan))
+    
+    if result is None:
+      raise ValueError("Error al crear el préstamo")
+    
+    return result
+  except Exception as e:
+    raise e
 
 
-def get_overdue(db: Session) -> list[dtos.LoanDetailDTO]:
-  loans = repository.get_overdue(db)
-  return [_to_detail_dto(db, loan) for loan in loans]
+# -----------------------------------------------------------------
+# RETURN
+def return_loan(db: Session, id: int, dto: dtos.ReturnLoanDTO) -> dtos.LoanDTO | None:
+  try:
+    loan = repository.get_by_id(db, id)
+    if not loan:
+      return None
+
+    if int(loan.loan_status_id) == 2:
+      raise ValueError("Este préstamo ya fue devuelto")
+
+    updated = repository.return_loan(db, id, dto.return_date)
+
+    copy = db.query(Copy).filter(Copy.id_copy == int(loan.copy_id)).first()
+    if copy:
+      copy.status_id = 1
+
+    db.commit()
+    return get_by_id(db, id)
+  except Exception as e:
+    db.rollback()
+    raise e
 
 
-def create(db: Session, dto: dtos.CreateLoanDTO) -> dtos.LoanDetailDTO:
-  policy = get_default_policy(db)
-  max_days = int(policy.max_days) if policy and policy.max_days else 14
-
-  loan = models.Loan(
-    copy_id=dto.copy_id,
-    user_id=dto.user_id,
-    loan_date=date.today(),
-    due_date=dto.due_date or (date.today() + timedelta(days=max_days)),
-    loan_status_id=1
-  )
-
-  created = repository.create(db, loan)
-  result = get_by_id(db, int(created.id_loan))
-  if result is None:
-    raise ValueError("Error al crear el préstamo")
-  return result
+# -----------------------------------------------------------------
+# UPDATE - EXPIRE OVERDUE
+def expire_overdue_loans(db: Session) -> int:
+  try:
+    return repository.expire_overdue_as_overdue(db)
+  except Exception as e:
+    raise e
 
 
-def return_loan(db: Session, id: int, dto: dtos.ReturnLoanDTO) -> dtos.LoanDetailDTO | None:
-  loan = repository.get_by_id(db, id)
-  if not loan:
-    return None
-
-  if int(loan.loan_status_id) == 2:
-    raise ValueError("Este préstamo ya fue devuelto")
-
-  updated = repository.return_loan(db, id, dto.return_date)
-
-  copy = db.query(Copy).filter(Copy.id_copy == int(loan.copy_id)).first()
-  if copy:
-    copy.status_id = 1
-
-  db.commit()
-  return get_by_id(db, id)
 
 
-def mark_overdue_loans(db: Session) -> int:
-  return repository.mark_overdue_as_overdue(db)
 
 
-def _to_detail_dto(db: Session, loan: models.Loan) -> dtos.LoanDetailDTO:
-  book_id = None
-  book_title = None
-  copy_barcode = None
 
-  if loan.copy:
-    copy_barcode = str(loan.copy.barcode)
-    if loan.copy.edition_id:
-      edition = db.query(Edition).filter(Edition.id_edition == int(loan.copy.edition_id)).first()
-      if edition:
-        book_id = int(edition.book_id) if edition.book_id else None
-        if edition.book:
-          book_title = str(edition.book.title)
 
-  return dtos.LoanDetailDTO(
-    id_loan=int(loan.id_loan),
-    loan_date=loan.loan_date,
-    due_date=loan.due_date,
-    return_date=loan.return_date,
-    copy_id=int(loan.copy_id),
-    user_id=str(loan.user_id),
-    loan_status_id=int(loan.loan_status_id),
-    loan_status_name=str(loan.status.name) if loan.status else None,
-    user_name=str(loan.user.name) if loan.user else None,
-    user_lastname=str(loan.user.lastname) if loan.user else None,
-    book_id=book_id,
-    book_title=book_title,
-    copy_barcode=copy_barcode
-  )
+

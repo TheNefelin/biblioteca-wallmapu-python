@@ -1,43 +1,30 @@
-from datetime import date
-from pydantic import BaseModel, ConfigDict
+from datetime import date, datetime
+from uuid import UUID
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional
-
-
-class LoanDTO(BaseModel):
-  id_loan: int
-  loan_date: date
-  due_date: date
-  return_date: Optional[date] = None
-  copy_id: int
-  user_id: str
-  loan_status_id: int
-
-  model_config = ConfigDict(from_attributes=True)
-
-
-class LoanDetailDTO(BaseModel):
-  id_loan: int
-  loan_date: date
-  due_date: date
-  return_date: Optional[date] = None
-  copy_id: int
-  user_id: str
-  loan_status_id: int
-  loan_status_name: Optional[str] = None
-  user_name: Optional[str] = None
-  user_lastname: Optional[str] = None
-  book_id: Optional[int] = None
-  book_title: Optional[str] = None
-  copy_barcode: Optional[str] = None
-
-  model_config = ConfigDict(from_attributes=True)
 
 
 class CreateLoanDTO(BaseModel):
   copy_id: int
-  user_id: str
-  due_date: Optional[date] = None
+  user_id: UUID
+
+  model_config = ConfigDict(from_attributes=True)
+
+
+class LoanDTO(CreateLoanDTO):
+  id_loan: int
+  loan_date: date
+  due_date: date
+  return_date: Optional[date] = None
+  loan_status_id: int
+  created_at: datetime
+  updated_at: datetime
 
 
 class ReturnLoanDTO(BaseModel):
   return_date: date
+
+
+class LoanFilterDTO(BaseModel):
+  id_status: int = Field(default=0, description="ID del Loan Status para filtrar (0 = todos)")
+
