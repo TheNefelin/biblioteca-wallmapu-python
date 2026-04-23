@@ -11,6 +11,7 @@ from src.api.copy import models as copy_models
 from . import models
 
 
+# -----------------------------------------------------------------
 def count_query(query):
   return query.with_entities(models.Edition.id_edition).distinct().count()
 

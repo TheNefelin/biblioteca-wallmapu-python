@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from . import models
 
+
 # -----------------------------------------------------------------
 # GET ALL
 def get_all(db: Session) -> list[models.Copy]:

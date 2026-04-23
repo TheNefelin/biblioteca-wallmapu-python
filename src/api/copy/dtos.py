@@ -23,6 +23,15 @@ class CopyDTO(UpdateCopyDTO):
   updated_at: datetime
 
 
+class CopyMinimalDTO(BaseModel):
+  id_copy: int
+  edition_id: int
+  signature_topography: str
+  barcode: str
+
+  model_config = ConfigDict(from_attributes=True)
+
+
 class CopyWithStatusDTO(BaseModel):
   id_copy: int
   signature_topography: str

@@ -1,10 +1,8 @@
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Query, Session, joinedload
 
-from src.api.book_authors import models as book_authors_model
-from src.api.book_authors import service as book_author_service
-from src.api.book_subjects import models as book_subjects_model
-from src.api.book_subjects import service as book_subject_service
+from src.api.book_authors import models as book_authors_model, service as book_author_service
+from src.api.book_subjects import models as book_subjects_model, service as book_subject_service
 from src.api.editions import models as edition_models
 from src.api.copy import models as copy_model
 

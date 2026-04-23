@@ -9,6 +9,7 @@ from src.api.user_status import models as status_models
 from src.api.user_role import models as role_models
 from . import models
 
+
 # -----------------------------------------------------------------
 # GET ALL DETAILED
 def get_all_detailed(

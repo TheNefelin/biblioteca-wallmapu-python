@@ -1,21 +1,43 @@
 from datetime import date, timedelta
+from uuid import UUID
 from sqlalchemy.orm import Session
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
-from src.api.copy.models import Copy
-from src.api.editions.models import Edition
 from src.api.loan_policies.repository import get_default_policy
-from . import dtos, repository, models, schema
+from . import dtos, repository, models
 
 
 # -----------------------------------------------------------------
-# GET ALL PAGINATION
-def get_all_pagination(pagination: PaginationRequestDTO, db: Session) -> PaginationResponseDTO[list[schema.LoanDetailDTO]]:
-  try:
-    pagination_response = repository.get_all_pagination(pagination, db)
-    data = [schema.LoanDetailDTO.model_validate(loan) for loan in (pagination_response.data or [])]
+# Helper: Map Loan entity -> LoanDetailDTO
+def _map_loan_to_detail(loan) -> dtos.LoanDetailDTO:
+  return dtos.LoanDetailDTO(
+    id_loan=int(loan.id_loan),
+    loan_date=loan.loan_date,
+    due_date=loan.due_date,
+    return_date=loan.return_date,
+    loan_status_id=int(loan.loan_status_id),
+    loan_status_name=str(loan.loan_status.name),
+    user_id=loan.user_id,
+    user_name=f"{loan.user.name} {loan.user.lastname or ''}",
+    book_id=int(loan.copy.edition.book.id_book) if loan.copy.edition.book else 0,
+    book_title=str(loan.copy.edition.book.title) if loan.copy.edition.book else "",
+    copy_id=int(loan.copy_id),
+    copy_barcode=str(loan.copy.barcode),
+    copy_signature=str(loan.copy.signature_topography)
+  )
 
-    return PaginationResponseDTO(
+
+# -----------------------------------------------------------------
+# GET ALL PAGINATION (joinedload + mapping plano)
+# Combina: 1 query DB + DTO plano con todos los campos
+def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[dtos.LoanDetailDTO]]:
+  try:
+    pagination_response = repository.get_all_pagination(db, pagination)
+    loans = pagination_response.data or []
+    
+    data = [_map_loan_to_detail(loan) for loan in loans]
+
+    return PaginationResponseDTO[list[dtos.LoanDetailDTO]](
       page=pagination_response.page,
       pages=pagination_response.pages,
       items=pagination_response.items,
@@ -25,6 +47,24 @@ def get_all_pagination(pagination: PaginationRequestDTO, db: Session) -> Paginat
     )
   except Exception as e:
     raise e
+
+
+# -----------------------------------------------------------------
+# GET USER PAGINATION
+def get_all_pagination_by_user(user_id: UUID, pagination: PaginationRequestDTO, db: Session) -> PaginationResponseDTO[list[dtos.LoanDetailDTO]]:
+  pagination_response = repository.get_all_pagination_by_user(user_id, pagination, db)
+  loans = pagination_response.data or []
+  
+  data = [_map_loan_to_detail(loan) for loan in loans]
+
+  return PaginationResponseDTO(
+    page=pagination_response.page,
+    pages=pagination_response.pages,
+    items=pagination_response.items,
+    data=data,
+    next=pagination_response.next,
+    prev=pagination_response.prev,
+  )
 
 
 # -----------------------------------------------------------------
@@ -79,24 +119,32 @@ def create(db: Session, dto: dtos.CreateLoanDTO) -> dtos.LoanDTO:
 
 
 # -----------------------------------------------------------------
-# RETURN
-def return_loan(db: Session, id: int, dto: dtos.ReturnLoanDTO) -> dtos.LoanDTO | None:
+# RETURN BY COPY ID
+def return_loan_by_copy_id(db: Session, copy_id: int) -> dtos.LoanDTO | None:
   try:
-    loan = repository.get_by_id(db, id)
+    loan = repository.get_active_loan_by_copy_id(db, copy_id)
+    if not loan:
+      raise ValueError("No hay préstamo activo para este exemplar")
+
+    if int(loan.loan_status_id) == 2:
+      raise ValueError("Este préstamo ya fue devuelto")
+
+    repository.return_loan(db, int(loan.id_loan))
+    return get_by_id(db, int(loan.id_loan))
+  except Exception as e:
+    db.rollback()
+    raise e
+def return_loan(db: Session, loan_id: int) -> dtos.LoanDTO | None:
+  try:
+    loan = repository.get_by_id(db, loan_id)
     if not loan:
       return None
 
     if int(loan.loan_status_id) == 2:
       raise ValueError("Este préstamo ya fue devuelto")
 
-    updated = repository.return_loan(db, id, dto.return_date)
-
-    copy = db.query(Copy).filter(Copy.id_copy == int(loan.copy_id)).first()
-    if copy:
-      copy.status_id = 1
-
-    db.commit()
-    return get_by_id(db, id)
+    repository.return_loan(db, loan_id)
+    return get_by_id(db, loan_id)
   except Exception as e:
     db.rollback()
     raise e

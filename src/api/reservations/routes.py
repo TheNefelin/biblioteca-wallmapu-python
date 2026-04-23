@@ -48,8 +48,9 @@ def get_reservations_paginated(
   pagination_response = service.get_all_pagination(pagination_request, db)
   return ApiResponse.success(data=pagination_response)
 
+
 # -----------------------------------------------------------------
-# GET MY RESERVATIONS PAGINATION (Usuario actual)
+# GET USER RESERVATIONS PAGINATION (Usuario actual)
 @router.get(
   "/pagination/user",
   response_model=ApiResponse[PaginationResponseDTO[List[dtos.ReservationDetailDTO]]],
@@ -77,6 +78,7 @@ def get_my_reservations_paginated(
   
   pagination_response = service.get_user_pagination(user_id, pagination_request, db)
   return ApiResponse.success(data=pagination_response)
+
 
 # -----------------------------------------------------------------
 # GET BY ID

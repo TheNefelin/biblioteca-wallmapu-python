@@ -36,6 +36,12 @@ class BookDTO(BaseModel):
   model_config = ConfigDict(from_attributes=True)
 
 
+class BookMinimalDTO(BaseModel):
+  id_book: int
+  title: str
+
+  model_config = ConfigDict(from_attributes=True)
+
 # ------------------------------------------------
 
 class EditionForBookDTO(BaseModel):

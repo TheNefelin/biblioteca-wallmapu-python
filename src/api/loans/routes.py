@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import List
 from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -24,7 +24,7 @@ router = APIRouter(
 # GET ALL PAGINATION
 @router.get(
   "/pagination",
-  response_model=ApiResponse[PaginationResponseDTO[Any]],
+  response_model=ApiResponse[PaginationResponseDTO[list[dtos.LoanDetailDTO]]],
   status_code=HTTP_200_OK,
   summary="Listar todos los préstamos con paginación",
   description="Retorna lista paginada de préstamos. Filtros: id_status (1=activo, 2=devuelto, 3=vencido)",
@@ -47,7 +47,43 @@ def get_loans_paginated(
       filter=filter
     )
 
-    pagination_response = service.get_all_pagination(pagination_request, db)
+    pagination_response = service.get_all_pagination(db, pagination_request)
+    return ApiResponse.success(data=pagination_response)
+  except Exception as e:
+    return ApiResponse.server_error(str(e))
+
+
+# -----------------------------------------------------------------
+# GET USER RESERVATIONS PAGINATION (Usuario actual)
+@router.get(
+  "/pagination/user",
+  response_model=ApiResponse[PaginationResponseDTO[list[dtos.LoanDetailDTO]]],
+  status_code=HTTP_200_OK,
+  summary="Listar todos los préstamos con paginación",
+  description="Retorna lista paginada de préstamos por usuario. Filtros: id_status (1=activo, 2=devuelto, 3=vencido)",
+  dependencies=[user_required]
+)
+def get_loans_paginated_by_user(
+  page: int = Query(default=1, ge=1),
+  limit: int = Query(default=10, ge=1, le=100),
+  search: str = Query(default=""),
+  id_status: int = Query(default=0),
+  current_user = Depends(get_current_user()),
+  db: Session = Depends(get_db)
+):
+  try:
+    user_id = UUID(current_user["sub"])
+
+    filter = dtos.LoanFilterDTO(id_status=id_status) if id_status > 0 else None
+    
+    pagination_request = PaginationRequestDTO[dtos.LoanFilterDTO](
+      page=page,
+      limit=limit,
+      search=search or "",
+      filter=filter
+    )
+
+    pagination_response = service.get_all_pagination_by_user(db, user_id, pagination_request)
     return ApiResponse.success(data=pagination_response)
   except Exception as e:
     return ApiResponse.server_error(str(e))
@@ -117,24 +153,23 @@ def create_loan(
 
 
 # -----------------------------------------------------------------
-# UPDATE - RETURN
+# UPDATE - RETURN BY COPY ID
 @router.put(
-  "/{id}/return",
+  "/copy/{id}/return",
   response_model=ApiResponse[dtos.LoanDTO],
   status_code=HTTP_200_OK,
-  summary="Registrar devolución de préstamo",
-  description="Marca un préstamo como devuelto, actualiza la fecha de devolución y el estado del ejemplar a disponible",
+  summary="Registrar devolución por código de exemplar",
+  description="Registra la devolución de un préstamo escaneando el código del exemplar",
   dependencies=[admin_required]
 )
-def return_loan(
+def return_loan_by_copy(
   id: int,
-  dto: dtos.ReturnLoanDTO,
   db: Session = Depends(get_db)
 ):
   try:
-    res = service.return_loan(db, id, dto)
+    res = service.return_loan_by_copy_id(db, id)
     if not res:
-      return ApiResponse.not_found(message="Préstamo no encontrado")
+      return ApiResponse.not_found(message="No hay préstamo activo para este exemplar")
     return ApiResponse.success(data=res, message="Devolución registrada")
   except ValueError as e:
     return ApiResponse.bad_request(message=str(e))

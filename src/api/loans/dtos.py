@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
 
 
@@ -23,12 +23,27 @@ class LoanDTO(CreateLoanDTO):
   updated_at: datetime = Field(..., description="Fecha de última actualización")
 
 
-class ReturnLoanDTO(BaseModel):
-  """DTO para registrar la devolución de un préstamo"""
-  return_date: date = Field(..., description="Fecha de devolución del ejemplar")
-
-
 class LoanFilterDTO(BaseModel):
   """DTO de filtros para paginación de préstamos"""
   id_status: int = Field(default=0, description="ID del Loan Status para filtrar (0 = todos, 1=activo, 2=devuelto, 3=vencido)")
 
+
+# -----------------------------------------------------------------
+# DTO plano para listados - datos esenciales sin anidación
+class LoanDetailDTO(BaseModel):
+  """DTO plano para listados - datos esenciales sin anidación"""
+  id_loan: int
+  loan_date: date
+  due_date: date
+  return_date: Optional[date] = None
+  loan_status_id: int
+  loan_status_name: str
+  user_id: UUID
+  user_name: str
+  copy_id: int  
+  copy_barcode: str
+  copy_signature: str
+  book_id: int
+  book_title: str
+
+  model_config = ConfigDict(from_attributes=True)
