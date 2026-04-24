@@ -159,6 +159,22 @@ def expire_overdue_loans(db: Session) -> int:
     raise e
 
 
+# -----------------------------------------------------------------
+# GET ACTIVE LOAN BY BARCODE
+def get_active_by_barcode(db: Session, barcode: str) -> dtos.LoanDetailDTO | None:
+  """
+  Busca préstamo activo por barcode del ejemplar.
+  Returns loan detail con datos del libro, usuario y copia.
+  """
+  try:
+    loan = repository.get_active_by_barcode(db, barcode)
+    if not loan:
+      return None
+    return _map_loan_to_detail(loan)
+  except Exception as e:
+    raise e
+
+
 
 
 

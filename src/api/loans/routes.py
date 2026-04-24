@@ -193,3 +193,26 @@ def expire_overdue_loans(db: Session = Depends(get_db)):
     return ApiResponse.success(data=count, message=f"{count} préstamos marcados como vencidos")
   except Exception as e:
     return ApiResponse.server_error(str(e))
+
+
+# -----------------------------------------------------------------
+# GET ACTIVE LOAN BY BARCODE
+@router.get(
+  "/copy/{barcode}",
+  response_model=ApiResponse[dtos.LoanDetailDTO],
+  status_code=HTTP_200_OK,
+  summary="Buscar préstamo activo por barcode",
+  description="Busca un préstamo activo escaneando el barcode del ejemplar",
+  #dependencies=[admin_required]
+)
+def get_active_loan_by_barcode(
+  barcode: str,
+  db: Session = Depends(get_db)
+):
+  try:
+    res = service.get_active_by_barcode(db, barcode)
+    if not res:
+      return ApiResponse.not_found(message="No hay préstamo activo con este barcode")
+    return ApiResponse.success(data=res)
+  except Exception as e:
+    return ApiResponse.server_error(str(e))

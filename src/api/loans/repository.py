@@ -202,6 +202,35 @@ def get_active_by_book_id(db: Session, book_id: int) -> list[models.Loan]:
 
 
 # -----------------------------------------------------------------
+# GET ACTIVE LOAN BY BARCODE
+def get_active_by_barcode(db: Session, barcode: str) -> models.Loan | None:
+  """
+  Busca préstamo activo por barcode del ejemplar.
+  Retorna el loan activo (status_id=1) linked al barcode.
+  """
+  try:
+    return (
+      db.query(models.Loan)
+      .options(
+        joinedload(models.Loan.user),
+        joinedload(models.Loan.copy)
+          .joinedload(copy_models.Copy.edition)
+          .joinedload(edition_models.Edition.book),
+        joinedload(models.Loan.loan_status),
+      )
+      .filter(
+        and_(
+          copy_models.Copy.barcode == barcode,
+          models.Loan.loan_status_id == 1  # Solo préstamos activos
+        )
+      )
+      .first()
+    )
+  except SQLAlchemyError as e:
+    raise e
+
+
+# -----------------------------------------------------------------
 # CREATE
 def create(db: Session, loan: models.Loan) -> models.Loan:
   try:
