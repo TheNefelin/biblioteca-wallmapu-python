@@ -866,7 +866,6 @@ INSERT INTO wm_reservation_status (id_status, status) VALUES
 
 
 INSERT INTO wm_loan_status (id_status, status) VALUES
-(1, 'Activo'),
+(1, 'En Préstamo'),
 (2, 'Devuelto'),
 (3, 'Vencido');
-
