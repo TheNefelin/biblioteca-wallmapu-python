@@ -69,22 +69,10 @@ def get_all_pagination_by_user(user_id: UUID, pagination: PaginationRequestDTO, 
 
 # -----------------------------------------------------------------
 # GET ALL OVERDUE
-def get_overdue(db: Session) -> list[dtos.LoanDTO]:
+def get_overdue(db: Session) -> list[dtos.LoanDetailDTO]:
   try:
     items = repository.get_overdue(db)
-    return [dtos.LoanDTO.model_validate(item) for item in (items or [])]
-  except Exception as e:
-    raise e
-
-
-# -----------------------------------------------------------------
-# GET BY ID
-def get_by_id(db: Session, id: int) -> dtos.LoanDTO | None:
-  try:
-    item = repository.get_by_id(db, id)
-    if not item:
-      return None
-    return dtos.LoanDTO.model_validate(item)
+    return [_map_loan_to_detail(item) for item in (items or [])]
   except Exception as e:
     raise e
 

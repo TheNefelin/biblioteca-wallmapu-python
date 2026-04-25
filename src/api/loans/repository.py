@@ -126,28 +126,10 @@ def get_overdue(db: Session) -> list[models.Loan]:
       .filter(
         and_(
           models.Loan.due_date < date.today(),
-          models.Loan.loan_status_id == 1
+          models.Loan.loan_status_id.in_([1, 3])  # 1=activo, 3=vencido
         )
       )
       .all()
-    )
-  except SQLAlchemyError as e:
-    raise e
-
-
-# -----------------------------------------------------------------
-# GET BY ID
-def get_by_id(db: Session, id: int) -> models.Loan | None:
-  try:
-    return (
-      db.query(models.Loan)
-      .options(
-        joinedload(models.Loan.user),
-        joinedload(models.Loan.copy),
-        joinedload(models.Loan.loan_status)
-      )
-      .filter(models.Loan.id_loan == id)
-      .first()
     )
   except SQLAlchemyError as e:
     raise e

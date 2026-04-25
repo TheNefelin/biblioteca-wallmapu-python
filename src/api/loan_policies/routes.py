@@ -20,7 +20,6 @@ router = APIRouter(
   "/",
   response_model=ApiResponse[List[dtos.LoanPolicyDTO]],
   status_code=HTTP_200_OK,
-  dependencies=[admin_required]
 )
 def get_all_policies(db: Session = Depends(get_db)):
   try:
