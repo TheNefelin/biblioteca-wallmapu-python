@@ -97,7 +97,7 @@ def get_loans_paginated_by_user(
   status_code=HTTP_200_OK,
   summary="Listar préstamos vencidos",
   description="Retorna todos los préstamos cuya fecha de vencimiento pasó y aún no han sido devueltos",
-  #dependencies=[admin_required]
+  dependencies=[admin_required]
 )
 def get_overdue_loans(db: Session = Depends(get_db)):
   try:
