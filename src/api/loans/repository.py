@@ -203,7 +203,7 @@ def get_active_by_barcode(db: Session, barcode: str) -> models.Loan | None:
       .filter(
         and_(
           copy_models.Copy.barcode == barcode,
-          models.Loan.loan_status_id == 1  # Solo préstamos activos
+          models.Loan.loan_status_id.in_([1, 3])  # 1=activo, 3=vencido
         )
       )
       .first()

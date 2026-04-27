@@ -51,8 +51,8 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
 
 # -----------------------------------------------------------------
 # GET USER PAGINATION
-def get_all_pagination_by_user(user_id: UUID, pagination: PaginationRequestDTO, db: Session) -> PaginationResponseDTO[list[dtos.LoanDetailDTO]]:
-  pagination_response = repository.get_all_pagination_by_user(user_id, pagination, db)
+def get_all_pagination_by_user(db: Session, user_id: UUID, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[dtos.LoanDetailDTO]]:
+  pagination_response = repository.get_all_pagination_by_user(db, user_id, pagination)
   loans = pagination_response.data or []
   
   data = [_map_loan_to_detail(loan) for loan in loans]
@@ -96,12 +96,11 @@ def create(db: Session, dto: dtos.CreateLoanDTO) -> dtos.LoanDTO:
     )
 
     created = repository.create(db, loan)
-    result = get_by_id(db, int(created.id_loan))
-    
-    if result is None:
-      raise ValueError("Error al crear el préstamo")
-    
-    return result
+
+    if not created or not created.id_loan:
+        raise ValueError("Error al crear el préstamo")
+
+    return dtos.LoanDTO.model_validate(created)
   except Exception as e:
     raise e
 
@@ -117,22 +116,8 @@ def return_loan_by_copy_id(db: Session, copy_id: int) -> dtos.LoanDTO | None:
     if int(loan.loan_status_id) == 2:
       raise ValueError("Este préstamo ya fue devuelto")
 
-    repository.return_loan(db, int(loan.id_loan))
-    return get_by_id(db, int(loan.id_loan))
-  except Exception as e:
-    db.rollback()
-    raise e
-def return_loan(db: Session, loan_id: int) -> dtos.LoanDTO | None:
-  try:
-    loan = repository.get_by_id(db, loan_id)
-    if not loan:
-      return None
-
-    if int(loan.loan_status_id) == 2:
-      raise ValueError("Este préstamo ya fue devuelto")
-
-    repository.return_loan(db, loan_id)
-    return get_by_id(db, loan_id)
+    item = repository.return_loan(db, int(loan.id_loan))
+    return dtos.LoanDTO.model_validate(item)
   except Exception as e:
     db.rollback()
     raise e

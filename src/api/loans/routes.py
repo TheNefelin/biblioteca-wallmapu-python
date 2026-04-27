@@ -12,7 +12,6 @@ from . import dtos, service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 user_required = Depends(get_current_user(required_roles=[UserRole.LECTOR]))
-user_or_admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN, UserRole.LECTOR]))
 
 router = APIRouter(
   prefix="/loans",
@@ -68,7 +67,7 @@ def get_loans_paginated_by_user(
   limit: int = Query(default=10, ge=1, le=100),
   search: str = Query(default=""),
   id_status: int = Query(default=0),
-  current_user = Depends(get_current_user()),
+  current_user: dict = Depends(get_current_user()),
   db: Session = Depends(get_db)
 ):
   try:
