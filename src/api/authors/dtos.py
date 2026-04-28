@@ -2,11 +2,17 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 
-class AuthorDTO(BaseModel):
-  id_author: int
+class CreateAuthorDTO(BaseModel):
   name: str
-  created_at: datetime
-  updated_at: datetime
 
   model_config = ConfigDict(from_attributes=True)
+
+
+class UpdateAuthorDTO(CreateAuthorDTO):
+  id_author: int
+
+
+class AuthorDTO(UpdateAuthorDTO):
+  created_at: datetime
+  updated_at: datetime
 
