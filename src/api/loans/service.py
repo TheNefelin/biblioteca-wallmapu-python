@@ -98,7 +98,7 @@ def create(db: Session, dto: dtos.CreateLoanDTO) -> dtos.LoanDTO:
     created = repository.create(db, loan)
 
     if not created or not created.id_loan:
-        raise ValueError("Error al crear el préstamo")
+      raise ValueError("Error al crear el préstamo")
 
     return dtos.LoanDTO.model_validate(created)
   except Exception as e:

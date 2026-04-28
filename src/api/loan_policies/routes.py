@@ -1,7 +1,6 @@
-from typing import List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from starlette.status import HTTP_200_OK, HTTP_201_CREATED
+from starlette.status import HTTP_200_OK
 
 from src.core.database import get_db
 from src.core.jwt_service import get_current_user
@@ -16,89 +15,43 @@ router = APIRouter(
   tags=["loan-policies"],
 )
 
-@router.get(
-  "/",
-  response_model=ApiResponse[List[dtos.LoanPolicyDTO]],
-  status_code=HTTP_200_OK,
-)
-def get_all_policies(db: Session = Depends(get_db)):
-  try:
-    res = service.get_all(db)
-    return ApiResponse.success(data=res)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
 
-
+# -----------------------------------------------------------------
+# GET DEFAULT 
 @router.get(
-  "/{id}",
+  "/default",
   response_model=ApiResponse[dtos.LoanPolicyDTO],
   status_code=HTTP_200_OK,
-  dependencies=[admin_required]
+  summary="Obtener política por defecto",
+  description="Retorna la política de préstamo predeterminada"
 )
-def get_policy_by_id(
-  id: int,
-  db: Session = Depends(get_db)
-):
+def get_default_policy(db: Session = Depends(get_db)):
   try:
-    res = service.get_by_id(db, id)
+    res = service.get_default_policy(db)
     if not res:
-      return ApiResponse.not_found(message="Política no encontrada")
+      return ApiResponse.not_found(message="No hay política por defecto configurada")
     return ApiResponse.success(data=res)
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
 
-@router.post(
-  "/",
-  response_model=ApiResponse[dtos.LoanPolicyDTO],
-  status_code=HTTP_201_CREATED,
-  dependencies=[admin_required]
-)
-def create_policy(
-  dto: dtos.CreateLoanPolicyDTO,
-  db: Session = Depends(get_db)
-):
-  try:
-    res = service.create(db, dto)
-    return ApiResponse.created(data=res, message="Política creada exitosamente")
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
-
-
+# -----------------------------------------------------------------
+# UPDATE
 @router.put(
   "/{id}",
   response_model=ApiResponse[dtos.LoanPolicyDTO],
   status_code=HTTP_200_OK,
+  summary="Actualizar política de préstamo",
+  description="Actualiza los campos de la política (máximo libros, días, etc.)",
   dependencies=[admin_required]
 )
-def update_policy(
+def update_loan_policy(
   id: int,
-  dto: dtos.UpdateLoanPolicyDTO,
+  dto: dtos.LoanPolicyDTO,
   db: Session = Depends(get_db)
 ):
   try:
-    res = service.update(db, id, dto)
-    if not res:
-      return ApiResponse.not_found(message="Política no encontrada")
-    return ApiResponse.updated(data=res, message="Política actualizada")
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
-
-
-@router.delete(
-  "/{id}",
-  response_model=ApiResponse[bool],
-  status_code=HTTP_200_OK,
-  dependencies=[admin_required]
-)
-def delete_policy(
-  id: int,
-  db: Session = Depends(get_db)
-):
-  try:
-    res = service.delete(db, id)
-    if res is None:
-      return ApiResponse.not_found(message="Política no encontrada")
-    return ApiResponse.success(data=res, message="Política eliminada")
+    item = service.update(db, id, dto)
+    return ApiResponse.success(data=item)
   except Exception as e:
     return ApiResponse.server_error(str(e))

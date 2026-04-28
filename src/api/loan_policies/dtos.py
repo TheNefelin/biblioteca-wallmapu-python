@@ -11,16 +11,3 @@ class LoanPolicyDTO(BaseModel):
 
   model_config = ConfigDict(from_attributes=True)
 
-
-class CreateLoanPolicyDTO(BaseModel):
-  name: str
-  max_books: int
-  max_days: int
-  reservation_days: int = 3
-
-
-class UpdateLoanPolicyDTO(BaseModel):
-  name: Optional[str] = None
-  max_books: Optional[int] = None
-  max_days: Optional[int] = None
-  reservation_days: Optional[int] = None

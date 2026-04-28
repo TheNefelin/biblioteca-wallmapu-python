@@ -1,37 +1,29 @@
 from sqlalchemy.orm import Session
-from . import dtos, repository, models
+from . import dtos, repository
 
 
-def get_all(db: Session) -> list[dtos.LoanPolicyDTO]:
-  policies = repository.get_all(db)
-  return [dtos.LoanPolicyDTO.model_validate(p) for p in policies]
-
-
-def get_by_id(db: Session, id: int) -> dtos.LoanPolicyDTO:
-  policy = repository.get_by_id(db, id)
+# -----------------------------------------------------------------
+# GET DEFAULT 
+def get_default_policy(db: Session) -> dtos.LoanPolicyDTO | None:
+  
+  policy = repository.get_default_policy(db)
   if not policy:
     return None
+
   return dtos.LoanPolicyDTO.model_validate(policy)
 
 
-def create(db: Session, dto: dtos.CreateLoanPolicyDTO) -> dtos.LoanPolicyDTO:
-  policy = models.LoanPolicy(
-    name=dto.name,
-    max_books=dto.max_books,
-    max_days=dto.max_days,
-    fine_per_day=dto.fine_per_day,
-    reservation_days=dto.reservation_days
-  )
-  created = repository.create(db, policy)
-  return dtos.LoanPolicyDTO.model_validate(created)
-
-
-def update(db: Session, id: int, dto: dtos.UpdateLoanPolicyDTO) -> dtos.LoanPolicyDTO:
-  updated = repository.update(db, id, dto)
-  if not updated:
+# -----------------------------------------------------------------
+# UPDATE
+def update(db: Session, id: int, data: dtos.LoanPolicyDTO) -> dtos.LoanPolicyDTO | None:
+  # Validar que el ID de la ruta coincida con el del DTO
+  if data.id_policy and data.id_policy != id:
+    raise ValueError(f"ID de ruta ({id}) no coincide con ID del body ({data.id_policy})")
+  
+  policy = repository.update_policy(db, id, data.model_dump(exclude_unset=True))
+  
+  if not policy:
     return None
-  return dtos.LoanPolicyDTO.model_validate(updated)
+  
+  return dtos.LoanPolicyDTO.model_validate(policy)
 
-
-def delete(db: Session, id: int) -> bool:
-  return repository.delete(db, id)
