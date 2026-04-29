@@ -12,6 +12,12 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
   try:
     query = db.query(models.Subject)
 
+    search_filter = pagination.search if pagination.search else None
+    if search_filter:
+      query = query.filter(
+        models.Subject.name.ilike(f"%{search_filter}%")
+      )
+
     total_items = query.count()
     total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
     
