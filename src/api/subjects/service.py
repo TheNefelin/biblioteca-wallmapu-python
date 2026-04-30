@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
-
 from . import dtos, repository
 
 
