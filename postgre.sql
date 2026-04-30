@@ -240,6 +240,7 @@ CREATE TABLE IF NOT EXISTS wm_notifications (
   id_notification INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   title VARCHAR(100) NOT NULL,
   message TEXT NOT NULL,
+  is_priority BOOLEAN DEFAULT FALSE,
   is_read BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -248,7 +249,8 @@ CREATE TABLE IF NOT EXISTS wm_notifications (
   CONSTRAINT fk_notif_user FOREIGN KEY (user_id) REFERENCES wm_users(id_user)
 );
 
-
+CREATE INDEX idx_notif_user ON wm_notifications(user_id);
+CREATE INDEX idx_notif_user_unread ON wm_notifications(user_id, is_read) WHERE is_read = FALSE;
 CREATE INDEX idx_edition_isbn ON wm_editions(isbn);
 CREATE INDEX idx_book_title ON wm_books(title);
 CREATE INDEX idx_book_summary ON wm_books(summary);

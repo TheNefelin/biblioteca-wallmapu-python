@@ -57,7 +57,7 @@ def get_all_pagination_by_user(db: Session, user_id: UUID, pagination: Paginatio
   
   data = [_map_loan_to_detail(loan) for loan in loans]
 
-  return PaginationResponseDTO(
+  return PaginationResponseDTO[list[dtos.LoanDetailDTO]](
     page=pagination_response.page,
     pages=pagination_response.pages,
     items=pagination_response.items,

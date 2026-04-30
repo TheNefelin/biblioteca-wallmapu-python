@@ -1,37 +1,29 @@
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from uuid import UUID
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
 
 
-class NotificationDTO(BaseModel):
-  id_notification: int
-  title: str
-  message: str
-  is_read: bool
-  user_id: str
-  created_at: datetime
-
-  model_config = ConfigDict(from_attributes=True)
-
-
-class NotificationDetailDTO(BaseModel):
-  id_notification: int
-  title: str
-  message: str
-  is_read: bool
-  user_id: str
-  user_name: Optional[str] = None
-  user_email: Optional[str] = None
-  created_at: datetime
-
-  model_config = ConfigDict(from_attributes=True)
-
-
 class CreateNotificationDTO(BaseModel):
-  title: str
-  message: str
-  user_id: str
+  """DTO para crear una nueva notificación"""
+  title: str = Field(..., description="Título de la notificación (ej: 'PRÉSTAMO VENCIDO', 'ANUNCIO')")
+  message: str = Field(..., description="Mensaje detallado de la notificación")
+  is_priority: bool = Field(default=False, description="True = Alta prioridad (urgente), False = Normal")
+  user_id: UUID = Field(..., description="UUID del usuario destinatario")
+
+  model_config = ConfigDict(from_attributes=True)
 
 
 class UpdateNotificationDTO(BaseModel):
-  is_read: Optional[bool] = None
+  """DTO para actualizar una notificación existente"""
+  id_notification: int = Field(..., description="ID único de la notificación")
+  is_read: bool = Field(..., description="Estado de lectura: True = Leída, False = No leída")
+  
+  model_config = ConfigDict(from_attributes=True)
+
+
+class NotificationDTO(CreateNotificationDTO, UpdateNotificationDTO):
+  """DTO de notificación con todos los campos básicos"""
+  created_at: datetime = Field(..., description="Fecha de creación de la notificación")
+
+  model_config = ConfigDict(from_attributes=True)
