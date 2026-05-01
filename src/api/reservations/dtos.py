@@ -1,46 +1,53 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 from uuid import UUID
-from typing import Optional
-
-
-class ReservationDTO(BaseModel):
-  id_reservation: int
-  reservation_date: datetime
-  expiration_date: datetime
-  user_id: UUID
-  copy_id: int
-  reservation_status_id: int
-
-  model_config = ConfigDict(from_attributes=True)
-
-
-class ReservationDetailDTO(BaseModel):
-  id_reservation: int
-  reservation_date: datetime
-  expiration_date: datetime
-  user_id: UUID
-  user_name: Optional[str] = None
-  user_lastname: Optional[str] = None
-  user_email: Optional[str] = None
-  copy_id: int
-  copy_barcode: Optional[str] = None
-  copy_signature: Optional[str] = None
-  book_id: Optional[int] = None
-  book_title: Optional[str] = None
-  reservation_status_id: int
-  reservation_status_name: Optional[str] = None
-
-  model_config = ConfigDict(from_attributes=True)
 
 
 class CreateReservationDTO(BaseModel):
+  """DTO para crear una nueva reserva"""
   copy_id: int = Field(..., description="ID del ejemplar a reservar")
 
+  model_config = ConfigDict(from_attributes=True)
 
-class ReservationPickupDTO(BaseModel):
-  copy_id: int = Field(..., description="ID del ejemplar a entregar")
+
+class ReservationDTO(CreateReservationDTO):
+  """DTO de reserva con campos básicos"""
+  id_reservation: int = Field(..., description="ID único de la reserva")
+  reservation_date: datetime = Field(..., description="Fecha de creación de la reserva")
+  expiration_date: datetime = Field(..., description="Fecha límite para retirar la reserva")
+  user_id: UUID = Field(..., description="UUID del usuario que reserva")
+  reservation_status_id: int = Field(..., description="ID del estado de la reserva (1=pendiente, 2=retirada, 3=cancelada, 4=vencida)")
+
+  model_config = ConfigDict(from_attributes=True)
 
 
 class ReservationFilterDTO(BaseModel):
-  id_status: int = Field(default=0, description="ID del Reservation Status para filtrar (0 = todos)")
+  """DTO de filtros para paginación de reservas"""
+  id_status: int = Field(default=0, description="ID del estado para filtrar (0 = todos, 1=pendiente, 2=retirada, 3=cancelada, 4=vencida)")
+
+
+class ReservationDetailDTO(BaseModel):
+  """DTO plano para listados con datos esenciales de reserva, usuario y libro"""
+  id_reservation: int = Field(..., description="ID único de la reserva")
+  reservation_date: datetime = Field(..., description="Fecha de creación de la reserva")
+  expiration_date: datetime = Field(..., description="Fecha límite para retirar la reserva")
+  user_id: UUID = Field(..., description="UUID del usuario que reserva")
+  user_name: str = Field(..., description="Nombre del usuario")
+  user_lastname: str = Field(..., description="Apellido del usuario")
+  user_email: str = Field(..., description="Email del usuario")
+  copy_id: int = Field(..., description="ID del ejemplar reservado")
+  copy_barcode: str = Field(..., description="Código de barras del ejemplar")
+  copy_signature: str = Field(..., description="Signatura topográfica del ejemplar")
+  book_id: int = Field(..., description="ID del libro")
+  book_title: str = Field(..., description="Título del libro")
+  reservation_status_id: int = Field(..., description="ID del estado de la reserva")
+  reservation_status_name: str = Field(..., description="Nombre del estado de la reserva")
+
+  model_config = ConfigDict(from_attributes=True)
+
+
+class ReservationPickupDTO(BaseModel):
+  """DTO para confirmar retiro de reserva"""
+  copy_id: int = Field(..., description="ID del ejemplar a entregar")
+
+  model_config = ConfigDict(from_attributes=True)

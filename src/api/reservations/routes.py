@@ -27,6 +27,7 @@ router = APIRouter(
   response_model=ApiResponse[PaginationResponseDTO[List[dtos.ReservationDetailDTO]]],
   status_code=HTTP_200_OK,
   summary="Listar todas las reservas con paginación",
+  description="Retorna lista paginada de reservas. Filtros: id_status (1=pendiente, 2=retirada, 3=cancelada, 4=vencida)",
   dependencies=[admin_required]
 )
 def get_reservations_paginated(
@@ -36,17 +37,20 @@ def get_reservations_paginated(
   id_status: int = Query(default=0),
   db: Session = Depends(get_db)
 ):
-  filter = dtos.ReservationFilterDTO(id_status=id_status) if id_status > 0 else None
-  
-  pagination_request = PaginationRequestDTO[dtos.ReservationFilterDTO](
-    page=page,
-    limit=limit,
-    search=search or "",
-    filter=filter
-  )
+  try:
+    filter = dtos.ReservationFilterDTO(id_status=id_status) if id_status > 0 else None
+    
+    pagination_request = PaginationRequestDTO[dtos.ReservationFilterDTO](
+      page=page,
+      limit=limit,
+      search=search or "",
+      filter=filter
+    )
 
-  pagination_response = service.get_all_pagination(pagination_request, db)
-  return ApiResponse.success(data=pagination_response)
+    pagination_response = service.get_all_pagination(db, pagination_request)
+    return ApiResponse.success(data=pagination_response)
+  except Exception as e:
+    return ApiResponse.server_error(str(e))
 
 
 # -----------------------------------------------------------------
@@ -56,6 +60,7 @@ def get_reservations_paginated(
   response_model=ApiResponse[PaginationResponseDTO[List[dtos.ReservationDetailDTO]]],
   status_code=HTTP_200_OK,
   summary="Listar mis reservas con paginación",
+  description="Retorna lista paginada de reservas por usuario. Filtros: id_status (1=pendiente, 2=retirada, 3=cancelada, 4=vencida)",
   dependencies=[user_required]
 )
 def get_my_reservations_paginated(
@@ -65,19 +70,22 @@ def get_my_reservations_paginated(
   current_user = Depends(get_current_user()),
   db: Session = Depends(get_db)
 ):
-  user_id = UUID(current_user["sub"])
-  
-  filter = dtos.ReservationFilterDTO(id_status=id_status) if id_status > 0 else None
-  
-  pagination_request = PaginationRequestDTO[dtos.ReservationFilterDTO](
-    page=page,
-    limit=limit,
-    search="",
-    filter=filter
-  )
-  
-  pagination_response = service.get_user_pagination(user_id, pagination_request, db)
-  return ApiResponse.success(data=pagination_response)
+  try:
+    user_id = UUID(current_user["sub"])
+    
+    filter = dtos.ReservationFilterDTO(id_status=id_status) if id_status > 0 else None
+    
+    pagination_request = PaginationRequestDTO[dtos.ReservationFilterDTO](
+      page=page,
+      limit=limit,
+      search=search or "",
+      filter=filter
+    )
+    
+    pagination_response = service.get_user_pagination(db, user_id, pagination_request)
+    return ApiResponse.success(data=pagination_response)
+  except Exception as e:
+    return ApiResponse.server_error(str(e))
 
 
 # -----------------------------------------------------------------
@@ -87,6 +95,7 @@ def get_my_reservations_paginated(
   response_model=ApiResponse[dtos.ReservationDetailDTO],
   status_code=HTTP_200_OK,
   summary="Obtener una reserva por ID",
+  description="Retorna los detalles completos de una reserva específica por su ID",
   dependencies=[admin_required]
 )
 def get_reservation_by_id(
@@ -106,6 +115,7 @@ def get_reservation_by_id(
   response_model=ApiResponse[dtos.ReservationDetailDTO],
   status_code=HTTP_201_CREATED,
   summary="Crear una nueva reserva",
+  description="Crea una nueva reserva. La fecha de expiración se calcula automáticamente según las políticas de préstamo",
   dependencies=[user_or_admin_required]
 )
 def create_reservation(
@@ -124,6 +134,7 @@ def create_reservation(
   response_model=ApiResponse[dtos.ReservationDetailDTO],
   status_code=HTTP_200_OK,
   summary="Marcar reserva como retirada (libro recogido)",
+  description="Confirma el retiro de una reserva y crea automáticamente un préstamo. Requiere verificación del ejemplar físico",
   dependencies=[admin_required]
 )
 def mark_reservation_as_pickup(
@@ -149,6 +160,7 @@ def mark_reservation_as_pickup(
   response_model=ApiResponse[dtos.ReservationDetailDTO],
   status_code=HTTP_200_OK,
   summary="Cancelar una reserva (usuario dueño o admin)",
+  description="Cancela una reserva pendiente. Solo el dueño de la reserva o un administrador pueden cancelarla",
   dependencies=[user_or_admin_required]
 )
 def cancel_reservation(
@@ -156,8 +168,6 @@ def cancel_reservation(
   db: Session = Depends(get_db),
   current_user = Depends(get_current_user())
 ):
-  from src.core.roles import UserRole
-  
   try:
     reservation = service.get_by_id(db, id)
     if not reservation:
@@ -184,6 +194,7 @@ def cancel_reservation(
   response_model=ApiResponse[int],
   status_code=HTTP_200_OK,
   summary="Marcar como vencidas las reservas cuya fecha límite pasó",
+  description="Actualiza el estado de reservas vencidas (fecha límite pasada y no retiradas) a estado vencida",
   dependencies=[admin_required]
 )
 def expire_overdue_reservations(db: Session = Depends(get_db)):

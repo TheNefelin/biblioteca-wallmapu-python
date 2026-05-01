@@ -9,9 +9,33 @@ from . import dtos, repository, models
 
 
 # -----------------------------------------------------------------
+# HELPER - Mapea entidad a DTO con relaciones
+def _to_detail_dto(reservation: models.Reservation) -> dtos.ReservationDetailDTO:
+  copy = reservation.copy
+  book = copy.edition.book if copy and copy.edition else None
+  
+  return dtos.ReservationDetailDTO(
+    id_reservation=reservation.id_reservation,
+    reservation_date=reservation.reservation_date,
+    expiration_date=reservation.expiration_date,
+    user_id=reservation.user_id,
+    user_name=reservation.user.name if reservation.user else "",
+    user_lastname=reservation.user.lastname if reservation.user else "",
+    user_email=reservation.user.email if reservation.user else "",
+    copy_id=copy.id_copy if copy else 0,
+    copy_barcode=str(copy.barcode) if copy else "",
+    copy_signature=copy.signature_topography if copy else "",
+    book_id=book.id_book if book else 0,
+    book_title=book.title if book else "",
+    reservation_status_id=reservation.reservation_status_id,
+    reservation_status_name=reservation.status.name if reservation.status else ""
+  )
+
+
+# -----------------------------------------------------------------
 # GET ALL PAGINATION
-def get_all_pagination(pagination: PaginationRequestDTO, db: Session) -> PaginationResponseDTO:
-  page = repository.get_all_pagination(pagination, db)
+def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+  page = repository.get_all_pagination(db, pagination)
   return PaginationResponseDTO(
     page=page.page,
     pages=page.pages,
@@ -33,8 +57,8 @@ def get_by_id(db: Session, id: int):
 
 # -----------------------------------------------------------------
 # GET USER PAGINATION
-def get_user_pagination(user_id: UUID, pagination: PaginationRequestDTO, db: Session):
-  page = repository.get_user_pagination(user_id, pagination, db)
+def get_user_pagination(db: Session, user_id: UUID, pagination: PaginationRequestDTO):
+  page = repository.get_user_pagination(db, user_id, pagination)
   return PaginationResponseDTO(
     page=page.page,
     pages=page.pages,
@@ -42,30 +66,6 @@ def get_user_pagination(user_id: UUID, pagination: PaginationRequestDTO, db: Ses
     data=[_to_detail_dto(r) for r in page.data],
     next=page.next,
     prev=page.prev,
-  )
-
-
-# -----------------------------------------------------------------
-# HELPER - Mapea entidad a DTO con relaciones
-def _to_detail_dto(reservation: models.Reservation) -> dtos.ReservationDetailDTO:
-  copy = reservation.copy
-  book = copy.edition.book if copy and copy.edition else None
-  
-  return dtos.ReservationDetailDTO(
-    id_reservation=reservation.id_reservation,
-    reservation_date=reservation.reservation_date,
-    expiration_date=reservation.expiration_date,
-    user_id=reservation.user_id,
-    user_name=reservation.user.name if reservation.user else None,
-    user_lastname=reservation.user.lastname if reservation.user else None,
-    user_email=reservation.user.email if reservation.user else None,
-    copy_id=copy.id_copy if copy else None,
-    copy_barcode=str(copy.barcode) if copy else None,
-    copy_signature=copy.signature_topography if copy else None,
-    book_id=book.id_book if book else None,
-    book_title=book.title if book else None,
-    reservation_status_id=reservation.reservation_status_id,
-    reservation_status_name=reservation.status.name if reservation.status else None
   )
 
 
@@ -168,12 +168,10 @@ def mark_as_expired(db: Session, id: int):
 # -----------------------------------------------------------------
 # UPDATE - EXPIRE OVERDUE
 def expire_overdue_reservations(db: Session) -> int:
-  expired = repository.get_expired(db)
-  count = 0
-  for reservation in expired:
-    repository.update_status(db, int(reservation.id_reservation), 4)
-    count += 1
-  return count
+  try:
+    return repository.expire_overdue_as_expired(db)
+  except Exception as e:
+    raise e
 
 
 # -----------------------------------------------------------------
