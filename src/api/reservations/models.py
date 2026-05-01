@@ -13,9 +13,10 @@ class Reservation(Base):
   expiration_date = Column(DateTime, nullable=False)
 
   user_id = Column(UUID(as_uuid=True), ForeignKey("wm_users.id_user"), nullable=False)
-  copy_id = Column(Integer, ForeignKey("wm_copies.id_copy"), nullable=False)
-  reservation_status_id = Column(Integer, ForeignKey("wm_reservation_status.id_status"), nullable=False, default=1)
-
   user = relationship("User", back_populates="reservations")
+
+  copy_id = Column(Integer, ForeignKey("wm_copies.id_copy"), nullable=False)
   copy = relationship("Copy", back_populates="reservations")
+  
+  reservation_status_id = Column(Integer, ForeignKey("wm_reservation_status.id_status"), nullable=False, default=1)
   status = relationship("ReservationStatus")

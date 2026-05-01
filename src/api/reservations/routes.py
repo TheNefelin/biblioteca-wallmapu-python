@@ -28,7 +28,7 @@ router = APIRouter(
   status_code=HTTP_200_OK,
   summary="Listar todas las reservas con paginación",
   description="Retorna lista paginada de reservas. Filtros: id_status (1=pendiente, 2=retirada, 3=cancelada, 4=vencida)",
-  dependencies=[admin_required]
+  #dependencies=[admin_required]
 )
 def get_reservations_paginated(
   page: int = Query(default=1, ge=1),
@@ -66,6 +66,7 @@ def get_reservations_paginated(
 def get_my_reservations_paginated(
   page: int = Query(default=1, ge=1),
   limit: int = Query(default=10, ge=1, le=100),
+  search: str = Query(default=""),
   id_status: int = Query(default=0),
   current_user = Depends(get_current_user()),
   db: Session = Depends(get_db)
