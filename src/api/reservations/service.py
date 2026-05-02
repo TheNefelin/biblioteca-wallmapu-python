@@ -1,11 +1,16 @@
 from datetime import datetime, timedelta, date
 from uuid import UUID
 from sqlalchemy.orm import Session
+import logging
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.api.loans.repository import create as create_loan
 from src.api.copy.models import Copy
+from src.api.notifications.service import create as create_notification
+from src.api.notifications.dtos import CreateNotificationDTO
 from . import dtos, repository, models
+
+logger = logging.getLogger(__name__)
 
 
 # -----------------------------------------------------------------
@@ -71,30 +76,49 @@ def get_user_pagination(db: Session, user_id: UUID, pagination: PaginationReques
 
 # -----------------------------------------------------------------
 # CREATE
-def create(db: Session, user_id: UUID, dto: dtos.CreateReservationDTO):
-  copy = db.query(Copy).filter(Copy.id_copy == dto.copy_id).first()
-  if not copy:
-    raise ValueError("Ejemplar no encontrado")
+def create(db: Session, user_id: UUID, dto: dtos.CreateReservationDTO) -> dtos.ReservationDetailDTO:
+  try:
+    copy = db.query(Copy).filter(Copy.id_copy == dto.copy_id).first()
+    if not copy:
+      raise ValueError("Ejemplar no encontrado")
 
-  if int(copy.status_id) != 1:
-    raise ValueError("El ejemplar no está disponible")
+    if int(copy.status_id) != 1:
+      raise ValueError("El ejemplar no está disponible")
 
-  existing = repository.get_active_by_user_and_copy(db, user_id, dto.copy_id)
-  if existing:
-    raise ValueError("Ya tienes una reserva activa para este ejemplar")
+    existing = repository.get_active_by_user_and_copy(db, user_id, dto.copy_id)
+    if existing:
+      raise ValueError("Ya tienes una reserva activa para este ejemplar")
 
-  reservation_days = _get_reservation_days(db)
-  expiration_date = datetime.now() + timedelta(days=reservation_days)
+    reservation_days = _get_reservation_days(db)
+    expiration_date = datetime.now() + timedelta(days=reservation_days)
 
-  reservation = models.Reservation(
-    user_id=user_id,
-    copy_id=dto.copy_id,
-    expiration_date=expiration_date,
-    reservation_status_id=1
-  )
+    reservation = models.Reservation(
+      user_id=user_id,
+      copy_id=dto.copy_id,
+      expiration_date=expiration_date,
+      reservation_status_id=1
+    )
 
-  created = repository.create(db, reservation)
-  return get_by_id(db, int(created.id_reservation))
+    created = repository.create(db, reservation)
+
+    if not created or not created.id_reservation:
+      raise ValueError("Error al crear la reserva")
+
+    # Disparar notificación (efecto secundario resiliente)
+    try:
+      notification_dto = CreateNotificationDTO(
+        title="RESERVA CREADA",
+        message=f"Reserva #{created.id_reservation} registrada. Ejemplar: {copy.signature_topography}. Vence: {expiration_date.strftime('%d-%m-%Y %H:%M')}",
+        is_priority=False,
+        user_id=user_id
+      )
+      create_notification(db, notification_dto)
+    except Exception:
+      logger.error(f"Error creando notificación para reserva {created.id_reservation}", exc_info=True)
+
+    return get_by_id(db, int(created.id_reservation))
+  except Exception as e:
+    raise e
 
 
 # -----------------------------------------------------------------

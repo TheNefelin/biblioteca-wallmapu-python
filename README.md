@@ -15,6 +15,7 @@ git clone <repo-url>
 cd biblioteca-wallmapu-python
 py -m venv .venv
 .venv\Scripts\activate
+deactivate
 ```
 
 ### 2. Instalar dependencias
@@ -26,6 +27,12 @@ pip install pillow
 pip install python-multipart
 pip install cloudinary
 pip install sqlalchemy[asyncio]
+pip install resend
+```
+
+```sh
+pip freeze > requirements.txt
+pip install -r requirements.txt
 ```
 
 ### 3. Configurar variables de entorno

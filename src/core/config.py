@@ -10,6 +10,9 @@ class Settings(BaseSettings):
   CLOUDINARY_API_KEY: str
   CLOUDINARY_API_SECRET: str
 
+  RESEND_API_KEY: str
+  RESEND_FROM_EMAIL: str
+
   model_config = SettingsConfigDict(
     env_file=".env",
     env_file_encoding="utf-8",

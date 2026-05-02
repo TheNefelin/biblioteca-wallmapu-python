@@ -1,5 +1,10 @@
 from sqlalchemy.orm import Session
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.services.email_service import (
+  send_reservation_created_email,
+  send_reservation_cancelled_email,
+  send_reservation_ready_email
+)
 from . import dtos, repository, models
 
 
@@ -72,9 +77,87 @@ def create(db: Session, dto: dtos.CreateNotificationDTO):
     if not created or not created.id_notification:
       raise ValueError("Error al crear la Notificacion")
 
+    # Disparar email (efecto secundario resiliente)
+    try:
+      user_email = created.user.email if created.user else None
+      if user_email:
+        _send_email_by_title(
+          title=created.title,
+          user_email=user_email,
+          message=created.message
+        )
+    except Exception:
+      # Log opcional: no interrumpe la notificación si falla el email
+      print(f"Error al enviar el email: {e}")
+      pass
+
     return dtos.NotificationDTO.model_validate(created)
   except Exception as e:
     raise e
+
+
+# -----------------------------------------------------------------
+# HELPER - Send email based on notification title
+def _send_email_by_title(title: str, user_email: str, message: str):
+  """
+  Dispatch email sending based on notification title.
+  Extracts reservation_id from message to pass to email functions.
+  """
+  # Mapping: notification title -> (email_function, extra_args)
+  email_mapping = {
+    "RESERVA CREADA": (
+      send_reservation_created_email,
+      {"book_title": _extract_book_title(message), "expiration_date": _extract_expiration_date(message)}
+    ),
+    "RESERVA CANCELADA": (
+      send_reservation_cancelled_email,
+      {"book_title": _extract_book_title(message)}
+    ),
+    "RESERVA LISTA": (
+      send_reservation_ready_email,
+      {"book_title": _extract_book_title(message)}
+    ),
+  }
+
+  if title in email_mapping:
+    email_func, extra_args = email_mapping[title]
+    # Extract reservation_id from message (e.g., "Reserva #123 registrada")
+    reservation_id = _extract_reservation_id(message)
+    if reservation_id > 0:
+      email_func(
+        to_email=user_email,
+        reservation_id=reservation_id,
+        **extra_args
+      )
+
+
+# -----------------------------------------------------------------
+# HELPERS - Extract data from notification message
+def _extract_reservation_id(message: str) -> int:
+  """Extract reservation ID from notification message like 'Reserva #123 registrada'."""
+  import re
+  match = re.search(r'Reserva #(\d+)', message)
+  if match:
+    return int(match.group(1))
+  return 0
+
+
+def _extract_book_title(message: str) -> str:
+  """Extract book title from notification message."""
+  if "Ejemplar:" in message:
+    parts = message.split("Ejemplar:")
+    if len(parts) > 1:
+      return parts[1].split(".")[0].strip()
+  return "Libro"
+
+
+def _extract_expiration_date(message: str) -> str:
+  """Extract expiration date from notification message."""
+  if "Vence:" in message:
+    parts = message.split("Vence:")
+    if len(parts) > 1:
+      return parts[1].strip()
+  return ""
 
 
 # -----------------------------------------------------------------
