@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
@@ -10,14 +11,14 @@ class Settings(BaseSettings):
   CLOUDINARY_API_KEY: str
   CLOUDINARY_API_SECRET: str
 
-  RESEND_API_KEY: str
-  RESEND_FROM_EMAIL: str
+  BREVO_API_KEY: Optional[str] = None
+  BREVO_FROM_EMAIL: Optional[str] = None
 
   model_config = SettingsConfigDict(
     env_file=".env",
     env_file_encoding="utf-8",
     case_sensitive=False,
-    extra="ignore"  # ✅ Ignorar variables extra del .env
+    extra="ignore" # ✅ Ignorar variables extra del .env
   )
 
 settings = Settings()
