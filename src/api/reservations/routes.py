@@ -97,16 +97,19 @@ def get_my_reservations_paginated(
   status_code=HTTP_200_OK,
   summary="Obtener una reserva por ID",
   description="Retorna los detalles completos de una reserva específica por su ID",
-  dependencies=[admin_required]
+    dependencies=[user_or_admin_required]
 )
 def get_reservation_by_id(
   id: int,
   db: Session = Depends(get_db)
 ):
-  res = service.get_by_id(db, id)
-  if not res:
-    return ApiResponse.not_found(message="Reserva no encontrada")
-  return ApiResponse.success(data=res)
+  try:
+    res = service.get_by_id(db, id)
+    if not res:
+      return ApiResponse.not_found(message="Reserva no encontrada")
+    return ApiResponse.success(data=res)
+  except Exception as e:
+    return ApiResponse.server_error(str(e))
 
 
 # -----------------------------------------------------------------
