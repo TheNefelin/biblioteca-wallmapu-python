@@ -40,9 +40,9 @@ def _map_reservation_to_detail(reservation: models.Reservation) -> dtos.Reservat
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
-def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[dtos.ReservationDetailDTO]]:
   page = repository.get_all_pagination(db, pagination)
-  return PaginationResponseDTO(
+  return PaginationResponseDTO[list[dtos.ReservationDetailDTO]](
     page=page.page,
     pages=page.pages,
     items=page.items,
@@ -54,9 +54,9 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
 
 # -----------------------------------------------------------------
 # GET USER PAGINATION
-def get_all_pagination_by_user(db: Session, user_id: UUID, pagination: PaginationRequestDTO):
+def get_all_pagination_by_user(db: Session, user_id: UUID, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[dtos.ReservationDetailDTO]]:
   page = repository.get_all_pagination_by_user(db, user_id, pagination)
-  return PaginationResponseDTO(
+  return PaginationResponseDTO[list[dtos.ReservationDetailDTO]](
     page=page.page,
     pages=page.pages,
     items=page.items,
@@ -73,89 +73,84 @@ def get_by_id(db: Session, id: int) -> dtos.ReservationDetailDTO | None:
   
   if not reservation:
     return None
-
+  
   return _map_reservation_to_detail(reservation)
 
 
 # -----------------------------------------------------------------
 # CREATE
-def create(db: Session, user_id: UUID, dto: dtos.CreateReservationDTO) -> dtos.ReservationDetailDTO:
-  try:
-    copy = copy_repository.get_by_id(db, dto.copy_id)
-    book_id = copy.edition.book_id
+def create(db: Session, user_id: UUID, dto: dtos.CreateReservationDTO) -> dtos.ReservationDTO:
+  copy = copy_repository.get_by_id(db, dto.copy_id)
+  book_id = copy.edition.book_id
 
-    if not copy:
-      raise ValueError("Ejemplar no encontrado")
+  if not copy:
+    raise ValueError("Ejemplar no encontrado")
 
-    if int(copy.status_id) != 1:
-      raise ValueError("El ejemplar no está disponible")
+  if int(copy.status_id) != 1:
+    raise ValueError("El ejemplar no está disponible")
 
-    loan_policy = loan_policy_repository.get_default_policy(db)
-    reservation_days = int(loan_policy.reservation_days)
-    expiration_date = date.today() + timedelta(days=reservation_days)
+  loan_policy = loan_policy_repository.get_default_policy(db)
+  reservation_days = int(loan_policy.reservation_days)
+  expiration_date = date.today() + timedelta(days=reservation_days)
 
-    # Obtener reservas y préstamos activos del usuario (2 consultas eficientes)
-    active_reservations = repository.get_active_by_user(db, user_id)  # (id_reservation, id_copy, book_id)
-    active_loans = loan_repository.get_active_by_user(db, user_id)  # (id_loan, id_copy, book_id)
+  # Obtener reservas y préstamos activos del usuario
+  active_reservations = repository.get_active_by_user(db, user_id)
+  active_loans = loan_repository.get_active_by_user(db, user_id)
 
-    # 1. Validar límite de Loan Policies (3 libros max entre reservas y préstamos)
-    total = len(active_reservations) + len(active_loans)
+  # 1. Validar límite de Loan Policies
+  total = len(active_reservations) + len(active_loans)
 
-    if total >= loan_policy.max_books:
-      raise ValueError("Has alcanzado el límite máximo de reservas y/o préstamos de libros")
+  if total >= loan_policy.max_books:
+    raise ValueError("Has alcanzado el límite máximo de reservas y/o préstamos de libros")
 
-    # 2. Validar que el libro NO esté ya en reservas o préstamos activos
-    book_in_reservations = any(r[2] == book_id for r in active_reservations)  # r[2] = book_id
-    book_in_loans = any(l[2] == book_id for l in active_loans)  # l[2] = book_id
+  # 2. Validar que el libro NO esté ya en reservas o préstamos activos
+  book_in_reservations = any(r[2] == book_id for r in active_reservations)
+  book_in_loans = any(l[2] == book_id for l in active_loans)
 
-    if book_in_reservations or book_in_loans:
-      raise ValueError("Ya tienes este libro reservado o prestado")
+  if book_in_reservations or book_in_loans:
+    raise ValueError("Ya tienes este libro reservado o prestado")
 
-    reservation_dto = dtos.ReservationDTO(
-      user_id=user_id,
-      copy_id=dto.copy_id,
-      expiration_date=expiration_date
-    )
+  reservation_dto = dtos.ReservationDTO(
+    user_id=user_id,
+    copy_id=dto.copy_id,
+    expiration_date=expiration_date
+  )
 
-    # Crear Reserva
-    created = repository.create(db, reservation_dto.model_dump(exclude_none=True))
+  # Crear Reserva
+  created = repository.create(db, reservation_dto.model_dump(exclude_none=True))
 
-    if not created or not created.id_reservation:
-      raise ValueError("Error al crear la reserva")
+  if not created or not created.id_reservation:
+    raise ValueError("Error al crear la reserva")
 
-    # Disparar notificación (efecto secundario resiliente)
-    notification_service.create_notification_for_reservation_and_send_email(db, created.id_reservation)
+  # Disparar notificación (efecto secundario resiliente)
+  notification_service.notification_for_create_reservation_and_send_email(db, created.id_reservation)
 
-    return get_by_id(db, int(created.id_reservation))
-  except Exception as e:
-    raise e
+  return dtos.ReservationDTO.model_validate(created)
 
 
 # -----------------------------------------------------------------
 # UPDATE - CANCEL
-def mark_as_cancelled(db: Session, id: int):
-  try:
-    reservation = repository.get_by_id(db, id)
-    
-    if not reservation:
-      return None
+def mark_as_cancelled(db: Session, id: int) -> dtos.ReservationDTO:
+  reservation = repository.get_by_id(db, id)
+  
+  if not reservation:
+    return None
 
-    if int(reservation.reservation_status_id) != 1:
-      raise ValueError("Solo se puede cancelar una reserva pendiente")
+  if int(reservation.reservation_status_id) != 1:
+    raise ValueError("Solo se puede cancelar una reserva pendiente")
 
-    # Actualiza Reserva
-    updated = repository.update_status(db, id, 3)
+  # Actualiza Reserva
+  updated = repository.update_status(db, id, 3)
 
-    # Disparar notificación (efecto secundario resiliente)
-    notification_service.cancel_notification_for_reservation_and_send_email(db, updated.id_reservation)
+  # Disparar notificación (efecto secundario resiliente)
+  notification_service.notification_for_cancel_reservation_and_send_email(db, updated.id_reservation)
 
-    return get_by_id(db, id)
-  except Exception as e:
-    raise e
+  return dtos.ReservationDTO.model_validate(updated)
+
 
 # -----------------------------------------------------------------
 # UPDATE - MARK AS PICKUP AND CREATE LOAN
-def mark_as_pickup(db: Session, id: int, copy_id: int):
+def mark_as_pickup(db: Session, id: int, copy_id: int) -> dtos.ReservationDTO:
   reservation = repository.get_by_id(db, id)
   if not reservation:
     return None
@@ -173,37 +168,20 @@ def mark_as_pickup(db: Session, id: int, copy_id: int):
   if int(copy.status_id) != 1:
     raise ValueError("El ejemplar no está disponible")
 
-  loan_policy = loan_policy_repository.get_default_policy(db)
-  max_days = int(loan_policy.max_days)
-  due_date = date.today() + timedelta(days=max_days)
-
   loan_dto = loan_dtos.CreateLoanDTO(
     copy_id=copy.id_copy,
     user_id=reservation.user_id,
   )
 
   loan_service.create(db, loan_dto)
-  repository.update_status(db, id, 2)
+  updated_reservation = repository.update_status(db, id, 2)
 
-  # Notificación resiliente
-  try:
-    notification_dto = notification_dtos.CreateNotificationDTO(
-      title="RESERVA LISTA",
-      message=f"Reserva #{id} lista para retiro. Préstamo creado.",
-      is_priority=True,
-      user_id=reservation.user_id
-    )
-    
-    notification_service.create(db, notification_dto)
-  except Exception:
-    logger.error(f"Error creando notificación para reserva lista {id}", exc_info=True)
-
-  return get_by_id(db, id)
+  return dtos.ReservationDTO.model_validate(updated_reservation)
 
 
 # -----------------------------------------------------------------
 # UPDATE - MARK AS EXPIRED
-def mark_as_expired(db: Session, id: int):
+def mark_as_expired(db: Session, id: int) -> dtos.ReservationDTO:
   reservation = repository.get_by_id(db, id)
   if not reservation:
     return None
@@ -211,15 +189,12 @@ def mark_as_expired(db: Session, id: int):
   if int(reservation.reservation_status_id) != 1:
     raise ValueError("Solo se puede marcar como vencida una reserva pendiente")
 
-  repository.update_status(db, id, 4)
-  return get_by_id(db, id)
+  updated = repository.update_status(db, id, 4)
+
+  return dtos.ReservationDTO.model_validate(updated)
 
 
 # -----------------------------------------------------------------
 # UPDATE - EXPIRE OVERDUE
 def expire_overdue_reservations(db: Session) -> int:
-  try:
-    return repository.expire_overdue_as_expired(db)
-  except Exception as e:
-    raise e
-
+  return repository.expire_overdue_as_expired(db)

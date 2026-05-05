@@ -113,7 +113,7 @@ def get_reservation_by_id(
 # CREATE
 @router.post(
   "/",
-  response_model=ApiResponse[dtos.ReservationDetailDTO],
+  response_model=ApiResponse[dtos.ReservationDTO],
   status_code=HTTP_201_CREATED,
   summary="Crear una nueva reserva",
   description="Crea una nueva reserva. La fecha de expiración se calcula automáticamente según las políticas de préstamo",
@@ -137,7 +137,7 @@ def create_reservation(
 # UPDATE - MARK AS PICKUP
 @router.put(
   "/{id}/pickup",
-  response_model=ApiResponse[dtos.ReservationDetailDTO],
+  response_model=ApiResponse[dtos.ReservationDTO],
   status_code=HTTP_200_OK,
   summary="Marcar reserva como retirada (libro recogido)",
   description="Confirma el retiro de una reserva y crea automáticamente un préstamo. Requiere verificación del ejemplar físico",
@@ -163,7 +163,7 @@ def mark_reservation_as_pickup(
 # UPDATE - CANCEL
 @router.put(
   "/{id}/cancel",
-  response_model=ApiResponse[dtos.ReservationDetailDTO],
+  response_model=ApiResponse[dtos.ReservationDTO],
   status_code=HTTP_200_OK,
   summary="Cancelar una reserva (usuario dueño o admin)",
   description="Cancela una reserva pendiente. Solo el dueño de la reserva o un administrador pueden cancelarla",

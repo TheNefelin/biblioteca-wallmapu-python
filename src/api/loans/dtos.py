@@ -14,15 +14,13 @@ class CreateLoanDTO(BaseModel):
 
 class LoanDTO(CreateLoanDTO):
   """DTO de préstamo con todos los campos básicos"""
-  id_loan: int = Field(..., description="ID único del préstamo")
-  loan_date: date = Field(..., description="Fecha de creación del préstamo")
+  id_loan: Optional[int] = Field(None, description="ID único del préstamo")
+  loan_date: Optional[date] = Field(None, description="Fecha de creación del préstamo")
   due_date: date = Field(..., description="Fecha de vencimiento del préstamo")
   return_date: Optional[date] = Field(None, description="Fecha de devolución (null si no ha sido devuelto)")
-  loan_status_id: int = Field(..., description="ID del estado del préstamo (1=activo, 2=devuelto, 3=vencido)")
-  created_at: datetime = Field(..., description="Fecha de creación del registro en base de datos")
-  updated_at: datetime = Field(..., description="Fecha de última actualización del registro")
-
-  model_config = ConfigDict(from_attributes=True)
+  loan_status_id: Optional[int] = Field(None, description="ID del estado del préstamo (1=activo, 2=devuelto, 3=vencido)")
+  created_at: Optional[datetime] = Field(None, description="Fecha de creación del registro en base de datos")
+  updated_at: Optional[datetime] = Field(None, description="Fecha de última actualización del registro")
 
 
 class LoanFilterDTO(BaseModel):

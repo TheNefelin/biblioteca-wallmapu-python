@@ -57,136 +57,172 @@ def count_unread_by_user_id(db: Session, user_id: str) -> int:
 # GET UNREAD BY USER (List)
 def get_unread_by_user_id(db: Session, user_id: str):
   notifications = repository.get_unread_by_user_id(db, user_id)
-  return  [dtos.NotificationDTO.model_validate(item) for item in notifications]
+  return [dtos.NotificationDTO.model_validate(item) for item in notifications]
 
 
 # -----------------------------------------------------------------
 # GET BY ID
 def get_by_id(db: Session, id: int):
   notification = repository.get_by_id(db, id)
-  
   if not notification:
     return None
-
   return dtos.NotificationDTO.model_validate(notification)
 
 
 # -----------------------------------------------------------------
 # CREATE
 def create(db: Session, dto: dtos.CreateNotificationDTO):
-  try:
-    created = repository.create(db, dto.model_dump(exclude_unset=True))
+  created = repository.create(db, dto.model_dump(exclude_unset=True))
 
-    if not created or not created.id_notification:
-      raise ValueError("Error al crear la Notificacion")
+  if not created or not created.id_notification:
+    raise ValueError("Error al crear la Notificacion")
 
-    # Disparar email (efecto secundario resiliente)
-
-
-    return dtos.NotificationDTO.model_validate(created)
-  except Exception as e:
-    raise e
+  return dtos.NotificationDTO.model_validate(created)
 
 
 # -----------------------------------------------------------------
 # CREATE NOTIFICATION FOR RESERVATION
-def create_notification_for_reservation_and_send_email(db: Session, reservation_id: int):
+def notification_for_create_reservation_and_send_email(db: Session, reservation_id: int):
+  reservation = reservation_repository.get_by_id(db, reservation_id)
+
+  email_data = email_service.EmailData(
+    id=reservation.id_reservation,
+    book_title=reservation.copy.edition.book.title,
+    book_barcode=reservation.copy.barcode,
+    user_email=reservation.user.email,
+    expiration_date=reservation.expiration_date
+  )
+
+  notification = dtos.CreateNotificationDTO(
+    title="RESERVA CREADA",
+    message=f"Reserva #{email_data.id} registrada. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}. Vence: {email_data.expiration_date.strftime('%d-%m-%Y')}",
+    is_priority=False,
+    user_id=reservation.user_id
+  )
+
+  created = repository.create(db, notification.model_dump(exclude_unset=True))
+
+  if not created or not created.id_notification:
+    raise ValueError("Error al crear la Notificacion")
+
   try:
-    reservation = reservation_repository.get_by_id(db, reservation_id)
-
-    email_data = email_service.email_data_reservation(
-      id_reservation=reservation.id_reservation,
-      book_title=reservation.copy.edition.book.title,
-      book_barcode=reservation.copy.barcode,
-      user_email=reservation.user.email,
-      expiration_date=reservation.expiration_date
-    )
-
-    notification = dtos.CreateNotificationDTO(
-      title="RESERVA CREADA",
-      message=f"Reserva #{email_data.id_reservation} registrada. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}. Vence: {email_data.expiration_date.strftime('%d-%m-%Y')}",
-      is_priority=False,
-      user_id=reservation.user_id
-    )
-
-    # Crear Notificacion
-    created = repository.create(db, notification.model_dump(exclude_unset=True))
-
-    if not created or not created.id_notification:
-      raise ValueError("Error al crear la Notificacion")
-
-    # Disparar email (efecto secundario resiliente)
-    try:
-      if email_data:
-        email_service.send_reservation_created_email(data=email_data)
-    except Exception:
-      print(f"Error al enviar el email: {created.id_reservation}")
-      logger.error(f"Error al enviar el email: {created.id_reservation}", exc_info=True)
-      pass
-
-  except Exception as e:
-    raise e
+    email_service.send_reservation_created_email(data=email_data)
+  except Exception:
+    print(f"Error al enviar el email: {created.id}")
+    logger.error(f"Error al enviar el email: {created.id}", exc_info=True)
 
 
 # -----------------------------------------------------------------
 # CREATE NOTIFICATION FOR CANCEL RESERVATION
-def cancel_notification_for_reservation_and_send_email(db: Session, reservation_id: int):
+def notification_for_cancel_reservation_and_send_email(db: Session, reservation_id: int):
+  reservation = reservation_repository.get_by_id(db, reservation_id)
+
+  email_data = email_service.EmailData(
+    id=reservation.id_reservation,
+    book_title=reservation.copy.edition.book.title,
+    book_barcode=reservation.copy.barcode,
+    user_email=reservation.user.email,
+  )
+
+  notification = dtos.CreateNotificationDTO(
+    title="RESERVA CANCELADA",
+    message=f"Reserva #{email_data.id} cancelada. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}.",
+    is_priority=False,
+    user_id=reservation.user_id
+  )
+
+  created = repository.create(db, notification.model_dump(exclude_unset=True))
+
+  if not created or not created.id_notification:
+    raise ValueError("Error al crear la Notificacion")
+
   try:
-    reservation = reservation_repository.get_by_id(db, reservation_id)
-
-    email_data = email_service.email_data_reservation(
-      id_reservation=reservation.id_reservation,
-      book_title=reservation.copy.edition.book.title,
-      book_barcode=reservation.copy.barcode,
-      user_email=reservation.user.email,
-    )
-
-    notification = dtos.CreateNotificationDTO(
-      title="RESERVA CANCELADA",
-      message=f"Reserva #{email_data.id_reservation} registrada. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}.",
-      is_priority=False,
-      user_id=reservation.user_id
-    )
-
-    # Crear Notificacion
-    created = repository.create(db, notification.model_dump(exclude_unset=True))
-
-    if not created or not created.id_notification:
-      raise ValueError("Error al crear la Notificacion")
-
-    # Disparar email (efecto secundario resiliente)      
-    try:
-      if email_data:
-        email_service.send_reservation_cancelled_email(data=email_data)
-    except Exception:
-      print(f"Error creando notificación para reserva cancelada {id}")
-      logger.error(f"Error creando notificación para reserva cancelada {id}", exc_info=True)
-      pass
-
-  except Exception as e:
-    raise e
+    email_service.send_reservation_cancelled_email(data=email_data)
+  except Exception:
+    print(f"Error creando notificación para reserva cancelada {reservation_id}")
+    logger.error(f"Error creando notificación para reserva cancelada {reservation_id}", exc_info=True)
 
 
 # -----------------------------------------------------------------
-# CREATE NOTIFICATION FOR CANCEL RESERVATION
-def create_notification_for_loan_and_send_email(db: Session, codebar: str):
-  try:
-    loan = loan_repository.get_active_by_barcode(db, codebar)
+# CREATE NOTIFICATION FOR CREATE LOAN
+def notification_for_create_loan_and_send_email(db: Session, loan_id: int):
+  loan = loan_repository.get_by_id(db, loan_id)
 
-  except Exception as e:
-    raise e
+  email_data = email_service.EmailData(
+    id=loan.id_loan,
+    book_title=loan.copy.edition.book.title,
+    book_barcode=loan.copy.barcode,
+    user_email=loan.user.email,
+    expiration_date=loan.due_date,
+  )
+
+  notification = dtos.CreateNotificationDTO(
+    title="PRÉSTAMO REALIZADO",
+    message=f"Préstamo #{email_data.id} registrado. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}. Vence: {email_data.expiration_date.strftime('%d-%m-%Y')}",
+    is_priority=False,
+    user_id=loan.user_id
+  )
+
+  created = repository.create(db, notification.model_dump(exclude_unset=True))
+
+  if not created or not created.id_notification:
+    raise ValueError("Error al crear la Notificacion")
+
+  try:
+    email_service.send_loan_created_email(data=email_data)
+  except Exception:
+    print(f"Error al enviar el email: {created.id}")
+    logger.error(f"Error al enviar el email: {created.id}", exc_info=True)
+
+
+# -----------------------------------------------------------------
+# CREATE NOTIFICATION FOR RETURN LOAN
+def notification_for_return_loan_and_send_email(db: Session, loan_id: int):
+  loan = loan_repository.get_by_id(db, loan_id)
+
+  email_data = email_service.EmailData(
+    id=loan.id_loan,
+    book_title=loan.copy.edition.book.title,
+    book_barcode=loan.copy.barcode,
+    user_email=loan.user.email,
+  )
+
+  notification = dtos.CreateNotificationDTO(
+    title="PRÉSTAMO DEVUELTO",
+    message=f"Préstamo #{loan.id_loan} devuelto exitosamente.",
+    is_priority=False,
+    user_id=loan.user_id
+  )
+
+  created = repository.create(db, notification.model_dump(exclude_unset=True))
+
+  if not created or not created.id_notification:
+    raise ValueError("Error al crear la Notificacion")
+
+  try:
+    email_service.send_loan_returned_email(data=email_data)
+  except Exception:
+    print(f"Error al enviar el email: {created.id}")
+    logger.error(f"Error al enviar el email: {created.id}", exc_info=True)
 
 
 # -----------------------------------------------------------------
 # MARK AS READ
-def mark_as_read(db: Session, id: int):
-  notification = repository.mark_as_read(db, id)
+def mark_as_read(db: Session, id: int, user_id: str) -> bool:
+  notification = repository.get_by_id(db, id)
   if not notification:
-    return None
-  return get_by_id(db, id)
+    return False
+  
+  # Validar que la notificación pertenezca al usuario
+  if str(notification.user_id) != str(user_id):
+    return False
+  
+  repository.mark_as_read(db, id)
+  return True
 
 
 # -----------------------------------------------------------------
 # MARK ALL AS READ
-def mark_all_as_read(db: Session, user_id: str):
-  return repository.mark_all_as_read(db, user_id)
+def mark_all_as_read(db: Session, user_id: str) -> bool:
+  result = repository.mark_all_as_read(db, user_id)
+  return result > 0

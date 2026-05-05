@@ -19,6 +19,21 @@ router = APIRouter(
 )
 
 
+#@router.get(
+#  "/TRY",
+#  response_model=ApiResponse[list[dtos.NotificationDTO]],
+#  status_code=HTTP_200_OK,
+#)
+#def get_try(
+#  db: Session = Depends(get_db)
+#):
+#  try:
+#    res = service.notification_for_return_loan_and_send_email(db, 10021)
+#    return ApiResponse.success(data=res)
+#  except Exception as e:
+#    return ApiResponse.server_error(str(e))
+
+
 # -----------------------------------------------------------------
 # ADMIN: GET ALL PAGINATED
 @router.get(
@@ -135,7 +150,8 @@ def get_unread_notifications(
   response_model=ApiResponse[dtos.NotificationDTO],
   status_code=HTTP_200_OK,
   summary="Obtener notificación por ID",
-  description="Retorna una notificación específica por su ID"
+  description="Retorna una notificación específica por su ID",
+  dependencies=[user_required],
 )
 def get_notification_by_id(
   id: int,
@@ -175,7 +191,7 @@ def create_notification(
 # USER: MARK AS READ
 @router.put(
   "/user/{id}/read",
-  response_model=ApiResponse[dtos.NotificationDTO],
+  response_model=ApiResponse[bool],
   status_code=HTTP_200_OK,
   summary="Marcar notificación como leída",
   description="Marca una notificación específica como leída. Verifica que pertenezca al usuario del token",
@@ -189,10 +205,10 @@ def mark_notification_as_read(
   try:
     user_id = UUID(current_user["sub"])
 
-    res = service.mark_as_read(db, id)
-    if not res:
-      return ApiResponse.not_found(message="Notificación no encontrada")
-    return ApiResponse.success(data=res, message="Notificación marcada como leída")
+    success = service.mark_as_read(db, id, str(user_id))
+    if not success:
+      return ApiResponse.not_found(message="Notificación no encontrada o no pertenece al usuario")
+    return ApiResponse.success(data=True, message="Notificación marcada como leída")
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
@@ -201,7 +217,7 @@ def mark_notification_as_read(
 # USER: MARK ALL AS READ
 @router.put(
   "/user/read-all",
-  response_model=ApiResponse[int],
+  response_model=ApiResponse[bool],
   status_code=HTTP_200_OK,
   summary="Marcar todas como leídas",
   description="Marca todas las notificaciones del usuario actual como leídas",
@@ -214,34 +230,10 @@ def mark_all_notifications_as_read(
   try:
     user_id = UUID(current_user["sub"])
 
-    count = service.mark_all_as_read(db, user_id)
-    return ApiResponse.success(data=count, message=f"{count} notificaciones marcadas como leídas")
+    success = service.mark_all_as_read(db, str(user_id))
+    return ApiResponse.success(data=success, message=f"Notificaciones marcadas como leídas")
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
 
-# -----------------------------------------------------------------
-# DELETE (Admin or owner)
-@router.delete(
-  "/{id}",
-  response_model=ApiResponse[bool],
-  status_code=HTTP_200_OK,
-  summary="Eliminar notificación",
-  description="Elimina una notificación. Admin puede eliminar cualquiera; usuario solo las propias",
-  dependencies=[user_or_admin_required]
-)
-def delete_notification(
-  id: int,
-  current_user = Depends(get_current_user()),
-  db: Session = Depends(get_db)
-):
-  try:
-    user_id = UUID(current_user["sub"])
 
-    res = service.delete(db, id)
-    if res is None:
-      return ApiResponse.not_found(message="Notificación no encontrada")
-      
-    return ApiResponse.success(data=True, message="Notificación eliminada")
-  except Exception as e:
-    return ApiResponse.server_error(str(e))

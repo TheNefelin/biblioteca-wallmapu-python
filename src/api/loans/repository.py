@@ -1,7 +1,6 @@
 from math import ceil
 from datetime import date
 from uuid import UUID
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_
 
@@ -14,198 +13,197 @@ from . import models
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
 def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
-  try:
-    query = (
-      db.query(models.Loan)
-      .options(
-        joinedload(models.Loan.user),
-        joinedload(models.Loan.copy)
-          .joinedload(copy_models.Copy.edition)
-          .joinedload(edition_models.Edition.book),
-        joinedload(models.Loan.loan_status),
-      )
+  query = (
+    db.query(models.Loan)
+    .options(
+      joinedload(models.Loan.user),
+      joinedload(models.Loan.copy)
+        .joinedload(copy_models.Copy.edition)
+        .joinedload(edition_models.Edition.book),
+      joinedload(models.Loan.loan_status),
+    )
+  )
+
+  status_filter = pagination.filter.id_status if pagination.filter else None
+  if status_filter and status_filter > 0:
+    query = query.filter(
+      models.Loan.loan_status_id == status_filter
     )
 
-    status_filter = pagination.filter.id_status if pagination.filter else None
-    if status_filter and status_filter > 0:
-      query = query.filter(
-        models.Loan.loan_status_id == status_filter
-      )
+  total_items = query.count()
+  total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
 
-    total_items = query.count()
-    total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
-    
-    page = min(pagination.page, total_pages) if total_pages > 0 else 1
-    offset = (page - 1) * pagination.limit
+  page = min(pagination.page, total_pages) if total_pages > 0 else 1
+  offset = (page - 1) * pagination.limit
 
-    result = (
-      query
-      .order_by(models.Loan.loan_date.desc())
-      .offset(offset)
-      .limit(pagination.limit)
-      .all()
-    )
+  result = (
+    query
+    .order_by(models.Loan.loan_date.desc())
+    .offset(offset)
+    .limit(pagination.limit)
+    .all()
+  )
 
-    next_url = f"/api/loans/pagination?page={page + 1}&limit={pagination.limit}" if page < total_pages else None
-    prev_url = f"/api/loans/pagination?page={page - 1}&limit={pagination.limit}" if page > 1 else None
+  next_url = f"/api/loans/pagination?page={page + 1}&limit={pagination.limit}" if page < total_pages else None
+  prev_url = f"/api/loans/pagination?page={page - 1}&limit={pagination.limit}" if page > 1 else None
 
-    return PaginationResponseDTO(
-      page=page,
-      pages=total_pages,
-      items=total_items,
-      data=result,
-      next=next_url,
-      prev=prev_url
-    )
-  except SQLAlchemyError as e:
-    raise e
+  return PaginationResponseDTO(
+    page=page,
+    pages=total_pages,
+    items=total_items,
+    data=result,
+    next=next_url,
+    prev=prev_url
+  )
 
 
 # -----------------------------------------------------------------
 # GET USER PAGINATION
 def get_all_pagination_by_user(db: Session, user_id: UUID, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
-  try:
-    query = (
-      db.query(models.Loan)
-      .options(
-        joinedload(models.Loan.user),
-        joinedload(models.Loan.copy)
-          .joinedload(copy_models.Copy.edition)
-          .joinedload(edition_models.Edition.book),
-        joinedload(models.Loan.loan_status)
-      )
-      .filter(models.Loan.user_id == user_id)
+  query = (
+    db.query(models.Loan)
+    .options(
+      joinedload(models.Loan.user),
+      joinedload(models.Loan.copy)
+        .joinedload(copy_models.Copy.edition)
+        .joinedload(edition_models.Edition.book),
+      joinedload(models.Loan.loan_status),
+    )
+    .filter(models.Loan.user_id == user_id)
+  )
+
+  status_filter = pagination.filter.id_status if pagination.filter else None
+  if status_filter and status_filter > 0:
+    query = query.filter(
+      models.Loan.loan_status_id == status_filter
     )
 
-    status_filter = pagination.filter.id_status if pagination.filter else None
-    if status_filter and status_filter > 0:
-      query = query.filter(
-        models.Loan.loan_status_id == status_filter
-      )
+  total_items = query.count()
+  total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
 
-    total_items = query.count()
-    total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
-    
-    page = min(pagination.page, total_pages) if total_pages > 0 else 1
-    offset = (page - 1) * pagination.limit
+  page = min(pagination.page, total_pages) if total_pages > 0 else 1
+  offset = (page - 1) * pagination.limit
 
-    result = (
-      query
-      .order_by(models.Loan.loan_date.desc())
-      .offset(offset)
-      .limit(pagination.limit)
-      .all()
+  result = (
+    query
+    .order_by(models.Loan.loan_date.desc())
+    .offset(offset)
+    .limit(pagination.limit)
+    .all()
+  )
+
+  next_url = f"/api/loans/pagination/user?page={page + 1}&limit={pagination.limit}" if page < total_pages else None
+  prev_url = f"/api/loans/pagination/user?page={page - 1}&limit={pagination.limit}" if page > 1 else None
+
+  return PaginationResponseDTO(
+    page=page,
+    pages=total_pages,
+    items=total_items,
+    data=result,
+    next=next_url,
+    prev=prev_url
+  )
+
+
+# -----------------------------------------------------------------
+# GET BY ID
+def get_by_id(db: Session, id: int) -> models.Loan | None:
+  return (
+    db.query(models.Loan)
+    .options(
+      joinedload(models.Loan.user),
+      joinedload(models.Loan.copy)
+        .joinedload(copy_models.Copy.edition)
+        .joinedload(edition_models.Edition.book),
+      joinedload(models.Loan.loan_status),
     )
-
-    next_url = f"/api/loans/pagination?page={page + 1}&limit={pagination.limit}" if page < total_pages else None
-    prev_url = f"/api/loans/pagination?page={page - 1}&limit={pagination.limit}" if page > 1 else None
-
-    return PaginationResponseDTO(
-      page=page,
-      pages=total_pages,
-      items=total_items,
-      data=result,
-      next=next_url,
-      prev=prev_url
-    )
-  except SQLAlchemyError as e:
-    raise e
+    .filter(models.Loan.id_loan == id)
+    .first()
+  )
 
 
 # -----------------------------------------------------------------
 # GET ALL OVERDUE
 def get_overdue(db: Session) -> list[models.Loan]:
-  try:    
-    return (
-      db.query(models.Loan)
-      .options(
-        joinedload(models.Loan.user),
-        joinedload(models.Loan.copy),
-        joinedload(models.Loan.loan_status)
-      )
-      .filter(
-        and_(
-          models.Loan.due_date < date.today(),
-          models.Loan.loan_status_id.in_([1, 3])  # 1=activo, 3=vencido
-        )
-      )
-      .all()
+  return (
+    db.query(models.Loan)
+    .options(
+      joinedload(models.Loan.user),
+      joinedload(models.Loan.copy),
+      joinedload(models.Loan.loan_status)
     )
-  except SQLAlchemyError as e:
-    raise e
+    .filter(
+      and_(
+        models.Loan.due_date < date.today(),
+        models.Loan.loan_status_id.in_([1, 3])  # 1=activo, 3=vencido
+      )
+    )
+    .all()
+  )
 
 
 # -----------------------------------------------------------------
 # GET ACTIVE LOAN BY COPY ID
 def get_active_loan_by_copy_id(db: Session, copy_id: int) -> models.Loan | None:
-  try:
-    return (
-      db.query(models.Loan)
-      .options(
-        joinedload(models.Loan.user),
-        joinedload(models.Loan.copy),
-        joinedload(models.Loan.loan_status)
-      )
-      .filter(
-        and_(
-          models.Loan.copy_id == copy_id,
-          models.Loan.loan_status_id != 2
-        )
-      )
-      .first()
+  return (
+    db.query(models.Loan)
+    .options(
+      joinedload(models.Loan.user),
+      joinedload(models.Loan.copy),
+      joinedload(models.Loan.loan_status)
     )
-  except SQLAlchemyError as e:
-    raise e
+    .filter(
+      and_(
+        models.Loan.copy_id == copy_id,
+        models.Loan.loan_status_id != 2
+      )
+    )
+    .first()
+  )
 
 
 # -----------------------------------------------------------------
 # GET ACTIVE LOANS BY BOOK ID
 def get_active_by_book_id(db: Session, book_id: int) -> list[models.Loan]:
-  try:
-    return (
-      db.query(models.Loan)
-      .join(copy_models.Copy, models.Loan.copy_id == copy_models.Copy.id_copy)
-      .join(edition_models.Edition, copy_models.Copy.edition_id == edition_models.Edition.id_edition)
-      .options(
-        joinedload(models.Loan.user),
-        joinedload(models.Loan.copy),
-        joinedload(models.Loan.loan_status)
-      )
-      .filter(
-        and_(
-          edition_models.Edition.book_id == book_id,
-          models.Loan.loan_status_id == 1
-        )
-      )
-      .all()
+  return (
+    db.query(models.Loan)
+    .join(copy_models.Copy, models.Loan.copy_id == copy_models.Copy.id_copy)
+    .join(edition_models.Edition, copy_models.Copy.edition_id == edition_models.Edition.id_edition)
+    .options(
+      joinedload(models.Loan.user),
+      joinedload(models.Loan.copy),
+      joinedload(models.Loan.loan_status)
     )
-  except SQLAlchemyError as e:
-    raise e
+    .filter(
+      and_(
+        edition_models.Edition.book_id == book_id,
+        models.Loan.loan_status_id == 1
+      )
+    )
+    .all()
+  )
 
 
 # -----------------------------------------------------------------
 # GET ACTIVE BY USER (returns tuples: id_loan, id_copy, book_id)
 def get_active_by_user(db: Session, user_id: UUID) -> list[tuple]:
   """Retorna lista de (id_loan, id_copy, book_id) activos del usuario"""
-  try:
-    return (
-      db.query(
-        models.Loan.id_loan,
-        models.Loan.copy_id,
-        edition_models.Edition.book_id
-      )
-      .join(copy_models.Copy, models.Loan.copy_id == copy_models.Copy.id_copy)
-      .join(edition_models.Edition, copy_models.Copy.edition_id == edition_models.Edition.id_edition)
-      .filter(
-        and_(
-          models.Loan.user_id == user_id,
-          models.Loan.loan_status_id.in_([1, 3])  # 1=activo, 3=vencido
-        )
-      )
-      .all()
+  return (
+    db.query(
+      models.Loan.id_loan,
+      models.Loan.copy_id,
+      edition_models.Edition.book_id
     )
-  except SQLAlchemyError as e:
-    raise e
+    .join(copy_models.Copy, models.Loan.copy_id == copy_models.Copy.id_copy)
+    .join(edition_models.Edition, copy_models.Copy.edition_id == edition_models.Edition.id_edition)
+    .filter(
+      and_(
+        models.Loan.user_id == user_id,
+        models.Loan.loan_status_id.in_([1, 3])  # 1=activo, 3=vencido
+      )
+    )
+    .all()
+  )
 
 
 # -----------------------------------------------------------------
@@ -215,97 +213,83 @@ def get_active_by_barcode(db: Session, barcode: str) -> models.Loan | None:
   Busca préstamo activo por barcode del ejemplar.
   Retorna el loan activo (status_id=1) linked al barcode.
   """
-  try:
-    return (
-      db.query(models.Loan)
-      .options(
-        joinedload(models.Loan.user),
-        joinedload(models.Loan.copy)
-          .joinedload(copy_models.Copy.edition)
-          .joinedload(edition_models.Edition.book),
-        joinedload(models.Loan.loan_status),
-      )
-      .filter(
-        and_(
-          copy_models.Copy.barcode == barcode,
-          models.Loan.loan_status_id.in_([1, 3])  # 1=activo, 3=vencido
-        )
-      )
-      .first()
+  return (
+    db.query(models.Loan)
+    .options(
+      joinedload(models.Loan.user),
+      joinedload(models.Loan.copy)
+        .joinedload(copy_models.Copy.edition)
+        .joinedload(edition_models.Edition.book),
+      joinedload(models.Loan.loan_status),
     )
-  except SQLAlchemyError as e:
-    raise e
+    .filter(
+      and_(
+        copy_models.Copy.barcode == barcode,
+        models.Loan.loan_status_id.in_([1, 3])  # 1=activo, 3=vencido
+      )
+    )
+    .first()
+  )
 
 
 # -----------------------------------------------------------------
 # CREATE
-def create(db: Session, loan: models.Loan) -> models.Loan:
-  try:
-    db.add(loan)
-    db.commit()
-    db.refresh(loan)
-    return loan
-  except SQLAlchemyError as e:
-    db.rollback()
-    raise e
+def create(db: Session, data: dict) -> models.Loan:
+  item = models.Loan(**data)
+  db.add(item)
+  db.commit()
+  db.refresh(item)
+
+  return item
 
 
 # -----------------------------------------------------------------
 # RETURN
 def return_loan(db: Session, loan_id: int) -> models.Loan:
-  try:
-    loan = (
-      db.query(models.Loan)
-      .filter(models.Loan.id_loan == loan_id)
-      .first()
+  loan = (
+    db.query(models.Loan)
+    .filter(models.Loan.id_loan == loan_id)
+    .first()
+  )
+  
+  if loan:
+    loan.return_date = date.today()
+    loan.loan_status_id = 2
+    
+    (
+      db.query(copy_models.Copy)
+      .filter(copy_models.Copy.id_copy == loan.copy_id)
+      .update({"status_id": 1})
     )
     
-    if loan:
-      loan.return_date = date.today()
-      loan.loan_status_id = 2
-      
-      (
-        db.query(copy_models.Copy)
-        .filter(copy_models.Copy.id_copy == loan.copy_id)
-        .update({"status_id": 1})
-      )
-      
-      db.commit()
-      db.refresh(loan)
-    return loan
-  except SQLAlchemyError as e:
-    db.rollback()
-    raise e
+    db.commit()
+    db.refresh(loan)
+  return loan
 
 
 # -----------------------------------------------------------------
 # UPDATE - EXPIRE OVERDUE
 def expire_overdue_as_overdue(db: Session) -> int:
-  try:
-    overdue_loans = (
-      db.query(models.Loan)
-      .filter(
-        and_(
-          models.Loan.due_date < date.today(),
-          models.Loan.loan_status_id == 1
-        )
+  overdue_loans = (
+    db.query(models.Loan)
+    .filter(
+      and_(
+        models.Loan.due_date < date.today(),
+        models.Loan.loan_status_id == 1
       )
     )
-    
-    copy_ids = [loan.copy_id for loan in overdue_loans.all()]
-    
-    result = overdue_loans.update({"loan_status_id": 3})
-    
-    if copy_ids:
-      (
-        db.query(copy_models.Copy)
-        .filter(copy_models.Copy.id_copy.in_(copy_ids))
-        .update({"status_id": 2}, synchronize_session=False)
-      )
-    
-    db.commit()
-    return result
-  except SQLAlchemyError as e:
-    db.rollback()
-    raise e
-
+  )
+  
+  copy_ids = [loan.copy_id for loan in overdue_loans.all()]
+  
+  result = overdue_loans.update({"loan_status_id": 3})
+  
+  if copy_ids:
+    (
+      db.query(copy_models.Copy)
+      .filter(copy_models.Copy.id_copy.in_(copy_ids))
+      .update({"status_id": 2}, synchronize_session=False)
+    )
+  
+  db.commit()
+  return result

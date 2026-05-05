@@ -7,8 +7,8 @@ from src.core.config import settings
 
 
 @dataclass
-class email_data_reservation():
-  id_reservation: int
+class EmailData:
+  id: int
   book_title: str
   book_barcode: str
   user_email: str
@@ -42,7 +42,7 @@ def send_email(to: str, subject: str, html: str) -> Optional[dict]:
 # -----------------------------------------------------------------
 # TEMPLATE: Reservation Created
 def send_reservation_created_email(
-  data: email_data_reservation
+  data: EmailData
 ) -> Optional[dict]:
   html = f"""
   <html>
@@ -52,7 +52,7 @@ def send_reservation_created_email(
         <p style="color: #00897B;">Tu reserva ha sido registrada en la Biblioteca Wallmapu.</p>
 
         <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-          <p><strong>Reserva #:</strong> {data.id_reservation}</p>
+          <p><strong>Reserva #:</strong> {data.id}</p>
           <p><strong>Libro:</strong> {data.book_title}</p>
           <p><strong>CodBarra:</strong> {data.book_barcode}</p>
           <p><strong>Vence:</strong> {data.expiration_date.strftime('%d-%m-%Y')}</p>
@@ -64,13 +64,13 @@ def send_reservation_created_email(
     </body>
   </html>
   """
-  return send_email(data.user_email, f"RESERVA CREADA - #{ data.id_reservation }", html)
+  return send_email(data.user_email, f"RESERVA CREADA - #{ data.id }", html)
 
 
 # -----------------------------------------------------------------
 # TEMPLATE: Reservation Cancelled
 def send_reservation_cancelled_email(
-  data: email_data_reservation
+  data: EmailData
 ) -> Optional[dict]:
   html = f"""
   <html>
@@ -80,7 +80,7 @@ def send_reservation_cancelled_email(
         <p style="color: #00897B;">Tu reserva ha sido cancelada.</p>
 
         <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-          <p><strong>Reserva #:</strong> {data.id_reservation}</p>
+          <p><strong>Reserva #:</strong> {data.id}</p>
           <p><strong>Libro:</strong> {data.book_title}</p>
           <p><strong>CodBarra:</strong> {data.book_barcode}</p>          
         </div>
@@ -90,31 +90,58 @@ def send_reservation_cancelled_email(
     </body>
   </html>
   """
-  return send_email(data.user_email, f"RESERVA CANCELADA - #{ data.id_reservation }", html)
+  return send_email(data.user_email, f"RESERVA CANCELADA - #{ data.id }", html)
 
 
 # -----------------------------------------------------------------
-# TEMPLATE: Reservation Ready (Pickup)
-def send_reservation_ready_email(
-  to_email: str,
-  reservation_id: int,
-  book_title: str
+# TEMPLATE: Reservation Pickup
+def send_loan_created_email(
+  data: EmailData
 ) -> Optional[dict]:
   html = f"""
   <html>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
       <div style="max-width: 600px; margin:0 auto; padding: 20px;">
-        <h2 style="color: #27ae60;">¡Tu reserva está lista!</h2>
-        <p>El libro que reservaste está disponible para retirar.</p>
+        <h2 style="color: #4A148C;">¡Tu préstamo se ha realizado!</h2>
+        <p style="color: #00897B;">El libro ya esta en tus manos, disfrútalo!.</p>
 
         <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-          <p><strong>Reserva #:</strong> {reservation_id}</p>
-          <p><strong>Libro:</strong> {book_title}</p>
+          <p><strong>Préstamo #:</strong> {data.id}</p>
+          <p><strong>Libro:</strong> {data.book_title}</p>
+          <p><strong>CodBarra:</strong> {data.book_barcode}</p>
+          <p><strong>Devolución:</strong> {data.expiration_date.strftime('%d-%m-%Y')}</p>
         </div>
 
-        <p><strong>Importante:</strong> Debes retirar el libro dentro de las próximas 48 horas.</p>
+        <p style="color: #00897B;"><strong>Importante:</strong> Debes hacer devolución del libro dentro del plazo fijado.</p>
       </div>
     </body>
   </html>
   """
-  return send_email(to_email, "RESERVA LISTA", html)
+  return send_email(data.user_email, f"PRÉSTAMO REALIZADO - #{ data.id }", html)
+
+
+# -----------------------------------------------------------------
+# TEMPLATE: Reservation Returned
+def send_loan_returned_email(
+  data: EmailData
+) -> Optional[dict]:
+  html = f"""
+  <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <div style="max-width: 600px; margin:0 auto; padding: 20px;">
+        <h2 style="color: #4A148C;">¡Tu préstamo ha sido devuelto!</h2>
+        <p style="color: #00897B;">El libro ya esta disponible!.</p>
+
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <p><strong>Préstamo #:</strong> {data.id} devuelto exitosamente.</p>
+          <p><strong>Libro:</strong> {data.book_title}</p>
+          <p><strong>CodBarra:</strong> {data.book_barcode}</p>
+        </div>
+
+        <p style="color: #00897B;"><strong>Importante:</strong> Gracias por preferir Wallmapu de Mesana.</p>
+      </div>
+    </body>
+  </html>
+  """
+  return send_email(data.user_email, f"PRÉSTAMO DEVUELTO - #{ data.id }", html)
+
