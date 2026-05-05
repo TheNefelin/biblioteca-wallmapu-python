@@ -4,10 +4,11 @@ from sqlalchemy.orm import Session
 import logging
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
-from src.api.loans.repository import create as create_loan
-from src.api.copy.models import Copy
-from src.api.notifications.service import create as create_notification
-from src.api.notifications.dtos import CreateNotificationDTO
+from src.api.loan_policies import repository as loan_policy_repository
+from src.api.loans import repository as loan_repository, service as loan_service, dtos as loan_dtos
+from src.api.copy import repository as copy_repository
+from src.api.notifications import dtos as notification_dtos, service as notification_service
+from src.services import email_service
 from . import dtos, repository, models
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # -----------------------------------------------------------------
 # HELPER - Mapea entidad a DTO con relaciones
-def _to_detail_dto(reservation: models.Reservation) -> dtos.ReservationDetailDTO:
+def _map_reservation_to_detail(reservation: models.Reservation) -> dtos.ReservationDetailDTO:
   copy = reservation.copy
   book = copy.edition.book if copy and copy.edition else None
   
@@ -45,7 +46,21 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
     page=page.page,
     pages=page.pages,
     items=page.items,
-    data=[_to_detail_dto(r) for r in page.data],
+    data=[_map_reservation_to_detail(r) for r in page.data],
+    next=page.next,
+    prev=page.prev,
+  )
+
+
+# -----------------------------------------------------------------
+# GET USER PAGINATION
+def get_all_pagination_by_user(db: Session, user_id: UUID, pagination: PaginationRequestDTO):
+  page = repository.get_all_pagination_by_user(db, user_id, pagination)
+  return PaginationResponseDTO(
+    page=page.page,
+    pages=page.pages,
+    items=page.items,
+    data=[_map_reservation_to_detail(r) for r in page.data],
     next=page.next,
     prev=page.prev,
   )
@@ -53,68 +68,63 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
 
 # -----------------------------------------------------------------
 # GET BY ID
-def get_by_id(db: Session, id: int):
+def get_by_id(db: Session, id: int) -> dtos.ReservationDetailDTO | None:
   reservation = repository.get_by_id(db, id)
+  
   if not reservation:
     return None
-  return _to_detail_dto(reservation)
 
-
-# -----------------------------------------------------------------
-# GET USER PAGINATION
-def get_user_pagination(db: Session, user_id: UUID, pagination: PaginationRequestDTO):
-  page = repository.get_user_pagination(db, user_id, pagination)
-  return PaginationResponseDTO(
-    page=page.page,
-    pages=page.pages,
-    items=page.items,
-    data=[_to_detail_dto(r) for r in page.data],
-    next=page.next,
-    prev=page.prev,
-  )
+  return _map_reservation_to_detail(reservation)
 
 
 # -----------------------------------------------------------------
 # CREATE
 def create(db: Session, user_id: UUID, dto: dtos.CreateReservationDTO) -> dtos.ReservationDetailDTO:
   try:
-    copy = db.query(Copy).filter(Copy.id_copy == dto.copy_id).first()
+    copy = copy_repository.get_by_id(db, dto.copy_id)
+    book_id = copy.edition.book_id
+
     if not copy:
       raise ValueError("Ejemplar no encontrado")
 
     if int(copy.status_id) != 1:
       raise ValueError("El ejemplar no está disponible")
 
-    existing = repository.get_active_by_user_and_copy(db, user_id, dto.copy_id)
-    if existing:
-      raise ValueError("Ya tienes una reserva activa para este ejemplar")
+    loan_policy = loan_policy_repository.get_default_policy(db)
+    reservation_days = int(loan_policy.reservation_days)
+    expiration_date = date.today() + timedelta(days=reservation_days)
 
-    reservation_days = _get_reservation_days(db)
-    expiration_date = datetime.now() + timedelta(days=reservation_days)
+    # Obtener reservas y préstamos activos del usuario (2 consultas eficientes)
+    active_reservations = repository.get_active_by_user(db, user_id)  # (id_reservation, id_copy, book_id)
+    active_loans = loan_repository.get_active_by_user(db, user_id)  # (id_loan, id_copy, book_id)
 
-    reservation = models.Reservation(
+    # 1. Validar límite de Loan Policies (3 libros max entre reservas y préstamos)
+    total = len(active_reservations) + len(active_loans)
+
+    if total >= loan_policy.max_books:
+      raise ValueError("Has alcanzado el límite máximo de reservas y/o préstamos de libros")
+
+    # 2. Validar que el libro NO esté ya en reservas o préstamos activos
+    book_in_reservations = any(r[2] == book_id for r in active_reservations)  # r[2] = book_id
+    book_in_loans = any(l[2] == book_id for l in active_loans)  # l[2] = book_id
+
+    if book_in_reservations or book_in_loans:
+      raise ValueError("Ya tienes este libro reservado o prestado")
+
+    reservation_dto = dtos.ReservationDTO(
       user_id=user_id,
       copy_id=dto.copy_id,
-      expiration_date=expiration_date,
-      reservation_status_id=1
+      expiration_date=expiration_date
     )
 
-    created = repository.create(db, reservation)
+    # Crear Reserva
+    created = repository.create(db, reservation_dto.model_dump(exclude_none=True))
 
     if not created or not created.id_reservation:
       raise ValueError("Error al crear la reserva")
 
     # Disparar notificación (efecto secundario resiliente)
-    try:
-      notification_dto = CreateNotificationDTO(
-        title="RESERVA CREADA",
-        message=f"Reserva #{created.id_reservation} registrada. Ejemplar: {copy.signature_topography}. Vence: {expiration_date.strftime('%d-%m-%Y %H:%M')}",
-        is_priority=False,
-        user_id=user_id
-      )
-      create_notification(db, notification_dto)
-    except Exception:
-      logger.error(f"Error creando notificación para reserva {created.id_reservation}", exc_info=True)
+    notification_service.create_notification_for_reservation_and_send_email(db, created.id_reservation)
 
     return get_by_id(db, int(created.id_reservation))
   except Exception as e:
@@ -122,7 +132,29 @@ def create(db: Session, user_id: UUID, dto: dtos.CreateReservationDTO) -> dtos.R
 
 
 # -----------------------------------------------------------------
-# UPDATE - MARK AS PICKUP
+# UPDATE - CANCEL
+def mark_as_cancelled(db: Session, id: int):
+  try:
+    reservation = repository.get_by_id(db, id)
+    
+    if not reservation:
+      return None
+
+    if int(reservation.reservation_status_id) != 1:
+      raise ValueError("Solo se puede cancelar una reserva pendiente")
+
+    # Actualiza Reserva
+    updated = repository.update_status(db, id, 3)
+
+    # Disparar notificación (efecto secundario resiliente)
+    notification_service.cancel_notification_for_reservation_and_send_email(db, updated.id_reservation)
+
+    return get_by_id(db, id)
+  except Exception as e:
+    raise e
+
+# -----------------------------------------------------------------
+# UPDATE - MARK AS PICKUP AND CREATE LOAN
 def mark_as_pickup(db: Session, id: int, copy_id: int):
   reservation = repository.get_by_id(db, id)
   if not reservation:
@@ -134,44 +166,38 @@ def mark_as_pickup(db: Session, id: int, copy_id: int):
   if reservation.expiration_date < datetime.now():
     raise ValueError("No se puede entregar una reserva vencida. Debe generar una nueva.")
 
-  copy = db.query(Copy).filter(Copy.id_copy == copy_id).first()
+  copy = copy_repository.get_by_id(db, copy_id)
   if not copy:
     raise ValueError("Ejemplar no encontrado")
 
   if int(copy.status_id) != 1:
     raise ValueError("El ejemplar no está disponible")
 
-  from src.api.loans.models import Loan
-  max_days = _get_max_loan_days(db)
+  loan_policy = loan_policy_repository.get_default_policy(db)
+  max_days = int(loan_policy.max_days)
   due_date = date.today() + timedelta(days=max_days)
 
-  loan = Loan(
+  loan_dto = loan_dtos.CreateLoanDTO(
     copy_id=copy.id_copy,
     user_id=reservation.user_id,
-    loan_date=date.today(),
-    due_date=due_date,
-    loan_status_id=1
   )
-  create_loan(db, loan)
 
-  copy.status_id = 2
-  db.commit()
-
+  loan_service.create(db, loan_dto)
   repository.update_status(db, id, 2)
-  return get_by_id(db, id)
 
+  # Notificación resiliente
+  try:
+    notification_dto = notification_dtos.CreateNotificationDTO(
+      title="RESERVA LISTA",
+      message=f"Reserva #{id} lista para retiro. Préstamo creado.",
+      is_priority=True,
+      user_id=reservation.user_id
+    )
+    
+    notification_service.create(db, notification_dto)
+  except Exception:
+    logger.error(f"Error creando notificación para reserva lista {id}", exc_info=True)
 
-# -----------------------------------------------------------------
-# UPDATE - CANCEL
-def mark_as_cancelled(db: Session, id: int):
-  reservation = repository.get_by_id(db, id)
-  if not reservation:
-    return None
-
-  if int(reservation.reservation_status_id) != 1:
-    raise ValueError("Solo se puede cancelar una reserva pendiente")
-
-  repository.update_status(db, id, 3)
   return get_by_id(db, id)
 
 
@@ -197,16 +223,3 @@ def expire_overdue_reservations(db: Session) -> int:
   except Exception as e:
     raise e
 
-
-# -----------------------------------------------------------------
-# HELPERS
-def _get_reservation_days(db: Session) -> int:
-  from src.api.loan_policies.repository import get_default_policy
-  policy = get_default_policy(db)
-  return int(policy.reservation_days) if policy and policy.reservation_days else 3
-
-
-def _get_max_loan_days(db: Session) -> int:
-  from src.api.loan_policies.repository import get_default_policy
-  policy = get_default_policy(db)
-  return int(policy.max_days) if policy and policy.max_days else 14

@@ -17,8 +17,8 @@ def get_all(db: Session) -> list[dtos.CopyWithStatusDTO]:
 
 # -----------------------------------------------------------------
 # GET COPY BY ID
-def get_by_id(id: int, db: Session) -> dtos.CopyWithStatusDTO | None:
-  item = repository.get_by_id(id, db)
+def get_by_id(db: Session, id: int) -> dtos.CopyWithStatusDTO | None:
+  item = repository.get_by_id(db, id)
   if not item:
     return None
   return dtos.CopyWithStatusDTO.model_validate(item)
@@ -26,14 +26,14 @@ def get_by_id(id: int, db: Session) -> dtos.CopyWithStatusDTO | None:
 
 # -----------------------------------------------------------------
 # GET ALL COPIES BY EDITION ID
-def get_by_edition_id(id_edition: int, db: Session) -> list[dtos.CopyWithStatusDTO]:
-  items = repository.get_by_edition_id(id_edition, db)
+def get_by_edition_id(db: Session, id_edition: int) -> list[dtos.CopyWithStatusDTO]:
+  items = repository.get_by_edition_id(db, id_edition)
   return [dtos.CopyWithStatusDTO.model_validate(item) for item in items]
 
 
 # -----------------------------------------------------------------
 # CREATE COPY
-def create(data: dtos.CreateCopyDTO, db: Session) -> dtos.CopyDTO:
+def create(db: Session, data: dtos.CreateCopyDTO) -> dtos.CopyDTO:
   if not db.get(edition_models.Edition, data.edition_id):
     raise ValueError("No se encontró la edición")
 
@@ -48,7 +48,7 @@ def create(data: dtos.CreateCopyDTO, db: Session) -> dtos.CopyDTO:
     entity_data["barcode"] = data.signature_topography
     entity_data["status_id"] = 1
 
-    entity = repository.create(entity_data, db)
+    entity = repository.create(db, entity_data)
     return dtos.CopyDTO.model_validate(entity)
   except SQLAlchemyError:
     raise ValueError("Error al crear el ejemplar")
@@ -56,7 +56,7 @@ def create(data: dtos.CreateCopyDTO, db: Session) -> dtos.CopyDTO:
 
 # -----------------------------------------------------------------
 # UPDATE COPY
-def update(id: int, data: dtos.UpdateCopyDTO, db: Session) -> dtos.CopyDTO | None:
+def update(db: Session, id: int, data: dtos.UpdateCopyDTO) -> dtos.CopyDTO | None:
   if not db.get(edition_models.Edition, data.edition_id):
     raise ValueError("No se encontró la edición")
   if not db.get(status_models.CopyStatus, data.status_id):
@@ -81,7 +81,7 @@ def update(id: int, data: dtos.UpdateCopyDTO, db: Session) -> dtos.CopyDTO | Non
       if repository.copy_number_exists(db, data.edition_id, new_copy_number, exclude_id=id):
         raise ValueError(f"El número de ejemplar {new_copy_number} ya existe para esta edición")
 
-  entity = repository.update(id, update_data, db)
+  entity = repository.update(db, id, update_data)
   if not entity:
     return None
   return dtos.CopyDTO.model_validate(entity)
@@ -89,8 +89,8 @@ def update(id: int, data: dtos.UpdateCopyDTO, db: Session) -> dtos.CopyDTO | Non
 
 # -----------------------------------------------------------------
 # DELETE COPY
-def delete(id: int, db: Session) -> bool:
-  return repository.delete(id, db)
+def delete(db: Session, id: int) -> bool:
+  return repository.delete(db, id)
 
 
 # -----------------------------------------------------------------

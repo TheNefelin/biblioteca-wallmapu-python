@@ -13,6 +13,7 @@ class Settings(BaseSettings):
 
   BREVO_API_KEY: Optional[str] = None
   BREVO_FROM_EMAIL: Optional[str] = None
+  BREVO_FROM_NAME: Optional[str] = None
 
   model_config = SettingsConfigDict(
     env_file=".env",

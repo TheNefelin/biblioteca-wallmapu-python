@@ -1,11 +1,14 @@
+from datetime import date
 from sqlalchemy.orm import Session
+import logging
+
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
-from src.services.email_service import (
-  send_reservation_created_email,
-  send_reservation_cancelled_email,
-  send_reservation_ready_email
-)
-from . import dtos, repository, models
+from src.api.reservations import repository as reservation_repository
+from src.api.loans import repository as loan_repository
+from src.services import email_service
+from . import dtos, repository
+
+logger = logging.getLogger(__name__)
 
 
 # -----------------------------------------------------------------
@@ -78,18 +81,7 @@ def create(db: Session, dto: dtos.CreateNotificationDTO):
       raise ValueError("Error al crear la Notificacion")
 
     # Disparar email (efecto secundario resiliente)
-    try:
-      user_email = created.user.email if created.user else None
-      if user_email:
-        _send_email_by_title(
-          title=created.title,
-          user_email=user_email,
-          message=created.message
-        )
-    except Exception:
-      # Log opcional: no interrumpe la notificación si falla el email
-      print(f"Error al enviar el email: {e}")
-      pass
+
 
     return dtos.NotificationDTO.model_validate(created)
   except Exception as e:
@@ -97,67 +89,92 @@ def create(db: Session, dto: dtos.CreateNotificationDTO):
 
 
 # -----------------------------------------------------------------
-# HELPER - Send email based on notification title
-def _send_email_by_title(title: str, user_email: str, message: str):
-  """
-  Dispatch email sending based on notification title.
-  Extracts reservation_id from message to pass to email functions.
-  """
-  # Mapping: notification title -> (email_function, extra_args)
-  email_mapping = {
-    "RESERVA CREADA": (
-      send_reservation_created_email,
-      {"book_title": _extract_book_title(message), "expiration_date": _extract_expiration_date(message)}
-    ),
-    "RESERVA CANCELADA": (
-      send_reservation_cancelled_email,
-      {"book_title": _extract_book_title(message)}
-    ),
-    "RESERVA LISTA": (
-      send_reservation_ready_email,
-      {"book_title": _extract_book_title(message)}
-    ),
-  }
+# CREATE NOTIFICATION FOR RESERVATION
+def create_notification_for_reservation_and_send_email(db: Session, reservation_id: int):
+  try:
+    reservation = reservation_repository.get_by_id(db, reservation_id)
 
-  if title in email_mapping:
-    email_func, extra_args = email_mapping[title]
-    # Extract reservation_id from message (e.g., "Reserva #123 registrada")
-    reservation_id = _extract_reservation_id(message)
-    if reservation_id > 0:
-      email_func(
-        to_email=user_email,
-        reservation_id=reservation_id,
-        **extra_args
-      )
+    email_data = email_service.email_data_reservation(
+      id_reservation=reservation.id_reservation,
+      book_title=reservation.copy.edition.book.title,
+      book_barcode=reservation.copy.barcode,
+      user_email=reservation.user.email,
+      expiration_date=reservation.expiration_date
+    )
+
+    notification = dtos.CreateNotificationDTO(
+      title="RESERVA CREADA",
+      message=f"Reserva #{email_data.id_reservation} registrada. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}. Vence: {email_data.expiration_date.strftime('%d-%m-%Y')}",
+      is_priority=False,
+      user_id=reservation.user_id
+    )
+
+    # Crear Notificacion
+    created = repository.create(db, notification.model_dump(exclude_unset=True))
+
+    if not created or not created.id_notification:
+      raise ValueError("Error al crear la Notificacion")
+
+    # Disparar email (efecto secundario resiliente)
+    try:
+      if email_data:
+        email_service.send_reservation_created_email(data=email_data)
+    except Exception:
+      print(f"Error al enviar el email: {created.id_reservation}")
+      logger.error(f"Error al enviar el email: {created.id_reservation}", exc_info=True)
+      pass
+
+  except Exception as e:
+    raise e
 
 
 # -----------------------------------------------------------------
-# HELPERS - Extract data from notification message
-def _extract_reservation_id(message: str) -> int:
-  """Extract reservation ID from notification message like 'Reserva #123 registrada'."""
-  import re
-  match = re.search(r'Reserva #(\d+)', message)
-  if match:
-    return int(match.group(1))
-  return 0
+# CREATE NOTIFICATION FOR CANCEL RESERVATION
+def cancel_notification_for_reservation_and_send_email(db: Session, reservation_id: int):
+  try:
+    reservation = reservation_repository.get_by_id(db, reservation_id)
+
+    email_data = email_service.email_data_reservation(
+      id_reservation=reservation.id_reservation,
+      book_title=reservation.copy.edition.book.title,
+      book_barcode=reservation.copy.barcode,
+      user_email=reservation.user.email,
+    )
+
+    notification = dtos.CreateNotificationDTO(
+      title="RESERVA CANCELADA",
+      message=f"Reserva #{email_data.id_reservation} registrada. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}.",
+      is_priority=False,
+      user_id=reservation.user_id
+    )
+
+    # Crear Notificacion
+    created = repository.create(db, notification.model_dump(exclude_unset=True))
+
+    if not created or not created.id_notification:
+      raise ValueError("Error al crear la Notificacion")
+
+    # Disparar email (efecto secundario resiliente)      
+    try:
+      if email_data:
+        email_service.send_reservation_cancelled_email(data=email_data)
+    except Exception:
+      print(f"Error creando notificación para reserva cancelada {id}")
+      logger.error(f"Error creando notificación para reserva cancelada {id}", exc_info=True)
+      pass
+
+  except Exception as e:
+    raise e
 
 
-def _extract_book_title(message: str) -> str:
-  """Extract book title from notification message."""
-  if "Ejemplar:" in message:
-    parts = message.split("Ejemplar:")
-    if len(parts) > 1:
-      return parts[1].split(".")[0].strip()
-  return "Libro"
+# -----------------------------------------------------------------
+# CREATE NOTIFICATION FOR CANCEL RESERVATION
+def create_notification_for_loan_and_send_email(db: Session, codebar: str):
+  try:
+    loan = loan_repository.get_active_by_barcode(db, codebar)
 
-
-def _extract_expiration_date(message: str) -> str:
-  """Extract expiration date from notification message."""
-  if "Vence:" in message:
-    parts = message.split("Vence:")
-    if len(parts) > 1:
-      return parts[1].strip()
-  return ""
+  except Exception as e:
+    raise e
 
 
 # -----------------------------------------------------------------
@@ -173,23 +190,3 @@ def mark_as_read(db: Session, id: int):
 # MARK ALL AS READ
 def mark_all_as_read(db: Session, user_id: str):
   return repository.mark_all_as_read(db, user_id)
-
-
-# -----------------------------------------------------------------
-# DELETE
-def delete(db: Session, id: int):
-  return repository.delete(db, id)
-
-
-def _to_dto(notification: models.Notification) -> dtos.NotificationDTO:
-  return dtos.NotificationDTO(
-    id_notification=notification.id_notification,
-    title=notification.title,
-    message=notification.message,
-    is_priority=notification.is_priority,
-    is_read=notification.is_read,
-    user_id=notification.user_id,
-    user_name=notification.user.name if notification.user else None,
-    user_email=notification.user.email if notification.user else None,
-    created_at=notification.created_at
-  )

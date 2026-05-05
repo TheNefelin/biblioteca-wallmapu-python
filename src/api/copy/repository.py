@@ -21,7 +21,7 @@ def get_all(db: Session) -> list[models.Copy]:
 
 # -----------------------------------------------------------------
 # GET BY ID
-def get_by_id(id: int, db: Session) -> models.Copy | None:
+def get_by_id(db: Session, id: int) -> models.Copy | None:
   try:
     item = (
       db.query(models.Copy)
@@ -42,7 +42,7 @@ def get_by_id(id: int, db: Session) -> models.Copy | None:
 
 # -----------------------------------------------------------------
 # GET BY EDITION ID
-def get_by_edition_id(id: int, db: Session) -> list[models.Copy]:
+def get_by_edition_id(db: Session, id: int) -> list[models.Copy]:
   try:
     items = (
       db.query(models.Copy)
@@ -89,7 +89,7 @@ def copy_number_exists(db: Session, edition_id: int, copy_number: int, exclude_i
 
 # -----------------------------------------------------------------
 # CREATE
-def create(data: dict, db: Session) -> models.Copy:
+def create(db: Session, data: dict) -> models.Copy:
   try:
     new_item = models.Copy(**data)
     
@@ -107,7 +107,7 @@ def create(data: dict, db: Session) -> models.Copy:
 
 # -----------------------------------------------------------------
 # UPDATE
-def update(id: int, data: dict, db: Session) -> models.Copy | None:
+def update(db: Session, id: int, data: dict) -> models.Copy | None:
   try:
     item = (
       db.query(models.Copy)
@@ -160,7 +160,7 @@ def get_by_book_id_and_status(db: Session, book_id: int, status_id: int) -> list
 
 # -----------------------------------------------------------------
 # DELETE
-def delete(id: int, db: Session) -> bool:
+def delete(db: Session, id: int) -> bool:
   try:
     item = (
       db.query(models.Copy)

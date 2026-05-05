@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.api.loan_policies.repository import get_default_policy
+from src.api.notifications.service import create as create_notification
+from src.api.notifications.dtos import CreateNotificationDTO
 from . import dtos, repository, models
 
 
@@ -111,12 +113,25 @@ def return_loan_by_copy_id(db: Session, copy_id: int) -> dtos.LoanDTO | None:
   try:
     loan = repository.get_active_loan_by_copy_id(db, copy_id)
     if not loan:
-      raise ValueError("No hay préstamo activo para este exemplar")
+      raise ValueError("No hay préstamo activo para este ejemplar")
 
     if int(loan.loan_status_id) == 2:
       raise ValueError("Este préstamo ya fue devuelto")
 
     item = repository.return_loan(db, int(loan.id_loan))
+    
+    # Notificación resiliente
+    try:
+      notification_dto = CreateNotificationDTO(
+        title="PRÉSTAMO DEVUELTO",
+        message=f"Préstamo #{item.id_loan} devuelto exitosamente.",
+        is_priority=False,
+        user_id=item.user_id
+      )
+      create_notification(db, notification_dto)
+    except Exception:
+      pass
+    
     return dtos.LoanDTO.model_validate(item)
   except Exception as e:
     db.rollback()

@@ -149,7 +149,7 @@ def get_active_loan_by_copy_id(db: Session, copy_id: int) -> models.Loan | None:
       .filter(
         and_(
           models.Loan.copy_id == copy_id,
-          models.Loan.loan_status_id == 1
+          models.Loan.loan_status_id != 2
         )
       )
       .first()
@@ -175,6 +175,31 @@ def get_active_by_book_id(db: Session, book_id: int) -> list[models.Loan]:
         and_(
           edition_models.Edition.book_id == book_id,
           models.Loan.loan_status_id == 1
+        )
+      )
+      .all()
+    )
+  except SQLAlchemyError as e:
+    raise e
+
+
+# -----------------------------------------------------------------
+# GET ACTIVE BY USER (returns tuples: id_loan, id_copy, book_id)
+def get_active_by_user(db: Session, user_id: UUID) -> list[tuple]:
+  """Retorna lista de (id_loan, id_copy, book_id) activos del usuario"""
+  try:
+    return (
+      db.query(
+        models.Loan.id_loan,
+        models.Loan.copy_id,
+        edition_models.Edition.book_id
+      )
+      .join(copy_models.Copy, models.Loan.copy_id == copy_models.Copy.id_copy)
+      .join(edition_models.Edition, copy_models.Copy.edition_id == edition_models.Edition.id_edition)
+      .filter(
+        and_(
+          models.Loan.user_id == user_id,
+          models.Loan.loan_status_id.in_([1, 3])  # 1=activo, 3=vencido
         )
       )
       .all()
@@ -229,14 +254,21 @@ def create(db: Session, loan: models.Loan) -> models.Loan:
 # RETURN
 def return_loan(db: Session, loan_id: int) -> models.Loan:
   try:
-    loan = db.query(models.Loan).filter(models.Loan.id_loan == loan_id).first()
+    loan = (
+      db.query(models.Loan)
+      .filter(models.Loan.id_loan == loan_id)
+      .first()
+    )
+    
     if loan:
       loan.return_date = date.today()
       loan.loan_status_id = 2
       
-      copy = db.query(copy_models.Copy).filter(copy_models.Copy.id_copy == loan.copy_id).first()
-      if copy:
-        copy.status_id = 1
+      (
+        db.query(copy_models.Copy)
+        .filter(copy_models.Copy.id_copy == loan.copy_id)
+        .update({"status_id": 1})
+      )
       
       db.commit()
       db.refresh(loan)
@@ -250,7 +282,7 @@ def return_loan(db: Session, loan_id: int) -> models.Loan:
 # UPDATE - EXPIRE OVERDUE
 def expire_overdue_as_overdue(db: Session) -> int:
   try:
-    result = (
+    overdue_loans = (
       db.query(models.Loan)
       .filter(
         and_(
@@ -258,8 +290,19 @@ def expire_overdue_as_overdue(db: Session) -> int:
           models.Loan.loan_status_id == 1
         )
       )
-      .update({"loan_status_id": 3})
     )
+    
+    copy_ids = [loan.copy_id for loan in overdue_loans.all()]
+    
+    result = overdue_loans.update({"loan_status_id": 3})
+    
+    if copy_ids:
+      (
+        db.query(copy_models.Copy)
+        .filter(copy_models.Copy.id_copy.in_(copy_ids))
+        .update({"status_id": 2}, synchronize_session=False)
+      )
+    
     db.commit()
     return result
   except SQLAlchemyError as e:

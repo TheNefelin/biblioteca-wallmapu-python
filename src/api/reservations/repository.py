@@ -3,11 +3,11 @@ from math import ceil
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_
-from src.api.copy.models import Copy
-from src.api.editions.models import Edition
+
+from src.api.editions import models as edition_models
+from src.api.copy import models as copy_models
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
 from . import models
-
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
@@ -18,8 +18,8 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
       .options(
         joinedload(models.Reservation.user),
         joinedload(models.Reservation.copy)
-          .joinedload(Copy.edition)
-          .joinedload(Edition.book),
+          .joinedload(copy_models.Copy.edition)
+          .joinedload(edition_models.Edition.book),
         joinedload(models.Reservation.status)
       )
     )
@@ -44,8 +44,8 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
       .all()
     )
 
-    next_url = f"/api/reservations/pagination/user?page={page + 1}&limit={pagination.limit}" if page < total_pages else None
-    prev_url = f"/api/reservations/pagination/user?page={page - 1}&limit={pagination.limit}" if page > 1 else None
+    next_url = f"/api/reservations/pagination?page={page + 1}&limit={pagination.limit}" if page < total_pages else None
+    prev_url = f"/api/reservations/pagination?page={page - 1}&limit={pagination.limit}" if page > 1 else None
 
     return PaginationResponseDTO(
       page=page,
@@ -61,15 +61,15 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
 
 # -----------------------------------------------------------------
 # GET USER PAGINATION
-def get_user_pagination(db: Session, user_id: UUID, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+def get_all_pagination_by_user(db: Session, user_id: UUID, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
   try:
     query = (
       db.query(models.Reservation)
       .options(
         joinedload(models.Reservation.user),
         joinedload(models.Reservation.copy)
-          .joinedload(Copy.edition)
-          .joinedload(Edition.book),
+          .joinedload(copy_models.Copy.edition)
+          .joinedload(edition_models.Edition.book),
         joinedload(models.Reservation.status)
       )
       .filter(models.Reservation.user_id == user_id)
@@ -118,7 +118,9 @@ def get_by_id(db: Session, id: int) -> models.Reservation:
       db.query(models.Reservation)
       .options(
         joinedload(models.Reservation.user),
-        joinedload(models.Reservation.copy).joinedload(Copy.edition).joinedload(Edition.book),
+        joinedload(models.Reservation.copy)
+          .joinedload(copy_models.Copy.edition)
+          .joinedload(edition_models.Edition.book),
         joinedload(models.Reservation.status)
       )
       .filter(models.Reservation.id_reservation == id)
@@ -128,69 +130,24 @@ def get_by_id(db: Session, id: int) -> models.Reservation:
     raise e
 
 
-def get_active_by_user_and_copy(db: Session, user_id: UUID, copy_id: int) -> models.Reservation:
+# -----------------------------------------------------------------
+# UPDATE RESERVATION STATUS
+def update_status(db: Session, id: int, status_id: int) -> models.Reservation:
   try:
-    return (
+    reservation = (
       db.query(models.Reservation)
-      .filter(
-        and_(
-          models.Reservation.user_id == user_id,
-          models.Reservation.copy_id == copy_id,
-          models.Reservation.reservation_status_id == 1
-        )
-      )
+      .filter(models.Reservation.id_reservation == id)
       .first()
     )
-  except SQLAlchemyError as e:
-    raise e
-
-
-def get_active_reservation_by_copy_id(db: Session, copy_id: int) -> models.Reservation | None:
-  try:
-    return (
-      db.query(models.Reservation)
-      .options(
-        joinedload(models.Reservation.user),
-        joinedload(models.Reservation.copy),
-        joinedload(models.Reservation.status)
-      )
-      .filter(
-        and_(
-          models.Reservation.copy_id == copy_id,
-          models.Reservation.reservation_status_id == 1
-        )
-      )
-      .order_by(models.Reservation.reservation_date.asc())
-      .first()
-    )
-  except SQLAlchemyError as e:
-    raise e
-
-
-def get_active_by_book_id(db: Session, book_id: int) -> list[models.Reservation]:
-  try:
-    from src.api.copy.models import Copy
-    from src.api.editions.models import Edition
     
-    return (
-      db.query(models.Reservation)
-      .join(Copy, models.Reservation.copy_id == Copy.id_copy)
-      .join(Edition, Copy.edition_id == Edition.id_edition)
-      .options(
-        joinedload(models.Reservation.user),
-        joinedload(models.Reservation.copy),
-        joinedload(models.Reservation.status)
-      )
-      .filter(
-        and_(
-          Edition.book_id == book_id,
-          models.Reservation.reservation_status_id == 1
-        )
-      )
-      .order_by(models.Reservation.reservation_date.asc())
-      .all()
-    )
+    if reservation:
+      reservation.reservation_status_id = status_id
+      db.commit()
+      db.refresh(reservation)
+    
+    return reservation
   except SQLAlchemyError as e:
+    db.rollback()
     raise e
 
 
@@ -216,38 +173,68 @@ def expire_overdue_as_expired(db: Session) -> int:
     raise e
 
 
-def create(db: Session, reservation: models.Reservation) -> models.Reservation:
+# -----------------------------------------------------------------
+# CREATE
+def create(db: Session, data: dict) -> models.Reservation:
   try:
-    db.add(reservation)
+    item = models.Reservation(**data)
+
+    db.add(item)
     db.commit()
-    db.refresh(reservation)
-    return reservation
+    db.refresh(item)
+    
+    return item
   except SQLAlchemyError as e:
     db.rollback()
     raise e
 
 
-def update_status(db: Session, id: int, status_id: int) -> models.Reservation:
+# -----------------------------------------------------------------
+# GET ACTIVE RESERVATIONS BY BOOK ID
+def get_active_by_book_id(db: Session, book_id: int) -> list[models.Reservation]:
   try:
-    reservation = db.query(models.Reservation).filter(models.Reservation.id_reservation == id).first()
-    if reservation:
-      reservation.reservation_status_id = status_id
-      db.commit()
-      db.refresh(reservation)
-    return reservation
+    return (
+      db.query(models.Reservation)
+      .join(copy_models.Copy, models.Reservation.copy_id == copy_models.Copy.id_copy)
+      .join(edition_models.Edition, copy_models.Copy.edition_id == edition_models.Edition.id_edition)
+      .options(
+        joinedload(models.Reservation.user),
+        joinedload(models.Reservation.copy),
+        joinedload(models.Reservation.status)
+      )
+      .filter(
+        and_(
+          edition_models.Edition.book_id == book_id,
+          models.Reservation.reservation_status_id == 1
+        )
+      )
+      .order_by(models.Reservation.reservation_date.asc())
+      .all()
+    )
   except SQLAlchemyError as e:
-    db.rollback()
     raise e
 
 
-def delete(db: Session, id: int) -> bool:
+# -----------------------------------------------------------------
+# GET ACTIVE RESERVATIONS BY USER (returns tuples: id_reservation, id_copy, book_id)
+def get_active_by_user(db: Session, user_id: UUID) -> list[tuple]:
+  """Retorna lista de (id_reservation, id_copy, book_id) activas del usuario"""
   try:
-    reservation = db.query(models.Reservation).filter(models.Reservation.id_reservation == id).first()
-    if reservation:
-      db.delete(reservation)
-      db.commit()
-      return True
-    return None
+    return (
+      db.query(
+        models.Reservation.id_reservation,
+        models.Reservation.copy_id,
+        edition_models.Edition.book_id
+      )
+      .join(copy_models.Copy, models.Reservation.copy_id == copy_models.Copy.id_copy)
+      .join(edition_models.Edition, copy_models.Copy.edition_id == edition_models.Edition.id_edition)
+      .filter(
+        and_(
+          models.Reservation.user_id == user_id,
+          models.Reservation.reservation_status_id == 1
+        )
+      )
+      .all()
+    )
   except SQLAlchemyError as e:
-    db.rollback()
     raise e

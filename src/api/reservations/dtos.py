@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 from uuid import UUID
 
@@ -11,19 +12,11 @@ class CreateReservationDTO(BaseModel):
 
 
 class ReservationDTO(CreateReservationDTO):
-  """DTO de reserva con campos básicos"""
-  id_reservation: int = Field(..., description="ID único de la reserva")
-  reservation_date: datetime = Field(..., description="Fecha de creación de la reserva")
-  expiration_date: datetime = Field(..., description="Fecha límite para retirar la reserva")
-  user_id: UUID = Field(..., description="UUID del usuario que reserva")
-  reservation_status_id: int = Field(..., description="ID del estado de la reserva (1=pendiente, 2=retirada, 3=cancelada, 4=vencida)")
-
-  model_config = ConfigDict(from_attributes=True)
-
-
-class ReservationFilterDTO(BaseModel):
-  """DTO de filtros para paginación de reservas"""
-  id_status: int = Field(default=0, description="ID del estado para filtrar (0 = todos, 1=pendiente, 2=retirada, 3=cancelada, 4=vencida)")
+  id_reservation: Optional[int] = None
+  reservation_date: Optional[datetime] = None
+  expiration_date: datetime
+  user_id: UUID
+  reservation_status_id: Optional[int] = None
 
 
 class ReservationDetailDTO(BaseModel):
@@ -51,3 +44,8 @@ class ReservationPickupDTO(BaseModel):
   copy_id: int = Field(..., description="ID del ejemplar a entregar")
 
   model_config = ConfigDict(from_attributes=True)
+
+
+class ReservationFilterDTO(BaseModel):
+  """DTO de filtros para paginación de reservas"""
+  id_status: int = Field(default=0, description="ID del estado para filtrar (0 = todos, 1=pendiente, 2=retirada, 3=cancelada, 4=vencida)")

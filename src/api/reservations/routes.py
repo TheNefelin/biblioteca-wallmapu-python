@@ -28,7 +28,7 @@ router = APIRouter(
   status_code=HTTP_200_OK,
   summary="Listar todas las reservas con paginación",
   description="Retorna lista paginada de reservas. Filtros: id_status (1=pendiente, 2=retirada, 3=cancelada, 4=vencida)",
-  #dependencies=[admin_required]
+  dependencies=[admin_required]
 )
 def get_reservations_paginated(
   page: int = Query(default=1, ge=1),
@@ -68,7 +68,7 @@ def get_my_reservations_paginated(
   limit: int = Query(default=10, ge=1, le=100),
   search: str = Query(default=""),
   id_status: int = Query(default=0),
-  current_user = Depends(get_current_user()),
+  current_user: dict = Depends(get_current_user()),  
   db: Session = Depends(get_db)
 ):
   try:
@@ -83,7 +83,7 @@ def get_my_reservations_paginated(
       filter=filter
     )
     
-    pagination_response = service.get_user_pagination(db, user_id, pagination_request)
+    pagination_response = service.get_all_pagination_by_user(db, user_id, pagination_request)
     return ApiResponse.success(data=pagination_response)
   except Exception as e:
     return ApiResponse.server_error(str(e))
@@ -122,10 +122,15 @@ def get_reservation_by_id(
 def create_reservation(
   dto: dtos.CreateReservationDTO,
   db: Session = Depends(get_db),
-  current_user = Depends(get_current_user())
+  current_user: dict = Depends(get_current_user()),
 ):
-  res = service.create(db, current_user["sub"], dto)
-  return ApiResponse.created(data=res, message="Reserva creada exitosamente")
+  try:
+    res = service.create(db, current_user["sub"], dto)
+    return ApiResponse.created(data=res, message="Reserva creada exitosamente")
+  except ValueError as e:
+    return ApiResponse.bad_request(message=str(e))
+  except Exception as e:
+    return ApiResponse.server_error(message=str(e))
 
 
 # -----------------------------------------------------------------
@@ -167,7 +172,7 @@ def mark_reservation_as_pickup(
 def cancel_reservation(
   id: int,
   db: Session = Depends(get_db),
-  current_user = Depends(get_current_user())
+  current_user: dict = Depends(get_current_user()),
 ):
   try:
     reservation = service.get_by_id(db, id)

@@ -45,7 +45,7 @@ def get_copy_by_id(
   db: Session = Depends(get_db)
 ):
   try:
-    res = service.get_by_id(id, db)
+    res = service.get_by_id(db, id)
 
     if not res:
       return ApiResponse.not_found()
@@ -67,7 +67,7 @@ def get_all_copy_by_edition_id(
   db: Session = Depends(get_db)
 ):
   try:
-    res = service.get_by_edition_id(id_edition, db)
+    res = service.get_by_edition_id(db, id_edition)
     return ApiResponse.success(data=res)    
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
@@ -90,7 +90,7 @@ def create_copy(
     if not copy.copy_number > 0:
       return ApiResponse.bad_request(message="El numero de copia debe ser mayor a 0")      
           
-    res = service.create(copy, db)
+    res = service.create(db, copy)
 
     return ApiResponse.success(data=res)
   except ValueError as e:
@@ -121,7 +121,7 @@ def update_copy(
     if not copy.status_id:
       return ApiResponse.bad_request(message="El status_id es requerido")      
       
-    res = service.update(id, copy, db)
+    res = service.update(db, id, copy)
     
     if not res:
       return ApiResponse.not_found()
@@ -145,7 +145,7 @@ def delete_copy(
   db: Session = Depends(get_db)
 ):
   try:
-    res = service.delete(id, db)
+    res = service.delete(db, id)
 
     if res is None:
       return ApiResponse.not_found()
