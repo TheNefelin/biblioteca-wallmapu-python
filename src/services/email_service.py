@@ -7,12 +7,82 @@ from src.core.config import settings
 
 
 @dataclass
+class AdminEmailData:
+  title: str
+  message: str
+  is_priority: bool
+  user_email: str
+
+
+@dataclass
 class EmailData:
   id: int
   book_title: str
   book_barcode: str
   user_email: str
   expiration_date: Optional[datetime] = None
+
+
+# -----------------------------------------------------------------
+# TEMPLATE: Admin Message
+def send_admin_email(
+  data: AdminEmailData
+) -> Optional[dict]:
+
+  priority_banner = ""
+  priority_subject_prefix = ""
+
+  if data.is_priority:
+    priority_banner = """
+      <div style="
+        background: #D32F2F;
+        color: white;
+        padding: 12px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-weight: bold;
+      ">
+        ⚠️ MENSAJE DE ALTA PRIORIDAD ⚠️
+      </div>
+    """
+    priority_subject_prefix = "[IMPORTANTE] "
+
+  html = f"""
+  <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <div style="max-width: 600px; margin:0 auto; padding: 20px;">
+        
+        {priority_banner}
+
+        <h2 style="color: {'#D32F2F' if data.is_priority else '#4A148C'};">
+          {data.title}
+        </h2>
+
+        <div style="
+          background: #f8f9fa;
+          padding: 15px;
+          border-radius: 5px;
+          margin: 20px 0;
+          border-left: 5px solid {'#D32F2F' if data.is_priority else '#4A148C'};
+        ">
+          <p style="white-space: pre-line;">
+            {data.message}
+          </p>
+        </div>
+
+        <p style="color: #00897B;">
+          Este es un mensaje enviado por la administración de la Biblioteca Wallmapu.
+        </p>
+
+      </div>
+    </body>
+  </html>
+  """
+
+  subject = f"{priority_subject_prefix}{data.title}"
+
+  return send_email(data.user_email, subject, html)
 
 
 # -----------------------------------------------------------------

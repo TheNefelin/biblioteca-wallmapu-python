@@ -26,4 +26,16 @@ class NotificationDTO(CreateNotificationDTO, UpdateNotificationDTO):
   """DTO de notificación con todos los campos básicos"""
   created_at: datetime = Field(..., description="Fecha de creación de la notificación")
 
+
+class NotificationDetailDTO(NotificationDTO):
+  """DTO plano para listados con datos del usuario"""
+  email: str = Field(..., description="Email del usuario destinatario")
+
+
+class CreateNotificationByEmailDTO(BaseModel):
+  email: str;
+  title: str;
+  message: str;
+  is_priority: bool;
+
   model_config = ConfigDict(from_attributes=True)

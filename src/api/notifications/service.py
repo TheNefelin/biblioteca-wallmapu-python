@@ -1,10 +1,12 @@
 from datetime import date
+from email import message
 from sqlalchemy.orm import Session
 import logging
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.api.reservations import repository as reservation_repository
 from src.api.loans import repository as loan_repository
+from src.api.users import repository as user_repository
 from src.services import email_service
 from . import dtos, repository
 
@@ -13,13 +15,16 @@ logger = logging.getLogger(__name__)
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATED (Admin)
-def get_all_paginated(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[dtos.NotificationDTO]]:
+def get_all_paginated(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[dtos.NotificationDetailDTO]]:
   pagination_response = repository.get_all_paginated(db, pagination)
   items = pagination_response.data or []
 
-  data = [dtos.NotificationDTO.model_validate(item) for item in items]
+  data = [dtos.NotificationDetailDTO(
+    **dtos.NotificationDTO.model_validate(item).model_dump(),
+    email=item.user.email if item.user else ""
+  ) for item in items]
 
-  return PaginationResponseDTO[list[dtos.NotificationDTO]](
+  return PaginationResponseDTO[list[dtos.NotificationDetailDTO]](
     page=pagination_response.page,
     pages=pagination_response.pages,
     items=pagination_response.items,
@@ -31,13 +36,16 @@ def get_all_paginated(db: Session, pagination: PaginationRequestDTO) -> Paginati
 
 # -----------------------------------------------------------------
 # GET BY USER PAGINATED
-def get_by_user_paginated(db: Session, user_id: str, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[dtos.NotificationDTO]]:
+def get_by_user_paginated(db: Session, user_id: str, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[dtos.NotificationDetailDTO]]:
   pagination_response = repository.get_by_user_paginated(db, user_id, pagination)
   items = pagination_response.data or []
 
-  data = [dtos.NotificationDTO.model_validate(item) for item in items]
+  data = [dtos.NotificationDetailDTO(
+    **dtos.NotificationDTO.model_validate(item).model_dump(),
+    email=item.user.email if item.user else ""
+  ) for item in items]
 
-  return PaginationResponseDTO[list[dtos.NotificationDTO]](
+  return PaginationResponseDTO[list[dtos.NotificationDetailDTO]](
     page=pagination_response.page,
     pages=pagination_response.pages,
     items=pagination_response.items,
@@ -71,13 +79,39 @@ def get_by_id(db: Session, id: int):
 
 # -----------------------------------------------------------------
 # CREATE
-def create(db: Session, dto: dtos.CreateNotificationDTO):
-  created = repository.create(db, dto.model_dump(exclude_unset=True))
+def create(db: Session, dto: dtos.CreateNotificationByEmailDTO) -> dtos.NotificationDetailDTO | None:
+  user = user_repository.get_by_email(db, dto.email)
+
+  if not user:
+    raise ValueError("El Usuario no Existe en la Base de Datos")
+
+  email_data = email_service.AdminEmailData(
+    title=dto.title,
+    message=dto.message,
+    is_priority=dto.is_priority,
+    user_email=dto.email,
+  )
+
+  notification = dtos.CreateNotificationDTO(
+    title=dto.title,
+    message=dto.message,
+    is_priority=dto.is_priority,
+    user_id=user.id_user
+  )
+  
+  created = repository.create(db, notification.model_dump(exclude_unset=True))
 
   if not created or not created.id_notification:
     raise ValueError("Error al crear la Notificacion")
 
-  return dtos.NotificationDTO.model_validate(created)
+  try:
+    response = email_service.send_admin_email(data=email_data)
+
+    if not response or response.get("messageId") is None:
+      logger.warning(f"Email no fue enviado correctamente para notification {created.id_notification}")
+  except Exception:
+    print(f"Error al enviar el email: {created.id_notification}")
+    logger.error(f"Error al enviar el email: {created.id}", exc_info=True)
 
 
 # -----------------------------------------------------------------
@@ -108,8 +142,8 @@ def notification_for_create_reservation_and_send_email(db: Session, reservation_
   try:
     email_service.send_reservation_created_email(data=email_data)
   except Exception:
-    print(f"Error al enviar el email: {created.id}")
-    logger.error(f"Error al enviar el email: {created.id}", exc_info=True)
+    print(f"Error al enviar el email: {created.id_notification}")
+    logger.error(f"Error al enviar el email: {created.id_notification}", exc_info=True)
 
 
 # -----------------------------------------------------------------
@@ -171,8 +205,8 @@ def notification_for_create_loan_and_send_email(db: Session, loan_id: int):
   try:
     email_service.send_loan_created_email(data=email_data)
   except Exception:
-    print(f"Error al enviar el email: {created.id}")
-    logger.error(f"Error al enviar el email: {created.id}", exc_info=True)
+    print(f"Error al enviar el email: {created.id_notification}")
+    logger.error(f"Error al enviar el email: {created.id_notification}", exc_info=True)
 
 
 # -----------------------------------------------------------------
@@ -202,8 +236,8 @@ def notification_for_return_loan_and_send_email(db: Session, loan_id: int):
   try:
     email_service.send_loan_returned_email(data=email_data)
   except Exception:
-    print(f"Error al enviar el email: {created.id}")
-    logger.error(f"Error al enviar el email: {created.id}", exc_info=True)
+    print(f"Error al enviar el email: {created.id_notification}")
+    logger.error(f"Error al enviar el email: {created.id_notification}", exc_info=True)
 
 
 # -----------------------------------------------------------------

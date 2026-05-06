@@ -92,6 +92,20 @@ def get_by_id_detailed(
     raise e
   
 # -----------------------------------------------------------------
+# GET BY EMAIL
+def get_by_email(db: Session, email: str) -> models.User:
+  return (
+      db.query(models.User)
+      .options(
+        joinedload(models.User.commune),
+        joinedload(models.User.user_role),
+        joinedload(models.User.user_status),                
+      )
+      .filter(models.User.email == email)
+      .first()
+    )
+
+# -----------------------------------------------------------------
 # GET OR CREATE
 def get_or_create_user(
   email: str,

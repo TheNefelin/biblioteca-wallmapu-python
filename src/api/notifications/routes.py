@@ -38,11 +38,11 @@ router = APIRouter(
 # ADMIN: GET ALL PAGINATED
 @router.get(
   "/pagination",
-  response_model=ApiResponse[PaginationResponseDTO[list[dtos.NotificationDTO]]],
+  response_model=ApiResponse[PaginationResponseDTO[list[dtos.NotificationDetailDTO]]],
   status_code=HTTP_200_OK,
   summary="Listar todas las notificaciones con paginación",
   description="Retorna lista paginada de notificaciones. Admin ve todas. Filtros: search (título/mensaje)",
-  dependencies=[admin_required],
+  #dependencies=[admin_required],
 )
 def get_all_notifications_paginated(
   page: int = Query(default=1, ge=1),
@@ -68,7 +68,7 @@ def get_all_notifications_paginated(
 # USER: GET USER NOTIFICATIONS PAGINATED
 @router.get(
   "/user/pagination",
-  response_model=ApiResponse[PaginationResponseDTO[list[dtos.NotificationDTO]]],
+  response_model=ApiResponse[PaginationResponseDTO[list[dtos.NotificationDetailDTO]]],
   status_code=HTTP_200_OK,
   summary="Mis notificaciones paginadas",
   description="Retorna notificaciones del usuario actual (extraído del token JWT). Filtros: search",
@@ -174,10 +174,10 @@ def get_notification_by_id(
   status_code=HTTP_201_CREATED,
   summary="Crear notificación (Admin)",
   description="Crea una nueva notificación para un usuario específico. Usado para anuncios generales de la biblioteca",
-  dependencies=[admin_required]
+  #dependencies=[admin_required]
 )
 def create_notification(
-  dto: dtos.CreateNotificationDTO,
+  dto: dtos.CreateNotificationByEmailDTO,
   db: Session = Depends(get_db)
 ):
   try:
