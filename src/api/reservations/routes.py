@@ -97,7 +97,7 @@ def get_my_reservations_paginated(
   status_code=HTTP_200_OK,
   summary="Obtener una reserva por ID",
   description="Retorna los detalles completos de una reserva específica por su ID",
-    dependencies=[user_or_admin_required]
+  dependencies=[user_or_admin_required]
 )
 def get_reservation_by_id(
   id: int,

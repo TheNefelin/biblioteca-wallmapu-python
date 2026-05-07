@@ -20,7 +20,7 @@ deactivate
 
 ### 2. Instalar dependencias
 ```sh
-pip install fastapi uvicorn sqlalchemy psycopg2-binary python-dotenv pydantic pydantic-settings
+pip install fastapi uvicorn[standard] sqlalchemy psycopg2-binary python-dotenv pydantic pydantic-settings
 pip install python-jose[cryptography]
 pip install pydantic[email]
 pip install pillow

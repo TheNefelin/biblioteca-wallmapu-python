@@ -1,5 +1,3 @@
-from datetime import date
-from email import message
 from sqlalchemy.orm import Session
 import logging
 
@@ -98,7 +96,7 @@ def create(db: Session, dto: dtos.CreateNotificationByEmailDTO) -> dtos.Notifica
     is_priority=dto.is_priority,
     user_id=user.id_user
   )
-  
+
   created = repository.create(db, notification.model_dump(exclude_unset=True))
 
   if not created or not created.id_notification:
@@ -111,7 +109,7 @@ def create(db: Session, dto: dtos.CreateNotificationByEmailDTO) -> dtos.Notifica
       logger.warning(f"Email no fue enviado correctamente para notification {created.id_notification}")
   except Exception:
     print(f"Error al enviar el email: {created.id_notification}")
-    logger.error(f"Error al enviar el email: {created.id}", exc_info=True)
+    logger.error(f"Error al enviar el email: {created.id_notification}", exc_info=True)
 
 
 # -----------------------------------------------------------------
@@ -246,11 +244,11 @@ def mark_as_read(db: Session, id: int, user_id: str) -> bool:
   notification = repository.get_by_id(db, id)
   if not notification:
     return False
-  
+    
   # Validar que la notificación pertenezca al usuario
   if str(notification.user_id) != str(user_id):
     return False
-  
+    
   repository.mark_as_read(db, id)
   return True
 

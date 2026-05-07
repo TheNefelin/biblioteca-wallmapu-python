@@ -32,10 +32,15 @@ class NotificationDetailDTO(NotificationDTO):
   email: str = Field(..., description="Email del usuario destinatario")
 
 
+class NotificationFilterDTO(BaseModel):
+  is_read: bool = Field(default=True, description="filtrar (true = todos, false = solo los no leido)")
+
+
 class CreateNotificationByEmailDTO(BaseModel):
-  email: str;
-  title: str;
-  message: str;
-  is_priority: bool;
+  """DTO para crear notificación usando email en lugar de user_id"""
+  email: str = Field(..., description="Email del usuario destinatario")
+  title: str = Field(..., description="Título de la notificación")
+  message: str = Field(..., description="Mensaje detallado de la notificación")
+  is_priority: bool = Field(default=False, description="True = Alta prioridad, False = Normal")
 
   model_config = ConfigDict(from_attributes=True)

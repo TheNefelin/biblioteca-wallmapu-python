@@ -14,6 +14,12 @@ def get_all_paginated(db: Session, pagination: PaginationRequestDTO) -> Paginati
     )
   )
 
+  is_read_filter = pagination.filter.is_read if pagination.filter else True
+  if not is_read_filter:
+    query = query.filter(
+      models.Notification.is_read == is_read_filter
+    )
+
   search_filter = pagination.search if pagination.search else None
   if search_filter:
     query = query.filter(
@@ -56,6 +62,10 @@ def get_by_user_paginated(db: Session, user_id: str, pagination: PaginationReque
     .options(joinedload(models.Notification.user))
     .filter(models.Notification.user_id == user_id)
   )
+
+  is_read_filter = pagination.filter.is_read if pagination.filter else True
+  if not is_read_filter:
+    query = query.filter(models.Notification.is_read == is_read_filter)
 
   search_filter = pagination.search if pagination.search else None
   if search_filter:
