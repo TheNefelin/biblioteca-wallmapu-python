@@ -8,7 +8,7 @@ class Commune(Base):
   __tablename__ = "wm_communes"
 
   id_commune = Column(Integer, primary_key=True, autoincrement=True)
-  commune = Column(String(45), nullable=False)
+  name = Column(String(45), nullable=False)
   created_at = Column(DateTime, server_default=func.now())
   updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 

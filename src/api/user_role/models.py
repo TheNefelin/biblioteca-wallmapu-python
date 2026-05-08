@@ -7,7 +7,7 @@ class UserRole(Base):
   __tablename__ = "wm_user_role"
 
   id_user_role = Column(Integer, primary_key=True, autoincrement=True)
-  role = Column(String(45), nullable=False)
+  name = Column(String(45), nullable=False)
   created_at = Column(DateTime, server_default=func.now())
   updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 

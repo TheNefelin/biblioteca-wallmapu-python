@@ -9,7 +9,7 @@ def get_all(db: Session) -> list[models.Commune]:
   try:
     return (
       db.query(models.Commune)
-      .order_by(models.Commune.commune.asc())
+      .order_by(models.Commune.name.asc())
       .all()
     )
   except SQLAlchemyError as e:

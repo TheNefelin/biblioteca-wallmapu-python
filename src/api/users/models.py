@@ -18,8 +18,8 @@ class User(Base):
   updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())  
 
   commune_id = Column(Integer, ForeignKey("wm_communes.id_commune"))
-  user_role_id = Column(Integer, ForeignKey("wm_user_role.id_user_role"), server_default=text("3"))
-  user_status_id = Column(Integer, ForeignKey("wm_user_status.id_user_status"), server_default=text("1"))
+  user_role_id = Column(Integer, ForeignKey("wm_user_role.id_user_role"), default=3)
+  user_status_id = Column(Integer, ForeignKey("wm_user_status.id_user_status"), default=1)
 
   commune = relationship("Commune", back_populates="users")
   user_role = relationship("UserRole", back_populates="users")

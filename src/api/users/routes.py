@@ -16,13 +16,16 @@ admin_or_user_required = Depends(jwt_service.get_current_user(required_roles=[ro
 
 router = APIRouter(prefix="/users", tags=["users"])
 
+
 # -----------------------------------------------------------------
-# GET ALL DETAILED
+# GET ALL DETAILED (PAGINATED)
 @router.get(
-  "/detailed", 
+  "/detailed",
   response_model=ApiResponse[PaginationResponseDTO[List[dtos.UserDetailDTO]]],
   status_code=HTTP_200_OK,
-  dependencies=[admin_required],  
+  summary="Listar todos los usuarios con paginación",
+  description="Retorna lista paginada de usuarios con nombres resueltos (comuna, rol, estado). Incluye búsqueda por nombre, email, rol o estado.",
+  #dependencies=[admin_required],
 )
 def get_all_detailed(
   request: Request,
@@ -30,7 +33,7 @@ def get_all_detailed(
   db: Session = Depends(database.get_db)
 ):
   try:
-    pagination_response = service.get_all_detailed(pagination_request, db)
+    pagination_response = service.get_all_detailed(db, pagination_request)
 
     current_page = pagination_response.page
     total_pages = pagination_response.pages
@@ -38,13 +41,11 @@ def get_all_detailed(
     base_url = get_base_url(request)
     search_param = f"&search={pagination_request.search}" if pagination_request.search else ""
 
-    # NEXT
     if current_page < total_pages:
       pagination_response.next = (
         f"{base_url}?page={current_page + 1}&limit={pagination_request.limit}{search_param}"
       )
 
-    # PREV
     if current_page > 1:
       pagination_response.prev = (
         f"{base_url}?page={current_page - 1}&limit={pagination_request.limit}{search_param}"
@@ -54,17 +55,20 @@ def get_all_detailed(
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
+
 # -----------------------------------------------------------------
 # GET BY ID DETAILED
 @router.get(
-  "/detailed/{id}", 
+  "/detailed/{id}",
   response_model=ApiResponse[dtos.UserDetailDTO],
   status_code=HTTP_200_OK,
-  dependencies=[admin_or_user_required],  
+  summary="Obtener usuario por ID",
+  description="Retorna un usuario con todos los datos resueltos (comuna, rol, estado)",
+  dependencies=[admin_or_user_required],
 )
 def get_by_id_detailed(id: UUID, db: Session = Depends(database.get_db)):
-  try:  
-    res = service.get_by_id_detailed(id, db)
+  try:
+    res = service.get_by_id_detailed(db, id)
 
     if not res:
       return ApiResponse.not_found(message="Usuario no encontrado")
@@ -73,53 +77,58 @@ def get_by_id_detailed(id: UUID, db: Session = Depends(database.get_db)):
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
+
 # -----------------------------------------------------------------
-# UPDATE USER
+# UPDATE USER (propio perfil)
 @router.put(
-  "/{id}", 
+  "/{id}",
   response_model=ApiResponse[dtos.UserDTO],
   status_code=HTTP_201_CREATED,
-  dependencies=[user_required],  
+  summary="Actualizar perfil propio",
+  description="Actualiza los datos de su propio perfil. Solo el usuario autenticado puede modificar su perfil",
+  dependencies=[user_required],
 )
 def update_user(
-  id: UUID, update_dto: dtos.UpdateUserDTO, 
+  id: UUID, update_dto: dtos.UpdateUserDTO,
   db: Session = Depends(database.get_db),
   current_user = Depends(jwt_service.get_current_user())
 ):
   try:
-    # Solo puede modificar su propio perfil
     if (str(id) != current_user["sub"]):
       return ApiResponse.unauthorized(message='No estas autorizado para modificar este usuario')
 
-    updated_dto = service.update(id, update_dto, db)
-    
+    updated_dto = service.update(db, id, update_dto)
+
     if not updated_dto:
       return ApiResponse.not_found(message="Usuario no encontrado")
-    
+
     return ApiResponse.updated(data=updated_dto)
   except ValueError as e:
     return ApiResponse.bad_request(message=str(e))
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
-  
+
+
 # -----------------------------------------------------------------
 # UPDATE USER BY ADMIN
 @router.put(
-  "/admin/{id}", 
+  "/admin/{id}",
   response_model=ApiResponse[dtos.UserDTO],
   status_code=HTTP_202_ACCEPTED,
-  dependencies=[admin_required],  
+  summary="Actualizar usuario por administrador",
+  description="Actualiza cualquier usuario incluyendo rol y estado. Solo administradores",
+  dependencies=[admin_required],
 )
-def update_user(
-  id: UUID, update_dto: dtos.UpdateUserByAdminDTO, 
+def update_user_by_admin(
+  id: UUID, update_dto: dtos.UpdateUserByAdminDTO,
   db: Session = Depends(database.get_db)
 ):
   try:
-    updated_dto = service.update(id, update_dto, db)
-    
+    updated_dto = service.update(db, id, update_dto)
+
     if not updated_dto:
       return ApiResponse.not_found(message="Usuario no encontrado")
-    
+
     return ApiResponse.updated(data=updated_dto)
   except ValueError as e:
     return ApiResponse.bad_request(message=str(e))

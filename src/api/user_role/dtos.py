@@ -4,7 +4,7 @@ from datetime import datetime
 # -----------------------------------------------------------------
 class UserRoleDTO(BaseModel):
   id_user_role: int
-  role: str
+  name: str
   created_at: datetime
   updated_at: datetime
 
