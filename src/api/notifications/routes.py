@@ -60,7 +60,7 @@ def get_all_notifications_paginated(
   status_code=HTTP_200_OK,
   summary="Mis notificaciones paginadas",
   description="Retorna notificaciones del usuario actual (extraído del token JWT). Filtros: search",
-  dependencies=[user_required],
+  dependencies=[user_or_admin_required],
 )
 def get_user_notifications(
   page: int = Query(default=1, ge=1),
@@ -161,7 +161,7 @@ async def create_notification(
   status_code=HTTP_200_OK,
   summary="Marcar notificación como leída",
   description="Marca una notificación específica como leída. Verifica que pertenezca al usuario del token",
-  dependencies=[user_required]
+  dependencies=[user_or_admin_required]
 )
 async def mark_notification_as_read(
   id: int,
@@ -188,7 +188,7 @@ async def mark_notification_as_read(
   status_code=HTTP_200_OK,
   summary="Marcar todas como leídas",
   description="Marca todas las notificaciones del usuario actual como leídas",
-  dependencies=[user_required]
+  dependencies=[user_or_admin_required]
 )
 async def mark_all_notifications_as_read(
   current_user: dict = Depends(get_current_user()),
