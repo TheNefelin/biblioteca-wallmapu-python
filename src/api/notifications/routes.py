@@ -34,7 +34,7 @@ def get_all_notifications_paginated(
   page: int = Query(default=1, ge=1),
   limit: int = Query(default=10, ge=1, le=100),
   search: str = Query(default=""),
-  is_read: bool = Query(default=True),
+  is_read: bool = Query(default=True, description="true=todos, false=solo no leídas"),
   db: Session = Depends(get_db)
 ):
   try:
@@ -66,8 +66,8 @@ def get_user_notifications(
   page: int = Query(default=1, ge=1),
   limit: int = Query(default=10, ge=1, le=100),
   search: str = Query(default=""),
-  is_read: bool = Query(default=True),
-  current_user = Depends(get_current_user()),
+  is_read: bool = Query(default=True, description="true=todos, false=solo no leídas"),
+  current_user: dict = Depends(get_current_user()),
   db: Session = Depends(get_db),
 ):
   try:
@@ -141,14 +141,12 @@ def get_notification_by_id(
   description="Crea una nueva notificación para un usuario específico. Usado para anuncios generales de la biblioteca",
   dependencies=[admin_required]
 )
-async def create_notification(
+def create_notification(
   dto: dtos.CreateNotificationByEmailDTO,
   db: Session = Depends(get_db)
 ):
   try:
     res = service.create(db, dto)
-    # Notificar vía WebSocket (tiempo real)
-    await manager.broadcast_unread_count(str(res.user_id))
     return ApiResponse.created(data=res, message="Notificación enviada correctamente")
   except Exception as e:
     return ApiResponse.server_error(str(e))
@@ -163,9 +161,9 @@ async def create_notification(
   description="Marca una notificación específica como leída. Verifica que pertenezca al usuario del token",
   dependencies=[user_or_admin_required]
 )
-async def mark_notification_as_read(
+def mark_notification_as_read(
   id: int,
-  current_user = Depends(get_current_user()),
+  current_user: dict = Depends(get_current_user()),
   db: Session = Depends(get_db)
 ):
   try:
@@ -190,7 +188,7 @@ async def mark_notification_as_read(
   description="Marca todas las notificaciones del usuario actual como leídas",
   dependencies=[user_or_admin_required]
 )
-async def mark_all_notifications_as_read(
+def mark_all_notifications_as_read(
   current_user: dict = Depends(get_current_user()),
   db: Session = Depends(get_db)
 ):
@@ -199,7 +197,7 @@ async def mark_all_notifications_as_read(
     
     success = service.mark_all_as_read(db, str(user_id))
 
-    return ApiResponse.success(data=success, message=f"Notificaciones marcadas como leídas")
+    return ApiResponse.success(data=success, message="Notificaciones marcadas como leídas")
   except Exception as e:
     return ApiResponse.server_error(str(e))
 

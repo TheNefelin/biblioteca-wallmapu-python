@@ -1,11 +1,8 @@
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from uuid import UUID
-from typing import List, Optional
+from starlette.status import HTTP_200_OK
 
-from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_202_ACCEPTED
-
-from src.core.url_helper import get_base_url
 from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
 from src.core import jwt_service, roles, database
 from . import dtos, service
@@ -20,38 +17,20 @@ router = APIRouter(prefix="/users", tags=["users"])
 # -----------------------------------------------------------------
 # GET ALL DETAILED (PAGINATED)
 @router.get(
-  "/detailed",
-  response_model=ApiResponse[PaginationResponseDTO[List[dtos.UserDetailDTO]]],
+  "/pagination",
+  response_model=ApiResponse[PaginationResponseDTO[list[dtos.UserDetailDTO]]],
   status_code=HTTP_200_OK,
   summary="Listar todos los usuarios con paginación",
   description="Retorna lista paginada de usuarios con nombres resueltos (comuna, rol, estado). Incluye búsqueda por nombre, email, rol o estado.",
-  #dependencies=[admin_required],
+  dependencies=[admin_required],
 )
 def get_all_detailed(
-  request: Request,
   pagination_request: PaginationRequestDTO = Depends(),
   db: Session = Depends(database.get_db)
 ):
   try:
     pagination_response = service.get_all_detailed(db, pagination_request)
-
-    current_page = pagination_response.page
-    total_pages = pagination_response.pages
-
-    base_url = get_base_url(request)
-    search_param = f"&search={pagination_request.search}" if pagination_request.search else ""
-
-    if current_page < total_pages:
-      pagination_response.next = (
-        f"{base_url}?page={current_page + 1}&limit={pagination_request.limit}{search_param}"
-      )
-
-    if current_page > 1:
-      pagination_response.prev = (
-        f"{base_url}?page={current_page - 1}&limit={pagination_request.limit}{search_param}"
-      )
-
-    return ApiResponse.success(pagination_response)
+    return ApiResponse.success(data=pagination_response)
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
@@ -59,7 +38,7 @@ def get_all_detailed(
 # -----------------------------------------------------------------
 # GET BY ID DETAILED
 @router.get(
-  "/detailed/{id}",
+  "/{id}",
   response_model=ApiResponse[dtos.UserDetailDTO],
   status_code=HTTP_200_OK,
   summary="Obtener usuario por ID",
@@ -83,7 +62,7 @@ def get_by_id_detailed(id: UUID, db: Session = Depends(database.get_db)):
 @router.put(
   "/{id}",
   response_model=ApiResponse[dtos.UserDTO],
-  status_code=HTTP_201_CREATED,
+  status_code=HTTP_200_OK,
   summary="Actualizar perfil propio",
   description="Actualiza los datos de su propio perfil. Solo el usuario autenticado puede modificar su perfil",
   dependencies=[user_required],
@@ -102,7 +81,7 @@ def update_user(
     if not updated_dto:
       return ApiResponse.not_found(message="Usuario no encontrado")
 
-    return ApiResponse.updated(data=updated_dto)
+    return ApiResponse.success(data=updated_dto)
   except ValueError as e:
     return ApiResponse.bad_request(message=str(e))
   except Exception as e:
@@ -114,7 +93,7 @@ def update_user(
 @router.put(
   "/admin/{id}",
   response_model=ApiResponse[dtos.UserDTO],
-  status_code=HTTP_202_ACCEPTED,
+  status_code=HTTP_200_OK,
   summary="Actualizar usuario por administrador",
   description="Actualiza cualquier usuario incluyendo rol y estado. Solo administradores",
   dependencies=[admin_required],
@@ -129,7 +108,7 @@ def update_user_by_admin(
     if not updated_dto:
       return ApiResponse.not_found(message="Usuario no encontrado")
 
-    return ApiResponse.updated(data=updated_dto)
+    return ApiResponse.success(data=updated_dto)
   except ValueError as e:
     return ApiResponse.bad_request(message=str(e))
   except Exception as e:

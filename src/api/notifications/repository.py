@@ -16,9 +16,7 @@ def get_all_paginated(db: Session, pagination: PaginationRequestDTO) -> Paginati
 
   is_read_filter = pagination.filter.is_read if pagination.filter else True
   if not is_read_filter:
-    query = query.filter(
-      models.Notification.is_read == is_read_filter
-    )
+    query = query.filter(models.Notification.is_read == False)
 
   search_filter = pagination.search if pagination.search else None
   if search_filter:
@@ -65,7 +63,7 @@ def get_by_user_paginated(db: Session, user_id: str, pagination: PaginationReque
 
   is_read_filter = pagination.filter.is_read if pagination.filter else True
   if not is_read_filter:
-    query = query.filter(models.Notification.is_read == is_read_filter)
+    query = query.filter(models.Notification.is_read == False)
 
   search_filter = pagination.search if pagination.search else None
   if search_filter:
@@ -109,21 +107,6 @@ def get_by_id(db: Session, id: int):
     .options(joinedload(models.Notification.user))
     .filter(models.Notification.id_notification == id)
     .first()
-  )
-
-
-# -----------------------------------------------------------------
-# GET UNREAD BY USER (List)
-def get_unread_by_user_id(db: Session, user_id: str):
-  return (
-    db.query(models.Notification)
-    .options(joinedload(models.Notification.user))
-    .filter(
-      models.Notification.user_id == user_id,
-      models.Notification.is_read == False
-    )
-    .order_by(models.Notification.created_at.desc())
-    .all()
   )
 
 
@@ -175,14 +158,3 @@ def mark_all_as_read(db: Session, user_id: str):
   )
   db.commit()
   return result
-
-
-# -----------------------------------------------------------------
-# DELETE
-def delete(db: Session, id: int):
-  notification = db.query(models.Notification).filter(models.Notification.id_notification == id).first()
-  if notification:
-    db.delete(notification)
-    db.commit()
-    return True
-  return None

@@ -60,15 +60,8 @@ def count_unread_by_user_id(db: Session, user_id: str) -> int:
 
 
 # -----------------------------------------------------------------
-# GET UNREAD BY USER (List)
-def get_unread_by_user_id(db: Session, user_id: str):
-  notifications = repository.get_unread_by_user_id(db, user_id)
-  return [dtos.NotificationDTO.model_validate(item) for item in notifications]
-
-
-# -----------------------------------------------------------------
 # GET BY ID
-def get_by_id(db: Session, id: int):
+def get_by_id(db: Session, id: int) -> dtos.NotificationDTO | None:
   notification = repository.get_by_id(db, id)
   if not notification:
     return None
@@ -77,7 +70,7 @@ def get_by_id(db: Session, id: int):
 
 # -----------------------------------------------------------------
 # CREATE
-def create(db: Session, dto: dtos.CreateNotificationByEmailDTO) -> dtos.NotificationDetailDTO | None:
+def create(db: Session, dto: dtos.CreateNotificationByEmailDTO) -> dtos.NotificationDTO | None:
   user = user_repository.get_by_email(db, dto.email)
 
   if not user:
@@ -110,6 +103,8 @@ def create(db: Session, dto: dtos.CreateNotificationByEmailDTO) -> dtos.Notifica
   except Exception:
     print(f"Error al enviar el email: {created.id_notification}")
     logger.error(f"Error al enviar el email: {created.id_notification}", exc_info=True)
+
+  return dtos.NotificationDTO.model_validate(created)
 
 
 # -----------------------------------------------------------------
