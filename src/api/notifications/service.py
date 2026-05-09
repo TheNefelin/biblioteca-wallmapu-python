@@ -108,6 +108,28 @@ def create(db: Session, dto: dtos.CreateNotificationByEmailDTO) -> dtos.Notifica
 
 
 # -----------------------------------------------------------------
+# CREATE WELCOME NOTIFICATION
+def create_welcome_notification(db: Session, user_id: str, user_email: str, user_name: str):
+  notification = dtos.CreateNotificationDTO(
+    title="BIENVENIDO/A",
+    message=f"¡Bienvenido/a {user_name}! Tu cuenta ha sido creada exitosamente en Biblioteca Wallmapu.",
+    is_priority=False,
+    user_id=user_id
+  )
+  created = repository.create(db, notification.model_dump(exclude_unset=True))
+
+  if not created or not created.id_notification:
+    logger.warning(f"Error al crear notificación de bienvenida para user {user_id}")
+    return
+
+  try:
+    email_data = email_service.WelcomeEmailData(user_email=user_email, user_name=user_name)
+    email_service.send_welcome_email(data=email_data)
+  except Exception:
+    logger.error(f"Error al enviar email de bienvenida para user {user_id}", exc_info=True)
+
+
+# -----------------------------------------------------------------
 # CREATE NOTIFICATION FOR RESERVATION
 def notification_for_create_reservation_and_send_email(db: Session, reservation_id: int):
   reservation = reservation_repository.get_by_id(db, reservation_id)

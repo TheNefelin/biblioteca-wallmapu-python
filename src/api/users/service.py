@@ -1,8 +1,12 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import UUID
+import logging
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.api.notifications import service as notification_service
 from . import dtos, repository
+
+logger = logging.getLogger(__name__)
 
 
 # -----------------------------------------------------------------
@@ -52,7 +56,19 @@ def get_by_id_detailed(db: Session, id_user: UUID) -> dtos.UserDetailDTO | None:
 # GET OR CREATE USER (Auth)
 def get_or_create_user(db: Session, dto: dtos.CreateUser) -> dtos.UserDetailDTO:
   """Obtiene usuario por email o lo crea si no existe (usado por Auth)"""
-  entity = repository.get_or_create_user(db, dto.model_dump(exclude_none=True))
+  entity, is_new = repository.get_or_create_user(db, dto.model_dump(exclude_none=True))
+
+  if is_new:
+    try:
+      notification_service.create_welcome_notification(
+        db=db,
+        user_id=str(entity.id_user),
+        user_email=entity.email,
+        user_name=entity.name,
+      )
+    except Exception:
+      logger.warning(f"Error al enviar notificación de bienvenida para user {entity.id_user}")
+
   return _map_user_to_detail(entity)
 
 

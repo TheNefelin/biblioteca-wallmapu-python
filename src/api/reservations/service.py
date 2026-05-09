@@ -8,6 +8,7 @@ from src.api.loan_policies import repository as loan_policy_repository
 from src.api.loans import repository as loan_repository, service as loan_service, dtos as loan_dtos
 from src.api.copy import repository as copy_repository
 from src.api.notifications import dtos as notification_dtos, service as notification_service
+from src.api.users import repository as user_repository
 from src.services import email_service
 from . import dtos, repository, models
 
@@ -88,6 +89,10 @@ def create(db: Session, user_id: UUID, dto: dtos.CreateReservationDTO) -> dtos.R
 
   if int(copy.status_id) != 1:
     raise ValueError("El ejemplar no está disponible")
+
+  user_entity = user_repository.get_by_id_detailed(db, user_id)
+  if not user_entity or int(user_entity.user_status_id) != 1:
+    raise ValueError("No puedes realizar reservas si tu cuenta no está activa")
 
   loan_policy = loan_policy_repository.get_default_policy(db)
   reservation_days = int(loan_policy.reservation_days)

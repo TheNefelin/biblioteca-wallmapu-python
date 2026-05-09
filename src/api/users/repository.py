@@ -96,7 +96,7 @@ def get_by_email(db: Session, email: str) -> models.User:
 
 # -----------------------------------------------------------------
 # GET OR CREATE
-def get_or_create_user(db: Session, data: dict) -> models.User:
+def get_or_create_user(db: Session, data: dict) -> tuple[models.User, bool]:
   user = (
     db.query(models.User)
     .options(
@@ -108,7 +108,7 @@ def get_or_create_user(db: Session, data: dict) -> models.User:
   )
 
   if user:
-    return user
+    return user, False
 
   new_user = models.User(**data)
   db.add(new_user)
@@ -125,7 +125,7 @@ def get_or_create_user(db: Session, data: dict) -> models.User:
     .first()
   )
   
-  return user
+  return user, True
 
 # -----------------------------------------------------------------
 #UPDATE

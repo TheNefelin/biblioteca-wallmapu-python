@@ -7,6 +7,12 @@ from src.core.config import settings
 
 
 @dataclass
+class WelcomeEmailData:
+  user_email: str
+  user_name: str
+
+
+@dataclass
 class AdminEmailData:
   title: str
   message: str
@@ -21,6 +27,29 @@ class EmailData:
   book_barcode: str
   user_email: str
   expiration_date: Optional[datetime] = None
+
+
+# -----------------------------------------------------------------
+# TEMPLATE: Welcome
+def send_welcome_email(data: WelcomeEmailData) -> Optional[dict]:
+  html = f"""
+  <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <div style="max-width: 600px; margin:0 auto; padding: 20px;">
+        <h2 style="color: #4A148C;">¡Bienvenido/a a Biblioteca Wallmapu!</h2>
+        <p style="color: #00897B;">Hola {data.user_name},</p>
+        <p>Tu cuenta ha sido creada exitosamente. Ya puedes disfrutar de todos los servicios de nuestra biblioteca.</p>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <p>✅ Reservar libros</p>
+          <p>✅ Solicitar préstamos</p>
+          <p>✅ Recibir notificaciones en tiempo real</p>
+        </div>
+        <p style="color: #00897B;">¡Gracias por preferirnos!</p>
+      </div>
+    </body>
+  </html>
+  """
+  return send_email(data.user_email, "¡Bienvenido/a a Biblioteca Wallmapu!", html)
 
 
 # -----------------------------------------------------------------
