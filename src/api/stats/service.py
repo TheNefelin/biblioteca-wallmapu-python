@@ -1,3 +1,4 @@
+from uuid import UUID
 from sqlalchemy.orm import Session
 
 from . import dtos, repository
@@ -9,8 +10,9 @@ def get_admin_stats(db: Session) -> dtos.AdminStatsDTO:
   return dtos.AdminStatsDTO(**data)
 
 
-
-def get_all_admin(db: Session) -> dtos.StatusAdminDTO:
-  data = repository.get_all_admin(db)
-  return dtos.StatusAdminDTO(**data)
+# -----------------------------------------------------------------
+# GET USER STATS
+def get_user_stats(db: Session, user_id: UUID) -> dtos.UserStatsDTO:
+  data = repository.get_user_stats(db, user_id)
+  return dtos.UserStatsDTO(**data)
 

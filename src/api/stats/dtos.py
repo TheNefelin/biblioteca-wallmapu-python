@@ -11,16 +11,10 @@ class AdminStatsDTO(BaseModel):
   model_config = ConfigDict(from_attributes=True)
 
 
-class StatusAdminDTO(BaseModel):
-  users: int
-  news: int
-  regions: int
-  provinces: int
-  communes: int
-  authors: int
-  editorials: int
-  subjects: int = 0 
-  books: int = 0
+class UserStatsDTO(BaseModel):
+  total_borrowed: int
+  active_loans: int
+  overdue_loans: int
 
   model_config = ConfigDict(from_attributes=True)
   
