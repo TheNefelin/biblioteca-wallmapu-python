@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 
@@ -15,10 +15,12 @@ router = APIRouter(prefix="/edition", tags=["edition"])
 
 
 # -----------------------------------------------------------------
-# GET ALL - Versión simplificada para query params directos
-@router.get("/pagination", 
-  response_model=ApiResponse[PaginationResponseDTO[List[dtos.EditionDetailDTO]]],  
+@router.get(
+  "/pagination",
+  response_model=ApiResponse[PaginationResponseDTO[List[dtos.EditionDetailDTO]]],
   status_code=HTTP_200_OK,
+  summary="Listar ediciones con paginación",
+  description="Retorna lista paginada de ediciones. Filtros opcionales: id_author, id_editorial, id_genre, search",
 )
 def get_all_pagination(
   page: int = Query(default=1, ge=1),
@@ -29,118 +31,137 @@ def get_all_pagination(
   id_genre: Optional[int] = Query(default=None),
   db: Session = Depends(get_db)
 ):
-  filter = BookFilterDTO(
-    id_author=id_author,
-    id_editorial=id_editorial,
-    id_genre=id_genre
-  ) if any([id_author, id_editorial, id_genre]) else None
-  
-  pagination = PaginationRequestDTO[BookFilterDTO](
-    page=page,
-    limit=limit,
-    search=search or "",
-    filter=filter
-  )
-  return ApiResponse.success(service.get_all_pagination(pagination, db))
-  
+  try:
+    filter = BookFilterDTO(
+      id_author=id_author,
+      id_editorial=id_editorial,
+      id_genre=id_genre
+    ) if any([id_author, id_editorial, id_genre]) else None
+
+    pagination = PaginationRequestDTO[BookFilterDTO](
+      page=page,
+      limit=limit,
+      search=search or "",
+      filter=filter
+    )
+    return ApiResponse.success(data=service.get_all_pagination(db, pagination))
+  except Exception as e:
+    return ApiResponse.server_error(str(e))
+
 
 # -----------------------------------------------------------------
-# GET ALL
 @router.get(
-  "/", 
-  response_model=ApiResponse[List[dtos.EditionDetailDTO]], 
+  "/",
+  response_model=ApiResponse[List[dtos.EditionDetailDTO]],
   status_code=HTTP_200_OK,
+  summary="Obtener todas las ediciones",
+  description="Retorna todas las ediciones sin paginación (para selects)",
   dependencies=[admin_required],
 )
-def get_all_edition(db: Session = Depends(get_db)):
-  res = service.get_all_editions(db)
-  return ApiResponse.success(data=res)
-  
+def get_all_editions(db: Session = Depends(get_db)):
+  try:
+    res = service.get_all_editions(db)
+    return ApiResponse.success(data=res)
+  except Exception as e:
+    return ApiResponse.server_error(str(e))
+
 
 # -----------------------------------------------------------------
-# GET BY ID
 @router.get(
-  "/{id}/detail", 
-  response_model=ApiResponse[dtos.EditionDetailDTO], 
+  "/{id}/detail",
+  response_model=ApiResponse[dtos.EditionDetailDTO],
   status_code=HTTP_200_OK,
+  summary="Obtener edición con detalle completo",
+  description="Retorna una edición con editorial, libro y copias",
   dependencies=[admin_required],
 )
-def get_edition(id: int, db: Session = Depends(get_db)):
-  res = service.get_edition_detail_by_id(id, db)
-  if not res:
-    return ApiResponse.not_found()
-  return ApiResponse.success(data=res)
+def get_edition_detail(id: int, db: Session = Depends(get_db)):
+  try:
+    res = service.get_edition_detail_by_id(db, id)
+    if not res:
+      return ApiResponse.not_found(message="Edición no encontrada")
+    return ApiResponse.success(data=res)
+  except Exception as e:
+    return ApiResponse.server_error(str(e))
 
 
 # -----------------------------------------------------------------
-# GET BY ID
 @router.get(
-  "/{id}", 
-  response_model=ApiResponse[dtos.EditionDTO], 
+  "/{id}",
+  response_model=ApiResponse[dtos.EditionDTO],
   status_code=HTTP_200_OK,
-  #dependencies=[admin_required],
+  summary="Obtener edición básica por ID",
+  description="Retorna una edición sin relaciones",
 )
 def get_edition_by_id(id: int, db: Session = Depends(get_db)):
-  res = service.get_edition_by_id(id, db)
-  if not res:
-    return ApiResponse.not_found()
-  return ApiResponse.success(data=res)
+  try:
+    res = service.get_edition_by_id(db, id)
+    if not res:
+      return ApiResponse.not_found(message="Edición no encontrada")
+    return ApiResponse.success(data=res)
+  except Exception as e:
+    return ApiResponse.server_error(str(e))
 
 
 # -----------------------------------------------------------------
-# CREATE
 @router.post(
-  "/", 
-  response_model=ApiResponse[dtos.EditionDTO], 
+  "/",
+  response_model=ApiResponse[dtos.EditionDTO],
   status_code=HTTP_201_CREATED,
-  dependencies=[admin_required],  
+  summary="Crear nueva edición",
+  description="Crea una nueva edición asociada a un libro",
+  dependencies=[admin_required],
 )
 def create_edition(item: dtos.CreateEditionDTO, db: Session = Depends(get_db)):
   try:
-    res = service.create_edition(item, db)
+    res = service.create_edition(db, item)
     return ApiResponse.created(data=res)
   except ValueError as e:
     return ApiResponse.bad_request(message=str(e))
   except Exception as e:
-    return ApiResponse.server_error(message=str(e))
+    return ApiResponse.server_error(str(e))
 
 
 # -----------------------------------------------------------------
-# UPDATE
 @router.put(
-  "/{id}", 
-  response_model=ApiResponse[dtos.EditionDTO], 
+  "/{id}",
+  response_model=ApiResponse[dtos.EditionDTO],
   status_code=HTTP_200_OK,
+  summary="Actualizar edición",
+  description="Actualiza una edición existente por ID",
   dependencies=[admin_required],
 )
 def update_edition(id: int, item: dtos.UpdateEditionDTO, db: Session = Depends(get_db)):
   if item.id_edition != id:
-    return ApiResponse.bad_request(message="El Id no coincide")
-  
+    return ApiResponse.bad_request(message="El ID no coincide")
+
   try:
-    result = service.update_edition(id, item, db)
+    result = service.update_edition(db, id, item)
     if not result:
-      return ApiResponse.not_found()
+      return ApiResponse.not_found(message="Edición no encontrada")
     return ApiResponse.success(data=result)
   except ValueError as e:
     return ApiResponse.bad_request(message=str(e))
   except Exception as e:
-    return ApiResponse.server_error(message=str(e))
+    return ApiResponse.server_error(str(e))
 
 
 # -----------------------------------------------------------------
-# DELETE
 @router.delete(
-  "/{id}", 
-  response_model=ApiResponse[bool], 
+  "/{id}",
+  response_model=ApiResponse[bool],
   status_code=HTTP_200_OK,
+  summary="Eliminar edición",
+  description="Elimina una edición y su imagen de Cloudinary (si tiene)",
   dependencies=[admin_required],
 )
 def delete_edition(id: int, db: Session = Depends(get_db)):
   try:
-    res = service.delete_edition_with_image(id, db)
-    return ApiResponse.success(data=res)
+    res = service.delete_edition_with_image(db, id)
+    if not res:
+      return ApiResponse.not_found(message="Edición no encontrada")
+    return ApiResponse.success(data=res, message="Edición eliminada exitosamente")
   except ValueError as e:
     return ApiResponse.bad_request(message=str(e))
   except Exception as e:
-    return ApiResponse.server_error(message=str(e))
+    return ApiResponse.server_error(str(e))

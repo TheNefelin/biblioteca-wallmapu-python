@@ -29,15 +29,6 @@ class EditionDTO(UpdateEditionDTO):
   created_at: datetime
   updated_at: datetime
 
-
-class EditionMinimalDTO(BaseModel):
-  id_edition: int
-  book_id: int
-  edition: str
-  isbn: str
-
-  model_config = ConfigDict(from_attributes=True)
-
 # -------------------------------------------------
 
 class EditionWithEditorialDTO(BaseModel):
