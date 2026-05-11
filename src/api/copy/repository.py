@@ -53,17 +53,6 @@ def get_all_detail_by_book_id(db: Session, book_id: int) -> list:
 
 
 # -----------------------------------------------------------------
-# GET ALL
-def get_all(db: Session) -> list[models.Copy]:
-  return (
-    db.query(models.Copy)
-    .options(joinedload(models.Copy.status))
-    .order_by(models.Copy.id_copy.asc())
-    .all()
-  )
-
-
-# -----------------------------------------------------------------
 # GET BY ID
 def get_by_id(db: Session, id: int) -> models.Copy | None:
   return (
@@ -71,18 +60,6 @@ def get_by_id(db: Session, id: int) -> models.Copy | None:
     .options(joinedload(models.Copy.status))
     .filter(models.Copy.id_copy == id)
     .first()
-  )
-
-
-# -----------------------------------------------------------------
-# GET BY EDITION ID
-def get_by_edition_id(db: Session, id: int) -> list[models.Copy]:
-  return (
-    db.query(models.Copy)
-    .options(joinedload(models.Copy.status))
-    .filter(models.Copy.edition_id == id)
-    .order_by(models.Copy.id_copy.asc())
-    .all()
   )
 
 
@@ -127,27 +104,6 @@ def update(db: Session, item: models.Copy, data: dict) -> models.Copy:
   db.commit()
   db.refresh(item)
   return item
-
-
-# -----------------------------------------------------------------
-# GET BY BOOK ID AND STATUS (with edition and editorial)
-def get_by_book_id_and_status(db: Session, book_id: int, status_id: int) -> list[models.Copy]:
-  from src.api.editions.models import Edition
-
-  return (
-    db.query(models.Copy)
-    .options(
-      joinedload(models.Copy.status),
-      joinedload(models.Copy.edition).joinedload(Edition.editorial)
-    )
-    .join(Edition)
-    .filter(
-      Edition.book_id == book_id,
-      models.Copy.status_id == status_id
-    )
-    .order_by(Edition.id_edition.asc(), models.Copy.id_copy.asc())
-    .all()
-  )
 
 
 # -----------------------------------------------------------------

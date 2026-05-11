@@ -4,7 +4,7 @@ from src.api.copy_status import models as status_models
 from src.api.editions import models as edition_models
 from src.api.loans import repository as loan_repository
 from src.api.reservations import repository as reservation_repository
-from . import dtos, repository, schema
+from . import dtos, repository
 
 
 # -----------------------------------------------------------------
@@ -43,29 +43,6 @@ def get_all_detail_by_book_id(db: Session, book_id: int) -> list[dtos.CopyDetail
   loaned_ids = {l.copy_id for l in loan_repository.get_all_active(db)}
   reserved_ids = {r.copy_id for r in reservation_repository.get_all_pending(db)}
   return [_map_to_detail(r, loaned_ids, reserved_ids) for r in rows]
-
-
-# -----------------------------------------------------------------
-# GET ALL COPIES
-def get_all(db: Session) -> list[dtos.CopyWithStatusDTO]:
-  items = repository.get_all(db)
-  return [dtos.CopyWithStatusDTO.model_validate(item) for item in items]
-
-
-# -----------------------------------------------------------------
-# GET COPY BY ID
-def get_by_id(db: Session, id: int) -> dtos.CopyWithStatusDTO | None:
-  item = repository.get_by_id(db, id)
-  if not item:
-    return None
-  return dtos.CopyWithStatusDTO.model_validate(item)
-
-
-# -----------------------------------------------------------------
-# GET ALL COPIES BY EDITION ID
-def get_by_edition_id(db: Session, id_edition: int) -> list[dtos.CopyWithStatusDTO]:
-  items = repository.get_by_edition_id(db, id_edition)
-  return [dtos.CopyWithStatusDTO.model_validate(item) for item in items]
 
 
 # -----------------------------------------------------------------
@@ -130,24 +107,5 @@ def delete(db: Session, id: int) -> bool:
   return True
 
 
-# -----------------------------------------------------------------
-# GET ALL COPIES BY BOOK ID WITH AVAILABILITY
-def get_all_availability_copies_by_book(db: Session, book_id: int) -> list[schema.CopyAvailabilityDTO]:
-  copies = repository.get_by_book_id_and_status(db, book_id, 1)
-  dtos = [schema.CopyAvailabilityDTO.model_validate(item) for item in copies]
 
-  active_loans = loan_repository.get_active_by_book_id(db, book_id)
-  active_reservations = reservation_repository.get_active_by_book_id(db, book_id)
 
-  loans_status_map = {int(loan.copy_id): str(loan.loan_status.name) for loan in active_loans}
-  reservations_status_map = {int(res.copy_id): str(res.status.name) for res in active_reservations}
-
-  for dto in dtos:
-    if dto.id_copy in loans_status_map:
-      dto.availability_status = loans_status_map[dto.id_copy]
-    elif dto.id_copy in reservations_status_map:
-      dto.availability_status = reservations_status_map[dto.id_copy]
-    else:
-      dto.availability_status = "disponible"
-
-  return dtos
