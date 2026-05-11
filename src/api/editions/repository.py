@@ -107,6 +107,17 @@ def get_detail_by_id(db: Session, id: int) -> models.Edition | None:
 
 
 # -----------------------------------------------------------------
+# GET BY BOOK ID
+def get_by_book_id(db: Session, book_id: int) -> list[models.Edition]:
+  return (
+    db.query(models.Edition)
+    .filter(models.Edition.book_id == book_id)
+    .order_by(models.Edition.edition.asc())
+    .all()
+  )
+
+
+# -----------------------------------------------------------------
 # GET ENTITY BY ID (sin joins)
 def get_entity_by_id(db: Session, id: int) -> models.Edition | None:
   return db.get(models.Edition, id)

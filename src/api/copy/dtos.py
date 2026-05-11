@@ -23,12 +23,24 @@ class CopyDTO(UpdateCopyDTO):
   updated_at: datetime
 
 
-class CopyMinimalDTO(BaseModel):
-  id_copy: int
-  edition_id: int
-  signature_topography: str
+class CopyDetailDTO(BaseModel):
+  id_copy: int  
   barcode: str
-
+  signature_topography: str
+  copy_number: int
+  created_at: datetime
+  updated_at: datetime
+  status_id: int
+  status_name: str
+  edition_id: int
+  edition_name: str
+  edition_isbn: str
+  edition_cover_image: str
+  editorial_id: int
+  editorial_name: str  
+  is_availability: bool
+  availability_status: str
+  
   model_config = ConfigDict(from_attributes=True)
 
 

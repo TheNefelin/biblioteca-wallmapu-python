@@ -233,6 +233,16 @@ def get_active_by_barcode(db: Session, barcode: str) -> models.Loan | None:
 
 
 # -----------------------------------------------------------------
+# GET ALL ACTIVE (used by COPY service for availability checks)
+def get_all_active(db: Session) -> list[models.Loan]:
+    return (
+        db.query(models.Loan)
+        .filter(models.Loan.loan_status_id.in_([1, 3]))
+        .all()
+    )
+
+
+# -----------------------------------------------------------------
 # CREATE
 def create(db: Session, data: dict) -> models.Loan:
   item = models.Loan(**data)

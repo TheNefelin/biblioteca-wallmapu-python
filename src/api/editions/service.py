@@ -40,6 +40,13 @@ def get_edition_detail_by_id(db: Session, id: int) -> dtos.EditionDetailDTO | No
 
 
 # -----------------------------------------------------------------
+# GET BY BOOK ID
+def get_by_book_id(db: Session, book_id: int) -> list[dtos.EditionDTO]:
+  editions = repository.get_by_book_id(db, book_id)
+  return [dtos.EditionDTO.model_validate(e) for e in editions]
+
+
+# -----------------------------------------------------------------
 # GET BY ID (básico)
 def get_edition_by_id(db: Session, id: int) -> dtos.EditionDTO | None:
   edition = repository.get_entity_by_id(db, id)

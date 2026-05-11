@@ -210,3 +210,13 @@ def get_active_by_user(db: Session, user_id: UUID) -> list[tuple]:
     )
     .all()
   )
+
+
+# -----------------------------------------------------------------
+# GET ALL PENDING (used by COPY service for availability checks)
+def get_all_pending(db: Session) -> list[models.Reservation]:
+    return (
+        db.query(models.Reservation)
+        .filter(models.Reservation.reservation_status_id == 1)
+        .all()
+    )

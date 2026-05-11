@@ -68,6 +68,22 @@ def get_all_editions(db: Session = Depends(get_db)):
 
 # -----------------------------------------------------------------
 @router.get(
+  "/book/{id_book}",
+  response_model=ApiResponse[List[dtos.EditionDTO]],
+  status_code=HTTP_200_OK,
+  summary="Listar ediciones por libro",
+  description="Retorna todas las ediciones de un libro (básico, sin relaciones)",
+)
+def get_editions_by_book(id_book: int, db: Session = Depends(get_db)):
+  try:
+    res = service.get_by_book_id(db, id_book)
+    return ApiResponse.success(data=res)
+  except Exception as e:
+    return ApiResponse.server_error(str(e))
+
+
+# -----------------------------------------------------------------
+@router.get(
   "/{id}/detail",
   response_model=ApiResponse[dtos.EditionDetailDTO],
   status_code=HTTP_200_OK,
