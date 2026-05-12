@@ -48,7 +48,6 @@ def get_all_pagination(
   status_code=HTTP_200_OK,
   summary="Obtener libro por ID",
   description="Retorna un libro con género, autores y descriptores",
-  dependencies=[admin_required],
 )
 def get_book_by_id(
   id: int, 
