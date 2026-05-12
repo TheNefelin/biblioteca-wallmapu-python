@@ -12,13 +12,8 @@ from src.api.genres import models as genre_models
 from . import models
 
 
-# -----------------------------------------------------------------
-# GET ALL PAGINATION REAL (flat DTO, column-based query)
-def get_all_pagination(
-    db: Session,
-    pagination: PaginationRequestDTO[BookFilterDTO]
-) -> PaginationResponseDTO:
-  first_author_subq = (
+def _build_first_author_subq(db: Session):
+  return (
     db.query(
       book_authors_models.BookAuthor.id_book,
       authors_models.Author.id_author.label("author_id"),
@@ -32,7 +27,9 @@ def get_all_pagination(
     .subquery()
   )
 
-  copy_count_subq = (
+
+def _build_copy_count_subq(db: Session):
+  return (
     db.query(
       copy_models.Copy.edition_id,
       func.count(copy_models.Copy.id_copy).label("copy_count")
@@ -40,6 +37,16 @@ def get_all_pagination(
     .group_by(copy_models.Copy.edition_id)
     .subquery()
   )
+
+
+# -----------------------------------------------------------------
+# GET ALL PAGINATION REAL (flat DTO, column-based query)
+def get_all_pagination(
+    db: Session,
+    pagination: PaginationRequestDTO[BookFilterDTO]
+) -> PaginationResponseDTO:
+  first_author_subq = _build_first_author_subq(db)
+  copy_count_subq = _build_copy_count_subq(db)
 
   query = (
     db.query(
@@ -127,28 +134,8 @@ def get_all_pagination(
 # -----------------------------------------------------------------
 # GET BY BOOK ID DETAIL (flat DTO, column-based)
 def get_by_book_id_detail(db: Session, book_id: int) -> list:
-  first_author_subq = (
-    db.query(
-      book_authors_models.BookAuthor.id_book,
-      authors_models.Author.id_author.label("author_id"),
-      authors_models.Author.name.label("author_name"),
-      func.row_number().over(
-        partition_by=book_authors_models.BookAuthor.id_book,
-        order_by=book_authors_models.BookAuthor.id_author
-      ).label("rn")
-    )
-    .join(authors_models.Author, book_authors_models.BookAuthor.id_author == authors_models.Author.id_author)
-    .subquery()
-  )
-
-  copy_count_subq = (
-    db.query(
-      copy_models.Copy.edition_id,
-      func.count(copy_models.Copy.id_copy).label("copy_count")
-    )
-    .group_by(copy_models.Copy.edition_id)
-    .subquery()
-  )
+  first_author_subq = _build_first_author_subq(db)
+  copy_count_subq = _build_copy_count_subq(db)
 
   return (
     db.query(
@@ -230,15 +217,13 @@ def update(db: Session, item: models.Edition, data: dict) -> models.Edition:
 # -----------------------------------------------------------------
 # DELETE
 def delete(db: Session, edition: models.Edition) -> str | None:
-  has_copies = (
-    db.query(copy_models.Copy)
-    .filter(copy_models.Copy.edition_id == edition.id_edition)
-    .first()
-  )
-  if has_copies:
-    raise ValueError(f"La edición ({edition.edition}) tiene copias asociadas")
-
   url = edition.cover_image
   db.delete(edition)
   db.commit()
   return url
+
+
+# -----------------------------------------------------------------
+# HAS COPIES
+def has_copies(db: Session, edition_id: int) -> bool:
+  return db.query(copy_models.Copy).filter(copy_models.Copy.edition_id == edition_id).first() is not None

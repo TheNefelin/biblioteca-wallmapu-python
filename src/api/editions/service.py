@@ -69,6 +69,9 @@ def delete_edition_with_image(db: Session, id: int) -> bool:
   if not edition:
     return False
 
+  if repository.has_copies(db, edition.id_edition):
+    raise ValueError(f"La edición ({edition.edition}) tiene copias asociadas")
+
   url = repository.delete(db, edition)
 
   if url:

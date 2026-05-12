@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 from src.api.copy_status.dtos import CopyStatusDTO
@@ -35,7 +36,7 @@ class CopyDetailDTO(BaseModel):
   edition_id: int
   edition_name: str
   edition_isbn: str
-  edition_cover_image: str
+  edition_cover_image: Optional[str] = None
   editorial_id: int
   editorial_name: str  
   is_availability: bool

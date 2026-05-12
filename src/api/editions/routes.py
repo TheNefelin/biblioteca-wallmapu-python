@@ -56,6 +56,7 @@ def get_all_pagination(
   status_code=HTTP_200_OK,
   summary="Listar ediciones por libro con detalle",
   description="Retorna todas las ediciones de un libro con DTO plano (editorial, género, autor, copy_count)",
+  dependencies=[admin_required],
 )
 def get_editions_by_book_detail(id_book: int, db: Session = Depends(get_db)):
   try:
@@ -88,6 +89,7 @@ def get_editions_by_book(id_book: int, db: Session = Depends(get_db)):
   status_code=HTTP_200_OK,
   summary="Obtener edición básica por ID",
   description="Retorna una edición sin relaciones",
+  dependencies=[admin_required],
 )
 def get_edition_by_id(id: int, db: Session = Depends(get_db)):
   try:
