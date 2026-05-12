@@ -6,41 +6,31 @@ from . import dtos, repository
 
 
 # -----------------------------------------------------------------
-# GET ALL PAGINATION
+# GET ALL PAGINATION REAL (flat DTO)
 def get_all_pagination(db: Session, pagination: PaginationRequestDTO[BookFilterDTO]) -> PaginationResponseDTO[list[dtos.EditionDetailDTO]]:
-  pagination_response = repository.get_all_pagination(db, pagination)
-  editions = pagination_response.data or []
-
-  data = [dtos.EditionDetailDTO.model_validate(e) for e in editions]
+  response = repository.get_all_pagination(db, pagination)
+  editions = response.data or []
+  data = [dtos.EditionDetailDTO.model_validate(item) for item in (editions)]
 
   return PaginationResponseDTO[list[dtos.EditionDetailDTO]](
-    page=pagination_response.page,
-    pages=pagination_response.pages,
-    items=pagination_response.items,
+    page=response.page,
+    pages=response.pages,
+    items=response.items,
     data=data,
-    next=pagination_response.next,
-    prev=pagination_response.prev,
+    next=response.next,
+    prev=response.prev,
   )
 
 
 # -----------------------------------------------------------------
-# GET ALL (para selects)
-def get_all_editions(db: Session) -> list[dtos.EditionDetailDTO]:
-  editions = repository.get_all(db)
-  return [dtos.EditionDetailDTO.model_validate(e) for e in editions]
+# GET BY BOOK ID DETAIL (flat DTO)
+def get_all_by_book_id_detail(db: Session, book_id: int) -> list[dtos.EditionDetailDTO]:
+  rows = repository.get_by_book_id_detail(db, book_id)
+  return [dtos.EditionDetailDTO.model_validate(dict(row._mapping)) for row in (rows or [])]
 
 
 # -----------------------------------------------------------------
-# GET DETAIL BY ID
-def get_edition_detail_by_id(db: Session, id: int) -> dtos.EditionDetailDTO | None:
-  edition = repository.get_detail_by_id(db, id)
-  if not edition:
-    return None
-  return dtos.EditionDetailDTO.model_validate(edition)
-
-
-# -----------------------------------------------------------------
-# GET BY BOOK ID
+# GET BY BOOK ID (básico)
 def get_by_book_id(db: Session, book_id: int) -> list[dtos.EditionDTO]:
   editions = repository.get_by_book_id(db, book_id)
   return [dtos.EditionDTO.model_validate(e) for e in editions]

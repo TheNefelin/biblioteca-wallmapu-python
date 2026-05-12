@@ -19,8 +19,8 @@ router = APIRouter(prefix="/edition", tags=["edition"])
   "/pagination",
   response_model=ApiResponse[PaginationResponseDTO[List[dtos.EditionDetailDTO]]],
   status_code=HTTP_200_OK,
-  summary="Listar ediciones con paginación",
-  description="Retorna lista paginada de ediciones. Filtros opcionales: id_author, id_editorial, id_genre, search",
+  summary="Listar ediciones con paginación (DTO plano)",
+  description="Retorna lista paginada con DTO plano. Filtros: id_author, id_editorial, id_genre, search",
 )
 def get_all_pagination(
   page: int = Query(default=1, ge=1),
@@ -51,16 +51,15 @@ def get_all_pagination(
 
 # -----------------------------------------------------------------
 @router.get(
-  "/",
+  "/book/{id_book}/detail",
   response_model=ApiResponse[List[dtos.EditionDetailDTO]],
   status_code=HTTP_200_OK,
-  summary="Obtener todas las ediciones",
-  description="Retorna todas las ediciones sin paginación (para selects)",
-  dependencies=[admin_required],
+  summary="Listar ediciones por libro con detalle",
+  description="Retorna todas las ediciones de un libro con DTO plano (editorial, género, autor, copy_count)",
 )
-def get_all_editions(db: Session = Depends(get_db)):
+def get_editions_by_book_detail(id_book: int, db: Session = Depends(get_db)):
   try:
-    res = service.get_all_editions(db)
+    res = service.get_all_by_book_id_detail(db, id_book)
     return ApiResponse.success(data=res)
   except Exception as e:
     return ApiResponse.server_error(str(e))
@@ -77,25 +76,6 @@ def get_all_editions(db: Session = Depends(get_db)):
 def get_editions_by_book(id_book: int, db: Session = Depends(get_db)):
   try:
     res = service.get_by_book_id(db, id_book)
-    return ApiResponse.success(data=res)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
-
-
-# -----------------------------------------------------------------
-@router.get(
-  "/{id}/detail",
-  response_model=ApiResponse[dtos.EditionDetailDTO],
-  status_code=HTTP_200_OK,
-  summary="Obtener edición con detalle completo",
-  description="Retorna una edición con editorial, libro y copias",
-  dependencies=[admin_required],
-)
-def get_edition_detail(id: int, db: Session = Depends(get_db)):
-  try:
-    res = service.get_edition_detail_by_id(db, id)
-    if not res:
-      return ApiResponse.not_found(message="Edición no encontrada")
     return ApiResponse.success(data=res)
   except Exception as e:
     return ApiResponse.server_error(str(e))

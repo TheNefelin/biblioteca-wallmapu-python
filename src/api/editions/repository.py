@@ -1,25 +1,79 @@
 from math import ceil
-from sqlalchemy import or_
-from sqlalchemy.orm import Session, joinedload, selectinload
+from sqlalchemy import and_, func, or_
+from sqlalchemy.orm import Session
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO, BookFilterDTO
 from src.api.books import models as book_models
 from src.api.authors import models as authors_models
 from src.api.book_authors import models as book_authors_models
 from src.api.copy import models as copy_models
+from src.api.editorials import models as editorial_models
+from src.api.genres import models as genre_models
 from . import models
 
 
 # -----------------------------------------------------------------
-# GET ALL PAGINATION
-def get_all_pagination(db: Session, pagination: PaginationRequestDTO[BookFilterDTO]) -> PaginationResponseDTO:
+# GET ALL PAGINATION REAL (flat DTO, column-based query)
+def get_all_pagination(
+    db: Session,
+    pagination: PaginationRequestDTO[BookFilterDTO]
+) -> PaginationResponseDTO:
+  first_author_subq = (
+    db.query(
+      book_authors_models.BookAuthor.id_book,
+      authors_models.Author.id_author.label("author_id"),
+      authors_models.Author.name.label("author_name"),
+      func.row_number().over(
+        partition_by=book_authors_models.BookAuthor.id_book,
+        order_by=book_authors_models.BookAuthor.id_author
+      ).label("rn")
+    )
+    .join(authors_models.Author, book_authors_models.BookAuthor.id_author == authors_models.Author.id_author)
+    .subquery()
+  )
+
+  copy_count_subq = (
+    db.query(
+      copy_models.Copy.edition_id,
+      func.count(copy_models.Copy.id_copy).label("copy_count")
+    )
+    .group_by(copy_models.Copy.edition_id)
+    .subquery()
+  )
+
   query = (
-    db.query(models.Edition)
-    .join(models.Edition.book)
-    .options(
-      joinedload(models.Edition.editorial),
-      joinedload(models.Edition.book),
-      selectinload(models.Edition.copies),
+    db.query(
+      models.Edition.id_edition,
+      models.Edition.edition,
+      models.Edition.isbn,
+      models.Edition.publication_year,
+      models.Edition.pages,
+      models.Edition.cover_image,
+      models.Edition.created_at,
+      models.Edition.updated_at,
+      models.Edition.editorial_id,
+      editorial_models.Editorial.name.label("editorial_name"),
+      models.Edition.book_id,
+      book_models.Book.title.label("book_title"),
+      book_models.Book.genre_id.label("genre_id"),
+      genre_models.Genre.name.label("genre_name"),
+      func.coalesce(first_author_subq.c.author_id, 0).label("author_id"),
+      func.coalesce(first_author_subq.c.author_name, "Sin Autor").label("author_name"),
+      func.coalesce(copy_count_subq.c.copy_count, 0).label("copy_count"),
+    )
+    .join(book_models.Book, models.Edition.book_id == book_models.Book.id_book)
+    .join(editorial_models.Editorial, models.Edition.editorial_id == editorial_models.Editorial.id_editorial)
+    .join(genre_models.Genre, book_models.Book.genre_id == genre_models.Genre.id_genre)
+    .outerjoin(
+      first_author_subq,
+      and_(
+        book_models.Book.id_book == first_author_subq.c.id_book,
+        first_author_subq.c.rn == 1
+      )
+    )
+    .outerjoin(
+      copy_count_subq,
+      models.Edition.id_edition == copy_count_subq.c.edition_id
     )
   )
 
@@ -36,19 +90,13 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO[BookFilterD
     if pagination.filter.id_author:
       query = (
         query.join(book_models.Book.book_authors)
-          .join(book_authors_models.BookAuthor.author)
-          .filter(authors_models.Author.id_author == pagination.filter.id_author)
+        .join(book_authors_models.BookAuthor.author)
+        .filter(authors_models.Author.id_author == pagination.filter.id_author)
       )
-
     if pagination.filter.id_editorial:
-      query = query.filter(
-        models.Edition.editorial_id == pagination.filter.id_editorial
-      )
-
+      query = query.filter(models.Edition.editorial_id == pagination.filter.id_editorial)
     if pagination.filter.id_genre:
-      query = query.filter(
-        book_models.Book.genre_id == pagination.filter.id_genre
-      )
+      query = query.filter(book_models.Book.genre_id == pagination.filter.id_genre)
 
   total_items = query.count()
   total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
@@ -77,37 +125,73 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO[BookFilterD
 
 
 # -----------------------------------------------------------------
-# GET ALL (para selects)
-def get_all(db: Session) -> list[models.Edition]:
-  return (
-    db.query(models.Edition)
-    .options(
-      joinedload(models.Edition.editorial),
-      joinedload(models.Edition.book),
-      joinedload(models.Edition.copies),
+# GET BY BOOK ID DETAIL (flat DTO, column-based)
+def get_by_book_id_detail(db: Session, book_id: int) -> list:
+  first_author_subq = (
+    db.query(
+      book_authors_models.BookAuthor.id_book,
+      authors_models.Author.id_author.label("author_id"),
+      authors_models.Author.name.label("author_name"),
+      func.row_number().over(
+        partition_by=book_authors_models.BookAuthor.id_book,
+        order_by=book_authors_models.BookAuthor.id_author
+      ).label("rn")
     )
+    .join(authors_models.Author, book_authors_models.BookAuthor.id_author == authors_models.Author.id_author)
+    .subquery()
+  )
+
+  copy_count_subq = (
+    db.query(
+      copy_models.Copy.edition_id,
+      func.count(copy_models.Copy.id_copy).label("copy_count")
+    )
+    .group_by(copy_models.Copy.edition_id)
+    .subquery()
+  )
+
+  return (
+    db.query(
+      models.Edition.id_edition,
+      models.Edition.edition,
+      models.Edition.isbn,
+      models.Edition.publication_year,
+      models.Edition.pages,
+      models.Edition.cover_image,
+      models.Edition.created_at,
+      models.Edition.updated_at,
+      models.Edition.editorial_id,
+      editorial_models.Editorial.name.label("editorial_name"),
+      models.Edition.book_id,
+      book_models.Book.title.label("book_title"),
+      book_models.Book.genre_id.label("genre_id"),
+      genre_models.Genre.name.label("genre_name"),
+      func.coalesce(first_author_subq.c.author_id, 0).label("author_id"),
+      func.coalesce(first_author_subq.c.author_name, "Sin Autor").label("author_name"),
+      func.coalesce(copy_count_subq.c.copy_count, 0).label("copy_count"),
+    )
+    .join(book_models.Book, models.Edition.book_id == book_models.Book.id_book)
+    .join(editorial_models.Editorial, models.Edition.editorial_id == editorial_models.Editorial.id_editorial)
+    .join(genre_models.Genre, book_models.Book.genre_id == genre_models.Genre.id_genre)
+    .outerjoin(
+      first_author_subq,
+      and_(
+        book_models.Book.id_book == first_author_subq.c.id_book,
+        first_author_subq.c.rn == 1
+      )
+    )
+    .outerjoin(
+      copy_count_subq,
+      models.Edition.id_edition == copy_count_subq.c.edition_id
+    )
+    .filter(models.Edition.book_id == book_id)
     .order_by(models.Edition.edition.asc())
     .all()
   )
 
 
 # -----------------------------------------------------------------
-# GET DETAIL BY ID
-def get_detail_by_id(db: Session, id: int) -> models.Edition | None:
-  return (
-    db.query(models.Edition)
-    .options(
-      joinedload(models.Edition.editorial),
-      joinedload(models.Edition.book),
-      joinedload(models.Edition.copies),
-    )
-    .filter(models.Edition.id_edition == id)
-    .first()
-  )
-
-
-# -----------------------------------------------------------------
-# GET BY BOOK ID
+# GET BY BOOK ID (básico, sin joins)
 def get_by_book_id(db: Session, book_id: int) -> list[models.Edition]:
   return (
     db.query(models.Edition)

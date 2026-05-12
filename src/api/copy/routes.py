@@ -21,7 +21,7 @@ router = APIRouter(prefix="/copy", tags=["copy"])
   status_code=HTTP_200_OK,
   summary="Listar ejemplares con detalle completo por edición",
   description="Retorna todos los ejemplares de una edición con datos de estado, libro, género y autor",
-  #dependencies=[admin_or_user_required],
+  dependencies=[admin_required],
 )
 def get_all_copy_detail_by_edition(id_edition: int, db: Session = Depends(get_db)):
   try:
@@ -38,7 +38,6 @@ def get_all_copy_detail_by_edition(id_edition: int, db: Session = Depends(get_db
   status_code=HTTP_200_OK,
   summary="Listar ejemplares con detalle completo por libro",
   description="Retorna todos los ejemplares de un libro con datos de estado, edición, género y autor",
-  #dependencies=[admin_or_user_required],
 )
 def get_all_copy_detail_by_book(id_book: int, db: Session = Depends(get_db)):
   try:

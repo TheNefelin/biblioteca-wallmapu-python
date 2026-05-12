@@ -5,8 +5,7 @@ from pydantic import BaseModel, ConfigDict
 from src.api.authors.dtos import AuthorDTO
 from src.api.genres.dtos import GenreDTO
 from src.api.subjects.dtos import SubjectDTO
-from src.api.editorials.dtos import EditorialDTO
-from src.api.copy.dtos import CopyWithStatusDTO
+
 
 
 class CreateEditionDTO(BaseModel):
@@ -30,31 +29,30 @@ class EditionDTO(UpdateEditionDTO):
   updated_at: datetime
 
 
-# -------------------------------------------------
-
-class EditionMinimalDTO(BaseModel):
-  id_edition: int
-  book_id: int
-  edition: str
-  isbn: str
-
-  model_config = ConfigDict(from_attributes=True)
-
-class EditionWithEditorialDTO(BaseModel):
+class EditionDetailDTO(BaseModel):
   id_edition: int
   edition: str
   isbn: str
   publication_year: int
   pages: int
   cover_image: Optional[str]
-  book_id: int
-  editorial: EditorialDTO
   created_at: datetime
   updated_at: datetime
+  editorial_id: int
+  editorial_name: str
+  book_id: int
+  book_title: str
+  genre_id: int
+  genre_name: str
+  author_id: Optional[int]
+  author_name: Optional[str]
+  copy_count: int
 
   model_config = ConfigDict(from_attributes=True)
-    
-    
+
+
+#---------------------------------------
+
 class BookForEditionDTO(BaseModel):
   id_book: int
   title: str
@@ -68,17 +66,3 @@ class BookForEditionDTO(BaseModel):
   model_config = ConfigDict(from_attributes=True)
 
 
-class EditionDetailDTO(BaseModel):
-  id_edition: int
-  edition: str
-  isbn: str
-  publication_year: int
-  pages: int
-  cover_image: Optional[str]
-  created_at: datetime
-  updated_at: datetime
-  editorial: EditorialDTO
-  copies: List[CopyWithStatusDTO]
-  book: BookForEditionDTO
-
-  model_config = ConfigDict(from_attributes=True)
