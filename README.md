@@ -1,11 +1,15 @@
-# Biblioteca Wallmapu API
+# Biblioteca Wallmapu - API Python
 
-API REST para la gestión de la Biblioteca Wallmapu, construida con FastAPI y PostgreSQL.
+Backend del proyecto Biblioteca Wallmapu desarrollado con Python 3.12 + FastAPI y PostgreSQL, siguiendo el patrón Senior.
+
+---
 
 ## Requisitos
 
 - Python 3.12+
 - PostgreSQL
+
+---
 
 ## Instalación
 
@@ -28,10 +32,16 @@ pip install python-multipart
 pip install cloudinary
 pip install sqlalchemy[asyncio]
 pip install resend
+pip install websockets
 ```
 
+Guardar dependencias:
 ```sh
 pip freeze > requirements.txt
+```
+
+Instalar desde requirements:
+```sh
 pip install -r requirements.txt
 ```
 
@@ -59,6 +69,8 @@ psql -U postgres -c "CREATE DATABASE biblioteca_wallmapu;"
 psql -U postgres -d biblioteca_wallmapu -f postgre.sql
 ```
 
+---
+
 ## Ejecutar
 
 ```sh
@@ -80,233 +92,284 @@ uvicorn src.main:app --reload
 ```
 biblioteca-wallmapu-python/
 ├── src/
-│   ├── api/
-│   │   ├── auth/
+│   ├── api/                        # Módulos por dominio
+│   │   ├── auth/                   # Autenticación JWT + Google
+│   │   │   ├── dtos.py
+│   │   │   ├── models.py
 │   │   │   ├── routes.py
+│   │   │   ├── service.py
 │   │   │   └── google_service.py
-│   │   ├── authors/
+│   │   │
+│   │   ├── authors/                # Autores (CRUD + Search)
+│   │   │   ├── dtos.py
+│   │   │   ├── models.py
+│   │   │   ├── repository.py       # Acceso a datos
+│   │   │   ├── routes.py           # Endpoints
+│   │   │   └── service.py          # Lógica de negocio
+│   │   │
+│   │   ├── book_authors/           # Relación libro-autor
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
 │   │   │   └── service.py
-│   │   ├── book_authors/
+│   │   │
+│   │   ├── book_subjects/          # Relación libro-materia
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
 │   │   │   └── service.py
-│   │   ├── book_subjects/
+│   │   │
+│   │   ├── book_editorial/         # Editoriales
+│   │   ├── book_genre/             # Géneros
+│   │   ├── book_subject/           # Materias/Descriptores
+│   │   │
+│   │   ├── books/                  # Libros (CRUD + Paginación)
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
 │   │   │   └── service.py
-│   │   ├── books/
+│   │   │
+│   │   ├── copy/                   # Ejemplares
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
 │   │   │   └── service.py
-│   │   ├── copy/
+│   │   │
+│   │   ├── copy_status/            # Estados de ejemplares
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
 │   │   │   └── service.py
-│   │   ├── copy_status/
-│   │   │   ├── dtos.py
-│   │   │   ├── repository.py
+│   │   │
+│   │   ├── division_communes/      # Comunas
+│   │   ├── division_provinces/     # Provincias
+│   │   ├── division_regions/       # Regiones
+│   │   │
+│   │   ├── edition_image/          # Imágenes de ediciones
 │   │   │   ├── routes.py
 │   │   │   └── service.py
-│   │   ├── division_communes/
-│   │   │   ├── dtos.py
-│   │   │   ├── models.py
-│   │   │   ├── repository.py
-│   │   │   ├── routes.py
-│   │   │   └── service.py
-│   │   ├── division_provinces/
+│   │   │
+│   │   ├── editions/                # Ediciones
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
 │   │   │   └── service.py
-│   │   ├── division_regions/
+│   │   │
+│   │   ├── editorials/             # Editoriales
+│   │   ├── genres/                 # Géneros
+│   │   │
+│   │   ├── loan_policies/          # Políticas de préstamo
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
 │   │   │   └── service.py
-│   │   ├── edition_image/
-│   │   │   ├── routes.py
-│   │   │   └── service.py
-│   │   ├── editions/
+│   │   │
+│   │   ├── loan_status/            # Estados de préstamos
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
 │   │   │   └── service.py
-│   │   ├── editorials/
+│   │   │
+│   │   ├── loans/                  # Préstamos
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
 │   │   │   └── service.py
-│   │   ├── genres/
+│   │   │
+│   │   ├── news/                   # Noticias
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
 │   │   │   └── service.py
-│   │   ├── loan_policies/
+│   │   │
+│   │   ├── news_gallery/           # Galería de imágenes de noticias
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
 │   │   │   └── service.py
-│   │   ├── loan_status/
+│   │   │
+│   │   ├── notifications/          # Notificaciones in-app
 │   │   │   ├── dtos.py
+│   │   │   ├── models.py
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
-│   │   │   └── service.py
-│   │   ├── loans/
+│   │   │   ├── service.py
+│   │   │   └── connection_manager.py  # WebSocket
+│   │   │
+│   │   ├── reservation_status/     # Estados de reservas
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
 │   │   │   └── service.py
-│   │   ├── news/
+│   │   │
+│   │   ├── reservations/           # Reservas
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
 │   │   │   └── service.py
-│   │   ├── news_gallery/
+│   │   │
+│   │   ├── stats/                  # Estadísticas
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
 │   │   │   └── service.py
-│   │   ├── notifications/
+│   │   │
+│   │   ├── subjects/               # Materias
 │   │   │   ├── dtos.py
 │   │   │   ├── models.py
 │   │   │   ├── repository.py
 │   │   │   ├── routes.py
 │   │   │   └── service.py
-│   │   ├── reservation_status/
-│   │   │   ├── dtos.py
-│   │   │   ├── repository.py
-│   │   │   ├── routes.py
-│   │   │   └── service.py
-│   │   ├── reservations/
-│   │   │   ├── dtos.py
-│   │   │   ├── models.py
-│   │   │   ├── repository.py
-│   │   │   ├── routes.py
-│   │   │   └── service.py
-│   │   ├── stats/
-│   │   │   └── routes.py
-│   │   ├── subjects/
-│   │   │   ├── dtos.py
-│   │   │   ├── models.py
-│   │   │   ├── repository.py
-│   │   │   ├── routes.py
-│   │   │   └── service.py
-│   │   └── users/
+│   │   │
+│   │   └── users/                  # Usuarios
 │   │       ├── dtos.py
 │   │       ├── models.py
 │   │       ├── repository.py
 │   │       ├── routes.py
-│   │       └── service.py
-│   ├── core/
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── jwt_service.py
-│   │   ├── roles.py
-│   │   └── url_helper.py
-│   ├── services/
-│   │   ├── cloudinary_service.py
-│   │   └── image_service.py
-│   ├── shared/
-│   │   └── dtos.py
-│   ├── __init__.py
-│   └── main.py
-├── static/
-│   └── favicon.ico
-├── .env
-├── .env_demo
-├── .gitignore
-├── LICENSE.txt
-├── postgre.sql
-├── README.md
-├── requirements.txt
-├── run.py
-└── vercel.json
+│   │       ├── service.py
+│   │       └── auth/
+│   │           ├── routes.py
+│   │           └── service.py
+│   │
+│   ├── core/                       # Configuración central
+│   │   ├── config.py               # Settings (pydantic-settings)
+│   │   ├── database.py             # SQLAlchemy engine/session
+│   │   ├── jwt_service.py          # Autenticación JWT
+│   │   ├── roles.py                # Roles de usuario
+│   │   ├── url_helper.py           # Helper para URLs
+│   │   └── connection_manager.py   # WebSocket manager
+│   │
+│   ├── services/                   # Servicios externos
+│   │   ├── cloudinary_service.py   # Upload de imágenes
+│   │   ├── email_service.py        # Envío de emails
+│   │   └── image_service.py        # Procesamiento de imágenes
+│   │
+│   └── shared/                     # DTOs compartidos
+│       └── dtos.py                 # ApiResponse, PaginationRequest/Response
+│
+├── static/                         # Archivos estáticos
+├── .env                            # Variables de entorno
+├── .env_demo                       # Ejemplo de variables
+├── postgre.sql                     # Schema de base de datos
+├── requirements.txt                # Dependencias Python
+├── run.py                          # Punto de entrada
+└── main.py                         # FastAPI app
 ```
 
 ---
 
-## Roles de Usuario
+## Patrón Senior - Python FastAPI
 
-| Rol | ID | Descripción |
-|-----|-----|-------------|
-| Super Admin | 1 | Acceso total al sistema |
-| Admin | 2 | Gestión de recursos |
-| Lector | 3 | Usuario regular |
+### Arquitectura Repository → Service → Routes
+
+```
+Request → Routes → Service → Repository → Database
+                    ↓
+                  DTOs (validación)
+```
+
+### Reglas del Patrón Senior
+
+**Repository:**
+- `db` como 1er parámetro
+- Sin try/catch (propaga excepciones)
+- Retorna entidades SQLAlchemy, no DTOs
+
+```python
+# ✅ Correcto
+def get_all(db: Session, pagination: PaginationRequestDTO):
+    query = db.query(Loan).options(joinedload(Loan.user))
+    return query.all()
+
+# ❌ Incorrecto
+def get_all(pagination, db: Session):  # db al final
+    try:
+        return db.query(Loan).all()
+    except SQLAlchemyError as e:
+        raise e  # Inútil, solo propaga
+```
+
+**Service:**
+- Sin try/catch (propaga excepciones)
+- Lógica de negocio aquí, no en repository
+- Mapea entidades → DTOs
+
+```python
+# ✅ Correcto
+def get_all_pagination(db: Session, pagination) -> PaginationResponseDTO:
+    response = repository.get_all_pagination(db, pagination)
+    items = [LoanDetailDTO.model_validate(i) for i in response.data]
+    return PaginationResponseDTO(data=items, ...)
+```
+
+**Routes:**
+- try/except con ApiResponse
+- `db: Session = Depends(get_db)` como último parámetro
+- summary/description en endpoints
+- db primero al llamar service
+
+```python
+@router.get("/pagination", summary="Listar préstamos")
+def get_loans(
+    request: Request,
+    pagination: PaginationRequestDTO = Depends(),
+    db: Session = Depends(get_db)
+):
+    try:
+        return ApiResponse.success(service.get_all_pagination(db, pagination))
+    except ValueError as e:
+        return ApiResponse.bad_request(str(e))
+    except Exception as e:
+        return ApiResponse.server_error(str(e))
+```
+
+### DTOs con Pydantic
+
+```python
+class LoanDTO(BaseModel):
+    id_loan: int
+    loan_date: date
+    due_date: date
+    model_config = ConfigDict(from_attributes=True)
+
+# Usar model_validate, no constructor directo
+dto = LoanDTO.model_validate(loan_entity)
+```
 
 ---
 
-## Endpoints Principales
+## Endpoints por Módulo
 
-### Autenticación
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/api/auth/google` | Login con Google |
-| POST | `/api/auth/register` | Registrar usuario |
-| POST | `/api/auth/login` | Iniciar sesión |
-| GET | `/api/auth/me` | Usuario actual |
-
-### Gestión de Libros
-| Recurso | Prefijo | Descripción |
-|---------|---------|-------------|
-| Books | `/api/books` | Gestión de libros |
-| Editions | `/api/editions` | Ediciones de libros |
-| Authors | `/api/authors` | Autores |
-| Subjects | `/api/subjects` | Temas/Materias |
-| Genres | `/api/genres` | Géneros literarios |
-| Editorials | `/api/editorials` | Editoriales |
-
-### Ejemplares
-| Recurso | Prefijo | Descripción |
-|---------|---------|-------------|
-| Copies | `/api/edition-copy` | Ejemplares físicos |
-| Copy Status | `/api/copy-status` | Estados de ejemplar |
-
-### Préstamos y Reservas
-| Recurso | Prefijo | Descripción |
-|---------|---------|-------------|
-| Reservations | `/api/reservations` | Reservas de libros |
-| Reservation Status | `/api/reservation-status` | Estados de reserva |
-| Loans | `/api/loans` | Préstamos activos |
-| Loan Status | `/api/loan-status` | Estados de préstamo |
-| Loan Policies | `/api/loan-policies` | Políticas de préstamo |
-| Notifications | `/api/notifications` | Notificaciones |
-
-### División Geográfica
-| Recurso | Prefijo | Descripción |
-|---------|---------|-------------|
-| Regions | `/api/regions` | Regiones de Chile |
-| Provinces | `/api/provinces` | Provincias |
-| Communes | `/api/communes` | Comunas |
-
-### Usuarios y Contenido
-| Recurso | Prefijo | Descripción |
-|---------|---------|-------------|
-| Users | `/api/users` | Gestión de usuarios |
-| User Role | `/api/user-role` | Roles de usuario |
-| User Status | `/api/user-status` | Estados de usuario |
-| News | `/api/news` | Noticias |
-| Stats | `/api/stats` | Estadísticas |
+| Módulo | Prefijo | Roles |
+|--------|---------|-------|
+| Auth | `/api/auth` | Público |
+| Books | `/api/books` | Admin |
+| Editions | `/api/editions` | Admin/ Público (lectura) |
+| Authors | `/api/authors` | Admin |
+| Subjects | `/api/subjects` | Admin |
+| Genres | `/api/genres` | Admin |
+| Copy | `/api/edition-copy` | Admin |
+| Loans | `/api/loans` | Admin / User |
+| Reservations | `/api/reservations` | Admin / User |
+| Notifications | `/api/notifications` | Admin / User |
+| News | `/api/news` | Público (lectura) / Admin (escritura) |
+| Users | `/api/users` | Admin |
+| Stats | `/api/stats` | Admin / User |
+| Divisiones | `/api/division-*` | Público |
 
 ---
 
@@ -315,70 +378,69 @@ biblioteca-wallmapu-python/
 ```
 1. RESERVA (Usuario)
    POST /api/reservations
-   - book_id: ID del libro
-   - expiration_date: Fecha límite (3 días configurable)
-   - status: Pendiente de retiro
+   → book_id, expiration_date
 
-2. RETIRO (Bibliotecario)
+2. RETIRO (Admin - Two-Step Verification)
    PUT /api/reservations/{id}/pickup
-   - Sistema busca ejemplar disponible
-   - Crea préstamo automáticamente
-   - Cambia estado a "Completada"
+   → Escanea reserva → Escanea libro físico → Confirma
 
 3. PRÉSTAMO
-   - copy_id: Ejemplar asignado
-   - due_date: Fecha de vencimiento
-   - status: Activo
+   POST /api/loans
+   → copy_id, user_id, due_date (calculado desde políticas)
 
-4. DEVOLUCIÓN (Bibliotecario)
-   PUT /api/loans/{id}/return
-   - return_date: Fecha de devolución
-   - Ejemplar vuelve a estar disponible
-   - status: Devuelto
+4. DEVOLUCIÓN (Admin)
+   PUT /api/loans/copy/{id}/return
+   → Atualiza status del préstamo y del exemplar
 ```
 
-### Estados de Reserva
-| ID | Estado | Descripción |
-|----|--------|-------------|
-| 1 | Pendiente de retiro | Esperando que el usuario retire |
-| 2 | Completada | Libro retirado |
-| 3 | Cancelada | Reserva cancelada por usuario |
-| 4 | Vencida | Pasó fecha límite sin retiro |
+---
 
-### Estados de Préstamo
-| ID | Estado | Descripción |
-|----|--------|-------------|
-| 1 | Activo | En préstamo |
-| 2 | Devuelto | Devuelto exitosamente |
-| 3 | Vencido | Pasó fecha de vencimiento |
+## Estados
 
-### Estados de Ejemplar
-| ID | Estado | Descripción |
-|----|--------|-------------|
-| 1 | Disponible | Disponible para préstamo |
-| 2 | Prestado | En préstamo activo |
-| 3 | En reparación | En mantenimiento |
-| 4 | Extraviado | No localizado |
+### Reserva
+| ID | Estado |
+|----|--------|
+| 1 | Pendiente de retiro |
+| 2 | Completada |
+| 3 | Cancelada |
+| 4 | Vencida |
+
+### Préstamo
+| ID | Estado |
+|----|--------|
+| 1 | Activo |
+| 2 | Devuelto |
+| 3 | Vencido |
+
+### Ejemplar
+| ID | Estado |
+|----|--------|
+| 1 | Disponible |
+| 2 | Prestado |
+| 3 | En reparación |
+| 4 | Extraviado |
 
 ---
 
 ## Autenticación
 
-La API usa JWT para autenticación. Incluir en headers:
+JWT con headers:
 ```
 Authorization: Bearer <token>
 ```
 
-### Roles en Endpoints
-- **Todos**: Accessible sin autenticación
-- **User/Admin**: Requiere token (Lector o Admin)
-- **Admin**: Solo administradores
+Roles: `ADMIN`, `LECTOR`
 
 ---
 
 ## Notas de Desarrollo
 
-- La tabla `wm_news` contiene seed data de ejemplo (videojuegos/anime)
-- Comunas, provincias y regiones están pre-cargadas para Chile
-- Imágenes de portadas se almacenan en Cloudinary
-- Sistema de reservas configurable (días de vigencia, máximo de libros, etc.)
+- Tabla `wm_news` contiene seed data de ejemplo
+- Comunas, provincias y regiones pre-cargadas para Chile
+- Imágenes almacenadas en Cloudinary
+- Notificaciones in-app con WebSocket para tiempo real
+
+---
+
+*Documento basado en proyecto Biblioteca Wallmapu*
+*Versión: Python 3.12 + FastAPI (2026)*
