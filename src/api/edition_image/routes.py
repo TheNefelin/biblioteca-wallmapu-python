@@ -20,7 +20,9 @@ router = APIRouter(
 @router.post(
   "/",
   response_model=ApiResponse[str],
-  status_code=status.HTTP_201_CREATED
+  status_code=status.HTTP_201_CREATED,
+  summary="Subir imagen de edición",
+  description="Sube una imagen de portada para una edición (solo admin)"
 )
 def create_edition_image(
   file: UploadFile = File(...),
@@ -41,7 +43,9 @@ def create_edition_image(
 @router.delete(
   "/{id_edition}", 
   response_model=ApiResponse[bool],
-  status_code=status.HTTP_200_OK
+  status_code=status.HTTP_200_OK,
+  summary="Eliminar imagen de edición",
+  description="Elimina la imagen de portada de una edición (solo admin)"
 )
 def delete_edition_image(
   id_edition: int,
