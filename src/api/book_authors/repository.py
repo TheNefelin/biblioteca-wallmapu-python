@@ -1,4 +1,3 @@
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from . import models
@@ -6,89 +5,60 @@ from . import models
 
 # -----------------------------------------------------------------
 # UPDATE
-def update(id_book: int, author_ids: list[int], db: Session) -> list[models.BookAuthor]:
-  try:
-    # evitar duplicados
-    author_ids = list(set(author_ids))
+def update(db: Session, id_book: int, author_ids: list[int]) -> list[models.BookAuthor]:
+  db.query(models.BookAuthor).filter(
+    models.BookAuthor.id_book == id_book
+  ).delete(synchronize_session=False)
 
-    # eliminar relaciones actuales
-    db.query(models.BookAuthor).filter(
-      models.BookAuthor.id_book == id_book
-    ).delete(synchronize_session=False)
+  relations = [
+    models.BookAuthor(id_book=id_book, id_author=aid)
+    for aid in author_ids
+  ]
 
-    # crear nuevas relaciones solo si hay IDs
-    relations = [
-      models.BookAuthor(id_book=id_book, id_author=aid)
-      for aid in author_ids
-    ]
+  if relations:
+    db.add_all(relations)
 
-    if relations:
-      db.add_all(relations)
+  db.commit()
 
-    db.commit()
-
-    return relations
-  except IntegrityError as e:
-    db.rollback()
-    raise ValueError(e.orig)
-  except SQLAlchemyError as e:
-    db.rollback()
-    raise e
+  return relations
 
 
-# -----------------------------------------------------------------  
+# -----------------------------------------------------------------
 # DELETE
-def delete(id_book: int, id_author: int, db: Session) -> bool:
-  try:
-    relation = db.get(
-      models.BookAuthor,
-      (id_book, id_author)
-    )
+def delete(db: Session, id_book: int, id_author: int) -> bool:
+  relation = db.get(
+    models.BookAuthor,
+    (id_book, id_author)
+  )
 
-    if not relation:
-      return False
+  if not relation:
+    return False
 
-    db.delete(relation)
-    db.commit()
+  db.delete(relation)
+  db.commit()
 
-    return True
-  except IntegrityError as e:
-    db.rollback()
-    raise ValueError(e.orig)
-  except SQLAlchemyError as e:
-    db.rollback()
-    raise e  
+  return True
 
 
-# -----------------------------------------------------------------  
+# -----------------------------------------------------------------
 # GET BY BOOK
-def get_by_book(id_book: int, db: Session) -> list[models.BookAuthor]:
-  try:
-    return (
-      db.query(models.BookAuthor)
-      .filter(models.BookAuthor.id_book == id_book)
-      .all()
-    )
-  except SQLAlchemyError as e:
-    raise e
+def get_by_book(db: Session, id_book: int) -> list[models.BookAuthor]:
+  return (
+    db.query(models.BookAuthor)
+    .filter(models.BookAuthor.id_book == id_book)
+    .all()
+  )
 
 
-# -----------------------------------------------------------------  
+# -----------------------------------------------------------------
 # DELETE BY ID BOOK
-def delete_by_book(id_book: int, db: Session) -> bool:
-  try:
-    rows_deleted = (
-      db.query(models.BookAuthor)
-      .filter(models.BookAuthor.id_book == id_book)
-      .delete(synchronize_session=False)
-    )
+def delete_by_book(db: Session, id_book: int) -> bool:
+  rows_deleted = (
+    db.query(models.BookAuthor)
+    .filter(models.BookAuthor.id_book == id_book)
+    .delete(synchronize_session=False)
+  )
 
-    db.commit()
+  db.commit()
 
-    return rows_deleted > 0
-  except IntegrityError as e:
-    db.rollback()
-    raise ValueError(e.orig)
-  except SQLAlchemyError as e:
-    db.rollback()
-    raise e
+  return rows_deleted > 0

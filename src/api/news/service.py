@@ -4,8 +4,8 @@ from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
 from . import dtos, repository
 
 
-def get_all_pagination(pagination: PaginationRequestDTO, db: Session) -> PaginationResponseDTO[list[dtos.NewsWithGalleryDTO]]:
-  page = repository.get_all_pagination(pagination, db)
+def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[dtos.NewsWithGalleryDTO]]:
+  page = repository.get_all_pagination(db, pagination)
   return PaginationResponseDTO[list[dtos.NewsWithGalleryDTO]](
     page=page.page,
     pages=page.pages,
@@ -16,25 +16,31 @@ def get_all_pagination(pagination: PaginationRequestDTO, db: Session) -> Paginat
   )
 
 
-def get_by_id(id: int, db: Session) -> dtos.NewsWithGalleryDTO | None:
-  entity = repository.get_by_id(id, db)
+def get_by_id(db: Session, id: int) -> dtos.NewsWithGalleryDTO | None:
+  entity = repository.get_by_id(db, id)
   if not entity:
     return None
   return dtos.NewsWithGalleryDTO.model_validate(entity)
 
 
-def create(data: dtos.CreateNewsDTO, db: Session) -> dtos.NewsDTO:
-  entity = repository.create(data.model_dump(), db)
+def create(db: Session, data: dtos.CreateNewsDTO) -> dtos.NewsDTO:
+  entity = repository.create(db, data.model_dump())
   return dtos.NewsDTO.model_validate(entity)
 
 
-def update(id: int, data: dtos.UpdateNewsDTO, db: Session) -> dtos.NewsDTO | None:
-  entity = repository.update(id, data.model_dump(exclude_unset=True), db)
+def update(db: Session, id: int, data: dtos.UpdateNewsDTO) -> dtos.NewsDTO | None:
+  entity = repository.update(db, id, data.model_dump(exclude_unset=True))
   if not entity:
     return None
   return dtos.NewsDTO.model_validate(entity)
 
 
-def delete(id: int, db: Session) -> bool:
-  return repository.delete(id, db)
-
+def delete(db: Session, id: int) -> bool:
+  entity = repository.get_by_id(db, id)
+  if not entity:
+    return False
+  
+  if entity.images:
+    raise ValueError("No se puede eliminar la noticia porque tiene imágenes asociadas")
+  
+  return repository.delete(db, id)

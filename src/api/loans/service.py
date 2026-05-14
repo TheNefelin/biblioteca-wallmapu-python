@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.api.loan_policies import repository as loan_policies_repository
 from src.api.notifications import service as notification_service
+from src.api.copy import repository as copy_repository
 from . import dtos, repository
 
 
@@ -90,7 +91,6 @@ def create(db: Session, dto: dtos.CreateLoanDTO) -> dtos.LoanDTO:
   if not created or not created.id_loan:
     raise ValueError("Error al crear el préstamo")
 
-  # Disparar notificación (efecto secundario resiliente)
   notification_service.notification_for_create_loan_and_send_email(db, created.id_loan)
 
   return dtos.LoanDTO.model_validate(created)
@@ -109,7 +109,8 @@ def return_loan_by_copy_id(db: Session, copy_id: int) -> dtos.LoanDTO | None:
 
   returned = repository.return_loan(db, loan.id_loan)
   
-  # Disparar notificación (efecto secundario resiliente)
+  copy_repository.update_status(db, loan.copy_id, 1)
+  
   notification_service.notification_for_return_loan_and_send_email(db, returned.id_loan)
 
   return dtos.LoanDTO.model_validate(returned)
@@ -118,7 +119,12 @@ def return_loan_by_copy_id(db: Session, copy_id: int) -> dtos.LoanDTO | None:
 # -----------------------------------------------------------------
 # UPDATE - EXPIRE OVERDUE
 def expire_overdue_loans(db: Session) -> int:
-  return repository.expire_overdue_as_overdue(db)
+  count = repository.expire_overdue_as_overdue(db)
+  
+  if count > 0:
+    copy_repository.update_all_overdue_status(db)
+  
+  return count
 
 
 # -----------------------------------------------------------------

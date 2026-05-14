@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session, joinedload
 from src.api.copy_status import models as copy_status_models
 from src.api.editions.models import Edition
 from src.api.editorials.models import Editorial
+from src.api.loans import models as loan_models
 from . import models
 
 
@@ -111,3 +112,26 @@ def update(db: Session, item: models.Copy, data: dict) -> models.Copy:
 def delete(db: Session, item: models.Copy) -> None:
   db.delete(item)
   db.commit()
+
+
+# -----------------------------------------------------------------
+# UPDATE STATUS (usado por loans service)
+def update_status(db: Session, copy_id: int, status_id: int) -> bool:
+  result = db.query(models.Copy).filter(models.Copy.id_copy == copy_id).update({"status_id": status_id})
+  db.commit()
+  return result > 0
+
+
+# -----------------------------------------------------------------
+# UPDATE ALL OVERDUE STATUS (usado por loans service para actualizar copies de loans vencidos)
+def update_all_overdue_status(db: Session) -> int:
+  result = db.query(models.Copy).filter(
+    models.Copy.status_id == 1,
+    models.Copy.id_copy.in_(
+      db.query(models.Loan.copy_id).filter(
+        models.Loan.loan_status_id == 3
+      )
+    )
+  ).update({"status_id": 2}, synchronize_session=False)
+  db.commit()
+  return result

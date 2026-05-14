@@ -1,32 +1,43 @@
 from sqlalchemy.orm import Session
 from typing import List
 
+from src.api.news import repository as news_repository
 from src.api.news_gallery.models import NewsGallery
 from src.services import cloudinary_service
 from . import dtos, repository
 
-#STATIC_PATH = "static/news"
 PATH = "news"
 
-def get_by_news_id(news_id: int, db: Session) -> list[dtos.NewsGalleryDTO]:
-  items = repository.get_by_news_id(news_id, db)
+
+def get_by_news_id(db: Session, news_id: int) -> list[dtos.NewsGalleryDTO]:
+  items = repository.get_by_news_id(db, news_id)
   return [dtos.NewsGalleryDTO.model_validate(item) for item in items]
 
+
+def create(db: Session, news_id: int, url: str, alt: str = "") -> dtos.NewsGalleryDTO:
+  news = news_repository.get_by_id(db, news_id)
+  if not news:
+    raise ValueError(f"La noticia con id {news_id} no existe")
+  
+  item = repository.create(db, {"news_id": news_id, "url": url, "alt": alt})
+  return dtos.NewsGalleryDTO.model_validate(item)
+
+
 def create_news_gallery_with_images(
+    db: Session,
     news_id: int,
     files: List,
     alts: List,
-    db: Session
 ):
-  #saved_files = []
+  news = news_repository.get_by_id(db, news_id)
+  if not news:
+    raise ValueError(f"La noticia con id {news_id} no existe")
+  
   uploaded_public_ids = []
   created_items = []
 
   try:
     for file, alt in zip(files, alts):
-      #filename = f"{news_id}_{uuid.uuid4().hex}.webp"
-      #save_image_webp(file.file.read(), filename)
-
       url, public_id = cloudinary_service.upload_image_16_9(
         file_bytes=file.file.read(),
         folder=f"{PATH}"
@@ -39,7 +50,6 @@ def create_news_gallery_with_images(
       )
       db.add(gallery)
 
-      #saved_files.append(url)
       uploaded_public_ids.append(public_id)
       created_items.append(gallery)
 
@@ -52,65 +62,43 @@ def create_news_gallery_with_images(
   except Exception as e:
     db.rollback()
 
-    # 🔥 rollback físico en Cloudinary
     for public_id in uploaded_public_ids:
       try:
         cloudinary_service.delete_image(public_id)
       except Exception:
-        pass  # opcional: loggear error    
+        pass    
 
     raise e
-    
-    # 🔥 rollback físico
-    #for filename in saved_files:
-    #  path = os.path.join(STATIC_PATH, filename)
-    #  if os.path.exists(path):
-    #    os.remove(path)
-        
-def delete_news_gallery_by_news_id(
-  news_id: int,
-  db: Session
-) -> int:
-  try:
-    items = db.query(NewsGallery).filter(
-      NewsGallery.news_id == news_id
-    ).all()
 
-    for item in items:
-      public_id = cloudinary_service.extract_public_id(item.url)
 
-      if public_id:
-        cloudinary_service.delete_image(public_id)
+def delete_news_gallery_by_news_id(db: Session, news_id: int) -> int:
+  items = db.query(NewsGallery).filter(
+    NewsGallery.news_id == news_id
+  ).all()
 
-      db.delete(item)
-
-    db.commit()
-    return len(items)
-  except Exception as e:
-    db.rollback()
-    raise e
-
-def delete_news_gallery(
-    id: int,
-    db: Session
-) -> int:
-  try:
-    item = db.query(NewsGallery).filter(NewsGallery.id_news_gallery == id).first()
-
-    if not item:
-      return 0
-
-    # 1️⃣ borrar imagen en Cloudinary
-    # extraemos public_id desde la URL
+  for item in items:
     public_id = cloudinary_service.extract_public_id(item.url)
 
     if public_id:
       cloudinary_service.delete_image(public_id)
 
-    # 2️⃣ borrar registro DB
     db.delete(item)
-    db.commit()
-    return 1
-  except Exception as e:
-    db.rollback()
-    raise e
+
+  db.commit()
+  return len(items)
+
+
+def delete_news_gallery(db: Session, id: int) -> int:
+  item = db.query(NewsGallery).filter(NewsGallery.id_news_gallery == id).first()
+
+  if not item:
+    return 0
+
+  public_id = cloudinary_service.extract_public_id(item.url)
+
+  if public_id:
+    cloudinary_service.delete_image(public_id)
+
+  db.delete(item)
+  db.commit()
+  return 1

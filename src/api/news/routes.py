@@ -20,7 +20,9 @@ router = APIRouter(prefix="/news", tags=["news"])
 @router.get(
   "/", 
   response_model=ApiResponse[PaginationResponseDTO[List[dtos.NewsWithGalleryDTO]]], 
-  status_code=HTTP_200_OK
+  status_code=HTTP_200_OK,
+  summary="Listar noticias",
+  description="Retorna lista paginada de noticias con sus imágenes"
 )
 def get_all_pagination(
   request: Request,
@@ -28,7 +30,7 @@ def get_all_pagination(
   db: Session = Depends(get_db)
 ):
   try:
-    pagination_response = service.get_all_pagination(pagination_request, db)
+    pagination_response = service.get_all_pagination(db, pagination_request)
 
     current_page = pagination_response.page
     total_pages = pagination_response.pages
@@ -57,7 +59,9 @@ def get_all_pagination(
 @router.get(
   "/{id}", 
   response_model=ApiResponse[dtos.NewsWithGalleryDTO], 
-  status_code=HTTP_200_OK
+  status_code=HTTP_200_OK,
+  summary="Obtener noticia por ID",
+  description="Retorna una noticia específica con sus imágenes"
 )
 def get_by_id(
   request: Request,
@@ -65,7 +69,7 @@ def get_by_id(
   db: Session = Depends(get_db)
 ):
   try:
-    result = service.get_by_id(id, db)
+    result = service.get_by_id(db, id)
 
     if not result:
       return ApiResponse.not_found()
@@ -79,7 +83,9 @@ def get_by_id(
 @router.post(
   "/", 
   response_model=ApiResponse[dtos.NewsDTO], 
-  status_code=status.HTTP_201_CREATED
+  status_code=status.HTTP_201_CREATED,
+  summary="Crear noticia",
+  description="Crea una nueva noticia (solo admin)"
 )
 def create(
   news: dtos.CreateNewsDTO, 
@@ -87,7 +93,7 @@ def create(
   current_user: dict = admin_required
 ):
   try:
-    created = service.create(news, db)
+    created = service.create(db, news)
 
     return ApiResponse.created(created)
   except ValueError as e:
@@ -100,7 +106,9 @@ def create(
 @router.put(
   "/{id}", 
   response_model=ApiResponse[dtos.NewsDTO], 
-  status_code=HTTP_202_ACCEPTED
+  status_code=HTTP_202_ACCEPTED,
+  summary="Actualizar noticia",
+  description="Actualiza una noticia existente (solo admin)"
 )
 def update(
   id: int, 
@@ -112,7 +120,7 @@ def update(
     if (id != news.id_news):
       return ApiResponse.bad_request(message=f"El id: {id} no coincide")
 
-    updated = service.update(id, news, db)
+    updated = service.update(db, id, news)
     
     if not updated:
       return ApiResponse.not_found(message=f"El id: {id} no se encontró")
@@ -128,7 +136,9 @@ def update(
 @router.delete(
   "/{id}", 
   response_model=ApiResponse[object], 
-  status_code=HTTP_202_ACCEPTED
+  status_code=HTTP_202_ACCEPTED,
+  summary="Eliminar noticia",
+  description="Elimina una noticia (solo admin)"
 )
 def delete(
   id: int, 
@@ -136,7 +146,7 @@ def delete(
   current_user: dict = admin_required
 ):
   try:
-    service.delete(id, db)
+    service.delete(db, id)
 
     return ApiResponse.deleted()
   except ValueError as e:

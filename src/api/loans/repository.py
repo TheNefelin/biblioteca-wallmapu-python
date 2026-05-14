@@ -44,16 +44,13 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
     .all()
   )
 
-  next_url = f"/api/loans/pagination?page={page + 1}&limit={pagination.limit}" if page < total_pages else None
-  prev_url = f"/api/loans/pagination?page={page - 1}&limit={pagination.limit}" if page > 1 else None
-
   return PaginationResponseDTO(
     page=page,
     pages=total_pages,
     items=total_items,
     data=result,
-    next=next_url,
-    prev=prev_url
+    next=None,
+    prev=None
   )
 
 
@@ -92,16 +89,13 @@ def get_all_pagination_by_user(db: Session, user_id: UUID, pagination: Paginatio
     .all()
   )
 
-  next_url = f"/api/loans/pagination/user?page={page + 1}&limit={pagination.limit}" if page < total_pages else None
-  prev_url = f"/api/loans/pagination/user?page={page - 1}&limit={pagination.limit}" if page > 1 else None
-
   return PaginationResponseDTO(
     page=page,
     pages=total_pages,
     items=total_items,
     data=result,
-    next=next_url,
-    prev=prev_url
+    next=None,
+    prev=None
   )
 
 
@@ -135,7 +129,7 @@ def get_overdue(db: Session) -> list[models.Loan]:
     .filter(
       and_(
         models.Loan.due_date < date.today(),
-        models.Loan.loan_status_id.in_([1, 3])  # 1=activo, 3=vencido
+        models.Loan.loan_status_id.in_([1, 3])
       )
     )
     .all()
@@ -187,7 +181,6 @@ def get_active_by_book_id(db: Session, book_id: int) -> list[models.Loan]:
 # -----------------------------------------------------------------
 # GET ACTIVE BY USER (returns tuples: id_loan, id_copy, book_id)
 def get_active_by_user(db: Session, user_id: UUID) -> list[tuple]:
-  """Retorna lista de (id_loan, id_copy, book_id) activos del usuario"""
   return (
     db.query(
       models.Loan.id_loan,
@@ -199,7 +192,7 @@ def get_active_by_user(db: Session, user_id: UUID) -> list[tuple]:
     .filter(
       and_(
         models.Loan.user_id == user_id,
-        models.Loan.loan_status_id.in_([1, 3])  # 1=activo, 3=vencido
+        models.Loan.loan_status_id.in_([1, 3])
       )
     )
     .all()
@@ -209,10 +202,6 @@ def get_active_by_user(db: Session, user_id: UUID) -> list[tuple]:
 # -----------------------------------------------------------------
 # GET ACTIVE LOAN BY BARCODE
 def get_active_by_barcode(db: Session, barcode: str) -> models.Loan | None:
-  """
-  Busca préstamo activo por barcode del ejemplar.
-  Retorna el loan activo (status_id=1) linked al barcode.
-  """
   return (
     db.query(models.Loan)
     .options(
@@ -225,7 +214,7 @@ def get_active_by_barcode(db: Session, barcode: str) -> models.Loan | None:
     .filter(
       and_(
         copy_models.Copy.barcode == barcode,
-        models.Loan.loan_status_id.in_([1, 3])  # 1=activo, 3=vencido
+        models.Loan.loan_status_id.in_([1, 3])
       )
     )
     .first()
@@ -235,11 +224,11 @@ def get_active_by_barcode(db: Session, barcode: str) -> models.Loan | None:
 # -----------------------------------------------------------------
 # GET ALL ACTIVE (used by COPY service for availability checks)
 def get_all_active(db: Session) -> list[models.Loan]:
-    return (
-        db.query(models.Loan)
-        .filter(models.Loan.loan_status_id.in_([1, 3]))
-        .all()
-    )
+  return (
+      db.query(models.Loan)
+      .filter(models.Loan.loan_status_id.in_([1, 3]))
+      .all()
+  )
 
 
 # -----------------------------------------------------------------
@@ -254,7 +243,7 @@ def create(db: Session, data: dict) -> models.Loan:
 
 
 # -----------------------------------------------------------------
-# RETURN
+# RETURN (solo actualiza el loan - lógica de negocio en service)
 def return_loan(db: Session, loan_id: int) -> models.Loan:
   loan = (
     db.query(models.Loan)
@@ -266,19 +255,13 @@ def return_loan(db: Session, loan_id: int) -> models.Loan:
     loan.return_date = date.today()
     loan.loan_status_id = 2
     
-    (
-      db.query(copy_models.Copy)
-      .filter(copy_models.Copy.id_copy == loan.copy_id)
-      .update({"status_id": 1})
-    )
-    
     db.commit()
     db.refresh(loan)
   return loan
 
 
 # -----------------------------------------------------------------
-# UPDATE - EXPIRE OVERDUE
+# UPDATE - EXPIRE OVERDUE (solo actualiza - lógica de negocio en service)
 def expire_overdue_as_overdue(db: Session) -> int:
   overdue_loans = (
     db.query(models.Loan)

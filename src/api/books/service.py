@@ -48,8 +48,8 @@ def create_book(db: Session, data: dtos.CreateBookDTO) -> dtos.BookDTO:
 
   try:
     book = repository.create(db, dump)
-    book_author_service.update_authors(book.id_book, author_ids, db)
-    book_subject_service.update_subjects(book.id_book, subject_ids, db)
+    book_author_service.update_authors(db, book.id_book, author_ids)
+    book_subject_service.update_subjects(db, book.id_book, subject_ids)
     db.refresh(book)
     return dtos.BookDTO.model_validate(book)
   except IntegrityError as e:
@@ -74,8 +74,8 @@ def update_book(db: Session, data: dtos.UpdateBookDTO) -> dtos.BookDTO | None:
 
   try:
     book = repository.update(db, book, dump)
-    book_author_service.update_authors(book.id_book, author_ids, db)
-    book_subject_service.update_subjects(book.id_book, subject_ids, db)
+    book_author_service.update_authors(db, book.id_book, author_ids)
+    book_subject_service.update_subjects(db, book.id_book, subject_ids)
     db.refresh(book)
     return dtos.BookDTO.model_validate(book)
   except IntegrityError as e:
