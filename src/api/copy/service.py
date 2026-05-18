@@ -103,6 +103,12 @@ def delete(db: Session, id: int) -> bool:
   if not item:
     return False
 
+  if loan_repository.exists_by_copy_id(db, id):
+    raise ValueError("No se puede eliminar el ejemplar porque tiene préstamos asociados")
+
+  if reservation_repository.exists_by_copy_id(db, id):
+    raise ValueError("No se puede eliminar el ejemplar porque tiene reservas asociadas")
+
   repository.delete(db, item)
   return True
 

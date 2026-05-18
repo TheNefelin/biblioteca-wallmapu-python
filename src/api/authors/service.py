@@ -17,8 +17,6 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
     pages=pagination_response.pages,
     items=pagination_response.items,
     data=data,
-    next=pagination_response.next,
-    prev=pagination_response.prev,
   )
 
 

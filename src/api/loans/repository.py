@@ -286,3 +286,10 @@ def expire_overdue_as_overdue(db: Session) -> int:
   
   db.commit()
   return result
+
+
+# -----------------------------------------------------------------
+# EXISTS BY COPY ID
+# Used by: copy/service.py - delete validation
+def exists_by_copy_id(db: Session, copy_id: int) -> bool:
+  return db.query(models.Loan).filter(models.Loan.copy_id == copy_id).first() is not None

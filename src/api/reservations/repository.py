@@ -220,3 +220,10 @@ def get_all_pending(db: Session) -> list[models.Reservation]:
         .filter(models.Reservation.reservation_status_id == 1)
         .all()
     )
+
+
+# -----------------------------------------------------------------
+# EXISTS BY COPY ID
+# Used by: copy/service.py - delete validation
+def exists_by_copy_id(db: Session, copy_id: int) -> bool:
+  return db.query(models.Reservation).filter(models.Reservation.copy_id == copy_id).first() is not None

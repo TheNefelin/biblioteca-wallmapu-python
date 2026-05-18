@@ -29,17 +29,12 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
     .limit(pagination.limit)
     .all()
   )
-  
-  next_url = f"/api/genre/pagination?page={page + 1}&limit={pagination.limit}" if page < total_pages else None
-  prev_url = f"/api/genre/pagination?page={page - 1}&limit={pagination.limit}" if page > 1 else None
-  
+
   return PaginationResponseDTO(
     page=page,
     pages=total_pages,
     items=total_items,
     data=result,
-    next=next_url,
-    prev=prev_url
   )
 
 
