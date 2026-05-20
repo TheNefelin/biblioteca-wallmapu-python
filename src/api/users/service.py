@@ -35,8 +35,6 @@ def get_all_detailed(db: Session, pagination: PaginationRequestDTO) -> Paginatio
     pages=pagination_response.pages,
     items=pagination_response.items,
     data=data,
-    next=pagination_response.next,
-    prev=pagination_response.prev,
   )
 
 
@@ -74,9 +72,25 @@ def get_or_create_user(db: Session, dto: dtos.CreateUser) -> dtos.UserDetailDTO:
 
 # -----------------------------------------------------------------
 # UPDATE USER
-def update(db: Session, id_user: UUID, update_dto: dtos.UpdateUserDTO | dtos.UpdateUserByAdminDTO) -> dtos.UserDTO | None:
-  """Actualiza datos de un usuario. Acepta DTO de usuario o de administrador"""
+def update(db: Session, id_user: UUID, update_dto: dtos.UpdateUserDTO) -> dtos.UserDTO | None:
+  """Actualiza datos del propio perfil (LECTOR). No incluye rol/estado"""
   entity = repository.update(db, id_user, update_dto.model_dump(exclude_unset=True))
+  if not entity:
+    return None
+  return dtos.UserDTO.model_validate(entity)
+
+
+# -----------------------------------------------------------------
+# UPDATE USER BY ADMIN
+def update_by_admin(db: Session, id_user: UUID, update_dto: dtos.UpdateUserByAdminDTO, current_user_id: str) -> dtos.UserDTO | None:
+  """Actualiza cualquier usuario como admin. Si es auto-edición, no permite cambiar rol ni estado"""
+  update_data = update_dto.model_dump(exclude_unset=True)
+
+  if str(id_user) == current_user_id:
+    update_data.pop("user_role_id", None)
+    update_data.pop("user_status_id", None)
+
+  entity = repository.update(db, id_user, update_data)
   if not entity:
     return None
   return dtos.UserDTO.model_validate(entity)

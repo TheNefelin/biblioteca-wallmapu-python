@@ -35,8 +35,8 @@ class UpdateUserDTO(BaseModel):
   def validate_phone(cls, v):
     if v is None:
       return v
-    if not re.match(r'^\d{1,10}$', v):
-      raise ValueError('Teléfono debe contener solo números (máximo 10 dígitos)')
+    if not re.match(r'^\d{1,9}$', v):
+      raise ValueError('Teléfono debe contener solo números (máximo 9 dígitos)')
     return v
 
   model_config = ConfigDict(from_attributes=True)

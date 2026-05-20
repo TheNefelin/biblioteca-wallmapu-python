@@ -46,16 +46,11 @@ def get_all_detailed(db: Session, pagination: PaginationRequestDTO) -> Paginatio
     .all()
   )
 
-  next_url = f"/api/users/pagination?page={page + 1}&limit={pagination.limit}" if page < pages else None
-  prev_url = f"/api/users/pagination?page={page - 1}&limit={pagination.limit}" if page > 1 else None
-
   return PaginationResponseDTO(
     page=page,
     pages=pages,
     items=items,
     data=result,
-    next=next_url,
-    prev=prev_url
   )
 
 # -----------------------------------------------------------------

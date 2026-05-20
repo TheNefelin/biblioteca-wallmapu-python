@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from uuid import UUID
 from starlette.status import HTTP_200_OK
@@ -8,7 +8,6 @@ from src.core import jwt_service, roles, database
 from . import dtos, service
 
 admin_required = Depends(jwt_service.get_current_user(required_roles=[roles.UserRole.ADMIN]))
-user_required = Depends(jwt_service.get_current_user(required_roles=[roles.UserRole.LECTOR]))
 admin_or_user_required = Depends(jwt_service.get_current_user(required_roles=[roles.UserRole.ADMIN, roles.UserRole.LECTOR]))
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -25,11 +24,18 @@ router = APIRouter(prefix="/users", tags=["users"])
   dependencies=[admin_required],
 )
 def get_all_detailed(
+  request: Request,
   pagination_request: PaginationRequestDTO = Depends(),
   db: Session = Depends(database.get_db)
 ):
   try:
     pagination_response = service.get_all_detailed(db, pagination_request)
+
+    if pagination_response.pages > pagination_response.page:
+      pagination_response.next = str(request.url.include_query_params(page=pagination_response.page + 1, limit=pagination_request.limit))
+    if pagination_response.page > 1:
+      pagination_response.prev = str(request.url.include_query_params(page=pagination_response.page - 1, limit=pagination_request.limit))
+
     return ApiResponse.success(data=pagination_response)
   except Exception as e:
     return ApiResponse.server_error(str(e))
@@ -65,12 +71,11 @@ def get_by_id_detailed(id: UUID, db: Session = Depends(database.get_db)):
   status_code=HTTP_200_OK,
   summary="Actualizar perfil propio",
   description="Actualiza los datos de su propio perfil. Solo el usuario autenticado puede modificar su perfil",
-  dependencies=[user_required],
 )
 def update_user(
   id: UUID, update_dto: dtos.UpdateUserDTO,
   db: Session = Depends(database.get_db),
-  current_user = Depends(jwt_service.get_current_user())
+  current_user: dict = Depends(jwt_service.get_current_user(required_roles=[roles.UserRole.LECTOR]))
 ):
   try:
     if (str(id) != current_user["sub"]):
@@ -95,15 +100,15 @@ def update_user(
   response_model=ApiResponse[dtos.UserDTO],
   status_code=HTTP_200_OK,
   summary="Actualizar usuario por administrador",
-  description="Actualiza cualquier usuario incluyendo rol y estado. Solo administradores",
-  dependencies=[admin_required],
+  description="Actualiza cualquier usuario incluyendo rol y estado. Solo administradores. Si el admin se modifica a sí mismo, no puede cambiar su propio rol ni estado.",
 )
 def update_user_by_admin(
   id: UUID, update_dto: dtos.UpdateUserByAdminDTO,
-  db: Session = Depends(database.get_db)
+  db: Session = Depends(database.get_db),
+  current_user: dict = Depends(jwt_service.get_current_user(required_roles=[roles.UserRole.ADMIN]))
 ):
   try:
-    updated_dto = service.update(db, id, update_dto)
+    updated_dto = service.update_by_admin(db, id, update_dto, current_user_id=current_user["sub"])
 
     if not updated_dto:
       return ApiResponse.not_found(message="Usuario no encontrado")
