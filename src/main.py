@@ -37,7 +37,7 @@ app = FastAPI(title="Biblioteca Wallmapu API", description="In development", ver
 app.add_middleware(
   CORSMiddleware,
   allow_origins=[
-    "http://localhost:4200",
+    #"http://localhost:4200",
     "https://biblioteca-wallmapu-angular.vercel.app",
     "https://wallmapumesana.cl"
   ],
