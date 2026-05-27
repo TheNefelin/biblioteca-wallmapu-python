@@ -90,4 +90,3 @@ app.include_router(loan_status_router, prefix="/api")
 app.include_router(loan_policies_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api")
 
-

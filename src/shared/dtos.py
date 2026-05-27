@@ -48,6 +48,15 @@ class ApiResponse(BaseModel, Generic[T]):
     )
 
   @classmethod
+  def updated(cls, data: Optional[T] = None, message: str = "Recurso actualizado") -> 'ApiResponse[T]':
+    return cls(
+      isSuccess=True,
+      statusCode=status.HTTP_200_OK,
+      message=message,
+      data=data
+    )
+
+  @classmethod
   def deleted(cls, data: Optional[T] = None, message: str = "Recurso eliminado") -> 'ApiResponse[T]':
     return cls(
       isSuccess=True, 

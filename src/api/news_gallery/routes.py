@@ -15,36 +15,39 @@ router = APIRouter(prefix="/news-gallery", tags=["news-gallery"])
 # -----------------------------------------------------------------
 # GET ALL
 @router.get(
-  "/news/{news_id}", 
+  "/news/{news_id}",
   response_model=ApiResponse[list[dtos.NewsGalleryDTO]],
-  status_code=HTTP_200_OK
+  status_code=HTTP_200_OK,
+  summary="Obtener imágenes de una noticia",
+  description="Retorna todas las imágenes asociadas a una noticia por su ID"
 )
-def get_by_news_id(news_id: int, db: Session = Depends(get_db)):
+def get_by_news_id(
+  news_id: int,
+  db: Session = Depends(get_db)
+):
   try:
-    res = service.get_by_news_id(news_id, db)
-  
+    res = service.get_by_news_id(db, news_id)
+
     return ApiResponse.success(res)
   except Exception as e:
-    return ApiResponse.server_error(str(e))  
+    return ApiResponse.server_error(str(e))
 
 # -----------------------------------------------------------------
 # CREATE
 @router.post(
   "/news/{news_id}",
   response_model=ApiResponse[list[dtos.NewsGalleryDTO]],
-  status_code=status.HTTP_201_CREATED
+  status_code=status.HTTP_201_CREATED,
+  summary="Subir imágenes a noticia",
+  description="Sube hasta 3 imágenes a una noticia existente (solo admin)",
+  dependencies=[admin_required],
 )
 def create_gallery(
   news_id: int,
   files: list[UploadFile] = File(...),
   alts: list[str] = Form(...),
-  db: Session = Depends(get_db),
-  current_user: dict = admin_required
+  db: Session = Depends(get_db)
 ):
-  # 🔥 normalización
-  if len(alts) == 1 and "," in alts[0]:
-    alts = [a.strip() for a in alts[0].split(",")]
-
   if len(files) != len(alts):
     return ApiResponse.bad_request("La cantidad de imágenes y textos alt no coincide")
 
@@ -58,7 +61,7 @@ def create_gallery(
       alts=alts,
       db=db
     )
-      
+
     return ApiResponse.created(result)
   except ValueError as e:
     return ApiResponse.bad_request(str(e))
@@ -66,25 +69,43 @@ def create_gallery(
     return ApiResponse.server_error(str(e))
 
 # -----------------------------------------------------------------
-# DELETE
+# DELETE ALL BY NEWS
 @router.delete(
-  "/news/{news_id}", 
+  "/news/{news_id}",
   response_model=ApiResponse[object],
-  status_code=status.HTTP_202_ACCEPTED
+  status_code=status.HTTP_202_ACCEPTED,
+  summary="Eliminar todas las imágenes de una noticia",
+  description="Elimina todas las imágenes asociadas a una noticia (solo admin)",
+  dependencies=[admin_required],
 )
-def delete_by_news_id(news_id: int, db: Session = Depends(get_db), current_user: dict = admin_required):
+def delete_by_news_id(
+  news_id: int,
+  db: Session = Depends(get_db)
+):
   try:
-    res = service.delete_news_gallery_by_news_id(news_id, db)
-  
+    service.delete_news_gallery_by_news_id(db, news_id)
+
     return ApiResponse.deleted()
   except Exception as e:
     return ApiResponse.server_error(str(e))
 
-@router.delete("/{id}", response_model=ApiResponse[object])
-def delete(id: int, db: Session = Depends(get_db), current_user: dict = admin_required):
+# -----------------------------------------------------------------
+# DELETE BY ID
+@router.delete(
+  "/{id}",
+  response_model=ApiResponse[object],
+  status_code=status.HTTP_202_ACCEPTED,
+  summary="Eliminar una imagen de la galería",
+  description="Elimina una imagen específica de la galería por su ID (solo admin)",
+  dependencies=[admin_required],
+)
+def delete(
+  id: int,
+  db: Session = Depends(get_db)
+):
   try:
-    res = service.delete_news_gallery(id, db)
-  
+    service.delete_news_gallery(db, id)
+
     return ApiResponse.deleted()
   except Exception as e:
     return ApiResponse.server_error(str(e))

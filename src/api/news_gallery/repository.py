@@ -15,6 +15,16 @@ def get_by_news_id(db: Session, news_id: int) -> list[models.NewsGallery]:
 
 
 # -----------------------------------------------------------------
+# GET BY ID
+def get_by_id(db: Session, id: int):
+  return (
+    db.query(models.NewsGallery)
+    .filter(models.NewsGallery.id_news_gallery == id)
+    .first()
+  )
+
+
+# -----------------------------------------------------------------
 # CREATE
 def create(db: Session, data: dict) -> models.NewsGallery:
   new_item = models.NewsGallery(**data)

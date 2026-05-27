@@ -1,13 +1,12 @@
 
-from typing import List, Optional
-from fastapi import APIRouter, Depends, Query, Request, status
+from typing import List
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_200_OK, HTTP_202_ACCEPTED
 
 from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
-from src.core.url_helper import get_base_url
 from src.core.database import get_db
 from . import dtos, service
 
@@ -32,23 +31,17 @@ def get_all_pagination(
   try:
     pagination_response = service.get_all_pagination(db, pagination_request)
 
-    current_page = pagination_response.page
-    total_pages = pagination_response.pages
+    if pagination_response.pages > pagination_response.page:
+      params = {"page": pagination_response.page + 1, "limit": pagination_request.limit}
+      if pagination_request.search:
+        params["search"] = pagination_request.search
+      pagination_response.next = str(request.url.include_query_params(**params))
 
-    base_url = get_base_url(request)
-    search_param = f"&search={pagination_request.search}" if pagination_request.search else ""
-
-    # NEXT
-    if current_page < total_pages:
-      pagination_response.next = (
-        f"{base_url}?page={current_page + 1}&limit={pagination_request.limit}{search_param}"
-      )
-
-    # PREV
-    if current_page > 1:
-      pagination_response.prev = (
-        f"{base_url}?page={current_page - 1}&limit={pagination_request.limit}{search_param}"
-      )
+    if pagination_response.page > 1:
+      params = {"page": pagination_response.page - 1, "limit": pagination_request.limit}
+      if pagination_request.search:
+        params["search"] = pagination_request.search
+      pagination_response.prev = str(request.url.include_query_params(**params))
 
     return ApiResponse.success(pagination_response)
   except Exception as e:
@@ -85,12 +78,12 @@ def get_by_id(
   response_model=ApiResponse[dtos.NewsDTO], 
   status_code=status.HTTP_201_CREATED,
   summary="Crear noticia",
-  description="Crea una nueva noticia (solo admin)"
+  description="Crea una nueva noticia (solo admin)",
+  dependencies=[admin_required],
 )
 def create(
   news: dtos.CreateNewsDTO, 
-  db: Session = Depends(get_db), 
-  current_user: dict = admin_required
+  db: Session = Depends(get_db)
 ):
   try:
     created = service.create(db, news)
@@ -108,13 +101,13 @@ def create(
   response_model=ApiResponse[dtos.NewsDTO], 
   status_code=HTTP_202_ACCEPTED,
   summary="Actualizar noticia",
-  description="Actualiza una noticia existente (solo admin)"
+  description="Actualiza una noticia existente (solo admin)",
+  dependencies=[admin_required],
 )
 def update(
   id: int, 
   news: dtos.UpdateNewsDTO, 
-  db: Session = Depends(get_db), 
-  current_user: dict = admin_required
+  db: Session = Depends(get_db)
 ):
   try:
     if (id != news.id_news):
@@ -138,12 +131,12 @@ def update(
   response_model=ApiResponse[object], 
   status_code=HTTP_202_ACCEPTED,
   summary="Eliminar noticia",
-  description="Elimina una noticia (solo admin)"
+  description="Elimina una noticia (solo admin)",
+  dependencies=[admin_required],
 )
 def delete(
   id: int, 
-  db: Session = Depends(get_db), 
-  current_user: dict = admin_required
+  db: Session = Depends(get_db)
 ):
   try:
     service.delete(db, id)

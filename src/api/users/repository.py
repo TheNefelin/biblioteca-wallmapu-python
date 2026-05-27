@@ -40,7 +40,7 @@ def get_all_detailed(db: Session, pagination: PaginationRequestDTO) -> Paginatio
 
   result = (
     query
-    .order_by(models.User.name.asc())
+    .order_by(models.User.updated_at.desc())
     .offset(skip)
     .limit(pagination.limit)
     .all()

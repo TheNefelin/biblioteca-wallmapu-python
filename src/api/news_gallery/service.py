@@ -18,7 +18,7 @@ def create(db: Session, news_id: int, url: str, alt: str = "") -> dtos.NewsGalle
   news = news_repository.get_by_id(db, news_id)
   if not news:
     raise ValueError(f"La noticia con id {news_id} no existe")
-  
+
   item = repository.create(db, {"news_id": news_id, "url": url, "alt": alt})
   return dtos.NewsGalleryDTO.model_validate(item)
 
@@ -32,7 +32,7 @@ def create_news_gallery_with_images(
   news = news_repository.get_by_id(db, news_id)
   if not news:
     raise ValueError(f"La noticia con id {news_id} no existe")
-  
+
   uploaded_public_ids = []
   created_items = []
 
@@ -58,7 +58,7 @@ def create_news_gallery_with_images(
     for item in created_items:
       db.refresh(item)
 
-    return created_items    
+    return created_items
   except Exception as e:
     db.rollback()
 
@@ -66,39 +66,32 @@ def create_news_gallery_with_images(
       try:
         cloudinary_service.delete_image(public_id)
       except Exception:
-        pass    
+        pass
 
     raise e
 
 
 def delete_news_gallery_by_news_id(db: Session, news_id: int) -> int:
-  items = db.query(NewsGallery).filter(
-    NewsGallery.news_id == news_id
-  ).all()
+  items = repository.get_by_news_id(db, news_id)
 
   for item in items:
     public_id = cloudinary_service.extract_public_id(item.url)
-
     if public_id:
       cloudinary_service.delete_image(public_id)
 
-    db.delete(item)
-
-  db.commit()
+  repository.delete_by_news_id(db, news_id)
   return len(items)
 
 
-def delete_news_gallery(db: Session, id: int) -> int:
-  item = db.query(NewsGallery).filter(NewsGallery.id_news_gallery == id).first()
+def delete_news_gallery(db: Session, id: int) -> bool:
+  item = repository.get_by_id(db, id)
 
   if not item:
-    return 0
+    return False
 
   public_id = cloudinary_service.extract_public_id(item.url)
-
   if public_id:
     cloudinary_service.delete_image(public_id)
 
-  db.delete(item)
-  db.commit()
-  return 1
+  repository.delete(db, id)
+  return True

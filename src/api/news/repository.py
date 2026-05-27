@@ -30,22 +30,19 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
 
   result = (
     query
-    .order_by(func.random())
+    .order_by(models.News.created_at.desc()) #.order_by(func.random())
     .offset(skip)
     .limit(pagination.limit)
     .all()
   )
-
-  next_url = f"/api/news/pagination?page={page + 1}&limit={pagination.limit}" if page < pages else None
-  prev_url = f"/api/news/pagination?page={page - 1}&limit={pagination.limit}" if page > 1 else None
 
   return PaginationResponseDTO(
     page=page,
     pages=pages,
     items=items,
     data=result,
-    next=next_url,
-    prev=prev_url
+    next=None,
+    prev=None
   )
 
 
