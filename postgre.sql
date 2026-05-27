@@ -120,6 +120,22 @@ CREATE TABLE IF NOT EXISTS wm_genres (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS wm_formats (
+  id_format INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  name VARCHAR(200) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS wm_edition_format (
+  id_format INTEGER NOT NULL,
+  id_edition INTEGER NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT pk_edition_format PRIMARY KEY (id_edition, id_format),
+  CONSTRAINT fk_ef_format FOREIGN KEY (id_format) REFERENCES wm_formats(id_format),
+  CONSTRAINT fk_ef_edition FOREIGN KEY (id_edition) REFERENCES wm_editions(id_edition)
+);
+
 CREATE TABLE IF NOT EXISTS wm_copy_status (
   id_status INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   name VARCHAR(30) UNIQUE NOT NULL

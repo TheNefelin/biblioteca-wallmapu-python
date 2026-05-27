@@ -23,6 +23,8 @@ from src.api.books.routes import router as books_router
 from src.api.editorials.routes import router as editorials_router
 from src.api.editions.routes import router as editions_router
 from src.api.edition_image.routes import router as edition_image_router
+from src.api.format.routes import router as format_router
+from src.api.edition_format.routes import router as edition_format_router
 from src.api.copy.routes import router as copy_router
 from src.api.copy_status.routes import router as copy_status_router
 from src.api.reservation_status.routes import router as reservation_status_router
@@ -37,7 +39,7 @@ app = FastAPI(title="Biblioteca Wallmapu API", description="In development", ver
 app.add_middleware(
   CORSMiddleware,
   allow_origins=[
-    #"http://localhost:4200",
+    "http://localhost:4200",
     "https://biblioteca-wallmapu-angular.vercel.app",
     "https://wallmapumesana.cl"
   ],
@@ -81,6 +83,8 @@ app.include_router(books_router, prefix="/api")
 app.include_router(editorials_router, prefix="/api")
 app.include_router(editions_router, prefix="/api")
 app.include_router(edition_image_router, prefix="/api")
+app.include_router(format_router, prefix="/api")
+app.include_router(edition_format_router, prefix="/api")
 app.include_router(copy_router, prefix="/api")
 app.include_router(copy_status_router, prefix="/api")
 app.include_router(reservations_router, prefix="/api")
