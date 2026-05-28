@@ -2,7 +2,8 @@ from math import ceil
 from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session, joinedload
 
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO, BookFilterDTO
+from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from .dtos import EditionFilterDTO
 from src.api.books import models as book_models
 from src.api.authors import models as authors_models
 from src.api.book_authors import models as book_authors_models
@@ -44,7 +45,7 @@ def _build_copy_count_subq(db: Session):
 # GET ALL PAGINATION REAL (flat DTO, column-based query)
 def get_all_pagination(
     db: Session,
-    pagination: PaginationRequestDTO[BookFilterDTO]
+    pagination: PaginationRequestDTO[EditionFilterDTO]
 ) -> PaginationResponseDTO:
   first_author_subq = _build_first_author_subq(db)
   copy_count_subq = _build_copy_count_subq(db)
@@ -105,6 +106,13 @@ def get_all_pagination(
       query = query.filter(models.Edition.editorial_id == pagination.filter.id_editorial)
     if pagination.filter.id_genre:
       query = query.filter(book_models.Book.genre_id == pagination.filter.id_genre)
+    if pagination.filter.id_format:
+      query = query.join(
+        edition_format_models.EditionFormat,
+        models.Edition.id_edition == edition_format_models.EditionFormat.id_edition
+      ).filter(
+        edition_format_models.EditionFormat.id_format == pagination.filter.id_format
+      )
 
   total_items = query.count()
   total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0

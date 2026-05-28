@@ -10,11 +10,6 @@ class PaginationRequestDTO(BaseModel, Generic[T]):
   search: Optional[str] = Field(default="", description="Texto de búsqueda opcional")
   filter: Optional[T] = Field(default=None, description="Filtros adicionales específicos del recurso")
 
-class BookFilterDTO(BaseModel):
-  id_author: Optional[int] = Field(None, description="Filtrar por autor")
-  id_editorial: Optional[int] = Field(None, description="Filtrar por editorial")
-  id_genre: Optional[int] = Field(None, description="Filtrar por género")
-
 class PaginationResponseDTO(BaseModel, Generic[T]): 
   page: int = Field(..., description="Página actual")
   pages: int = Field(..., description="Cantidad total de páginas disponibles")

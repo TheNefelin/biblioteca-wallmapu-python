@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO, BookFilterDTO
+from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from .dtos import EditionFilterDTO
 from src.services import cloudinary_service
 from src.api.edition_format import service as edition_format_service
 from . import dtos, repository
@@ -8,7 +9,7 @@ from . import dtos, repository
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION REAL (flat DTO)
-def get_all_pagination(db: Session, pagination: PaginationRequestDTO[BookFilterDTO]) -> PaginationResponseDTO[list[dtos.EditionDetailDTO]]:
+def get_all_pagination(db: Session, pagination: PaginationRequestDTO[EditionFilterDTO]) -> PaginationResponseDTO[list[dtos.EditionDetailDTO]]:
   response = repository.get_all_pagination(db, pagination)
   editions = response.data or []
   data = [dtos.EditionDetailDTO.model_validate(item) for item in (editions)]

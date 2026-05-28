@@ -6,7 +6,7 @@ from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 from src.core.database import get_db
 from src.core.jwt_service import get_current_user
 from src.core.roles import UserRole
-from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO, BookFilterDTO
+from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
 from . import dtos, service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/edition", tags=["edition"])
   response_model=ApiResponse[PaginationResponseDTO[List[dtos.EditionDetailDTO]]],
   status_code=HTTP_200_OK,
   summary="Listar ediciones con paginación (DTO plano)",
-  description="Retorna lista paginada con DTO plano. Filtros: id_author, id_editorial, id_genre, search",
+  description="Retorna lista paginada con DTO plano. Filtros: id_author, id_editorial, id_genre, id_format, search",
 )
 def get_all_pagination(
   request: Request,
@@ -30,16 +30,18 @@ def get_all_pagination(
   id_author: Optional[int] = Query(default=None),
   id_editorial: Optional[int] = Query(default=None),
   id_genre: Optional[int] = Query(default=None),
+  id_format: Optional[int] = Query(default=None),
   db: Session = Depends(get_db)
 ):
   try:
-    filter = BookFilterDTO(
+    filter = dtos.EditionFilterDTO(
       id_author=id_author,
       id_editorial=id_editorial,
-      id_genre=id_genre
-    ) if any([id_author, id_editorial, id_genre]) else None
+      id_genre=id_genre,
+      id_format=id_format
+    ) if any([id_author, id_editorial, id_genre, id_format]) else None
 
-    pagination = PaginationRequestDTO[BookFilterDTO](
+    pagination = PaginationRequestDTO[dtos.EditionFilterDTO](
       page=page,
       limit=limit,
       search=search or "",

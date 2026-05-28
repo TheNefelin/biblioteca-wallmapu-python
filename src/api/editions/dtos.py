@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.api.format.dtos import FormatDTO
 
@@ -36,6 +36,13 @@ class EditionDTO(BaseModel):
   formats: List[FormatDTO]
 
   model_config = ConfigDict(from_attributes=True)
+
+
+class EditionFilterDTO(BaseModel):
+  id_author: Optional[int] = Field(None, description="Filtrar por autor")
+  id_editorial: Optional[int] = Field(None, description="Filtrar por editorial")
+  id_genre: Optional[int] = Field(None, description="Filtrar por género")
+  id_format: Optional[int] = Field(None, description="Filtrar por formato")
 
 
 class EditionDetailDTO(BaseModel):
