@@ -15,8 +15,6 @@ class CreateEditionDTO(BaseModel):
   book_id: int
   format_ids: Optional[list[int]] = None
 
-  model_config = ConfigDict(from_attributes=True)
-
 
 class UpdateEditionDTO(CreateEditionDTO):
   id_edition: int

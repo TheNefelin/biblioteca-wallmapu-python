@@ -100,11 +100,8 @@ def update_book(
   book: dtos.UpdateBookDTO, 
   db: Session = Depends(get_db)
 ):
-  if book.id_book != id:
-    return ApiResponse.bad_request(message="El Id no coincide")
-
   try:
-    result = service.update_book(db, book)
+    result = service.update_book(db, id, book)
     
     if not result:
       return ApiResponse.not_found()

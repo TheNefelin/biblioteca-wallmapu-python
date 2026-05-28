@@ -15,7 +15,9 @@ router = APIRouter(
 @router.get(
   "/",
   response_model=ApiResponse[List[dtos.LoanStatusDTO]],
-  status_code=HTTP_200_OK
+  status_code=HTTP_200_OK,
+  summary="Listar estados de préstamo",
+  description="Obtiene lista completa de estados de préstamo ordenada por ID",
 )
 def get_all_loan_status(db: Session = Depends(get_db)):
   try:

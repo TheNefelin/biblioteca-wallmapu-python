@@ -18,7 +18,9 @@ router = APIRouter(prefix="/division-province", tags=["division-province"], depe
 @router.get(
   "/", 
   response_model=ApiResponse[List[dtos.ProvinceDTO]],
-  status_code=HTTP_200_OK
+  status_code=HTTP_200_OK,
+  summary="Listar provincias",
+  description="Obtiene lista completa de provincias ordenada por nombre",
 )
 def get_all_province(db: Session = Depends(get_db)):
   try:

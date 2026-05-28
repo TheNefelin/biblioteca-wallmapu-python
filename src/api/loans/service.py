@@ -107,7 +107,7 @@ def return_loan_by_copy_id(db: Session, copy_id: int) -> dtos.LoanDTO | None:
   if int(loan.loan_status_id) == 2:
     raise ValueError("Este préstamo ya fue devuelto")
 
-  returned = repository.return_loan(db, loan.id_loan)
+  returned = repository.return_loan(db, loan.id_loan, date.today(), 2)
   
   copy_repository.update_status(db, loan.copy_id, 1)
   
@@ -119,12 +119,17 @@ def return_loan_by_copy_id(db: Session, copy_id: int) -> dtos.LoanDTO | None:
 # -----------------------------------------------------------------
 # UPDATE - EXPIRE OVERDUE
 def expire_overdue_loans(db: Session) -> int:
-  count = repository.expire_overdue_as_overdue(db)
-  
-  if count > 0:
-    copy_repository.update_all_overdue_status(db)
-  
-  return count
+  overdue = repository.get_overdue_loan_copy_ids(db)
+  if not overdue:
+    return 0
+
+  loan_ids = [row[0] for row in overdue]
+  copy_ids = [row[1] for row in overdue]
+
+  repository.bulk_update_loan_status(db, loan_ids, 3)
+  repository.bulk_update_copy_status(db, copy_ids, 2)
+
+  return len(loan_ids)
 
 
 # -----------------------------------------------------------------

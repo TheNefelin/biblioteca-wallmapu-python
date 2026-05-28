@@ -9,8 +9,6 @@ class CreateUser(BaseModel):
   email: str = Field(..., description="Correo electrónico del usuario")
   name: str = Field(..., description="Nombre del usuario")
 
-  model_config = ConfigDict(from_attributes=True)
-
 
 class UpdateUserDTO(BaseModel):
   """DTO para actualizar perfil de usuario (campos opcionales)"""
@@ -38,8 +36,6 @@ class UpdateUserDTO(BaseModel):
     if not re.match(r'^\d{1,9}$', v):
       raise ValueError('Teléfono debe contener solo números (máximo 9 dígitos)')
     return v
-
-  model_config = ConfigDict(from_attributes=True)
 
 
 class UpdateUserByAdminDTO(UpdateUserDTO):

@@ -1,5 +1,3 @@
-from typing import List
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
@@ -46,20 +44,19 @@ def create_book(db: Session, data: dtos.CreateBookDTO) -> dtos.BookDTO:
   if dump.get("genre_id") == 0:
     raise ValueError("El género es requerido")
 
-  try:
-    book = repository.create(db, dump)
-    book_author_service.update_authors(db, book.id_book, author_ids)
-    book_subject_service.update_subjects(db, book.id_book, subject_ids)
-    db.refresh(book)
-    return dtos.BookDTO.model_validate(book)
-  except IntegrityError as e:
-    db.rollback()
-    raise ValueError(e.orig)
+  book = repository.create(db, dump)
+  book_author_service.update_authors(db, book.id_book, author_ids)
+  book_subject_service.update_subjects(db, book.id_book, subject_ids)
+  db.refresh(book)
+  return dtos.BookDTO.model_validate(book)
 
 
 # -----------------------------------------------------------------
 # UPDATE
-def update_book(db: Session, data: dtos.UpdateBookDTO) -> dtos.BookDTO | None:
+def update_book(db: Session, id: int, data: dtos.UpdateBookDTO) -> dtos.BookDTO | None:
+  if data.id_book != id:
+    raise ValueError("El ID no coincide")
+
   book = repository.get_entity_by_id(db, data.id_book)
   if not book:
     return None
@@ -72,15 +69,11 @@ def update_book(db: Session, data: dtos.UpdateBookDTO) -> dtos.BookDTO | None:
   if dump.get("genre_id") == 0:
     raise ValueError("El género es requerido")
 
-  try:
-    book = repository.update(db, book, dump)
-    book_author_service.update_authors(db, book.id_book, author_ids)
-    book_subject_service.update_subjects(db, book.id_book, subject_ids)
-    db.refresh(book)
-    return dtos.BookDTO.model_validate(book)
-  except IntegrityError as e:
-    db.rollback()
-    raise ValueError(e.orig)
+  book = repository.update(db, book, dump)
+  book_author_service.update_authors(db, book.id_book, author_ids)
+  book_subject_service.update_subjects(db, book.id_book, subject_ids)
+  db.refresh(book)
+  return dtos.BookDTO.model_validate(book)
 
 
 # -----------------------------------------------------------------

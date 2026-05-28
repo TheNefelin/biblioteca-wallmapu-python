@@ -243,8 +243,48 @@ def create(db: Session, data: dict) -> models.Loan:
 
 
 # -----------------------------------------------------------------
-# RETURN (solo actualiza el loan - lógica de negocio en service)
-def return_loan(db: Session, loan_id: int) -> models.Loan:
+# GET OVERDUE LOAN COPY IDS
+def get_overdue_loan_copy_ids(db: Session) -> list[tuple[int, int]]:
+  return [
+    (row.id_loan, row.copy_id)
+    for row in db.query(models.Loan.id_loan, models.Loan.copy_id)
+    .filter(
+      and_(
+        models.Loan.due_date < date.today(),
+        models.Loan.loan_status_id == 1
+      )
+    )
+    .all()
+  ]
+
+
+# -----------------------------------------------------------------
+# BULK UPDATE LOAN STATUS
+def bulk_update_loan_status(db: Session, loan_ids: list[int], status_id: int) -> int:
+  result = (
+    db.query(models.Loan)
+    .filter(models.Loan.id_loan.in_(loan_ids))
+    .update({"loan_status_id": status_id})
+  )
+  db.commit()
+  return result
+
+
+# -----------------------------------------------------------------
+# BULK UPDATE COPY STATUS
+def bulk_update_copy_status(db: Session, copy_ids: list[int], status_id: int) -> int:
+  result = (
+    db.query(copy_models.Copy)
+    .filter(copy_models.Copy.id_copy.in_(copy_ids))
+    .update({"status_id": status_id}, synchronize_session=False)
+  )
+  db.commit()
+  return result
+
+
+# -----------------------------------------------------------------
+# RETURN (actualiza campos de devolución)
+def return_loan(db: Session, loan_id: int, return_date: date, status_id: int) -> models.Loan | None:
   loan = (
     db.query(models.Loan)
     .filter(models.Loan.id_loan == loan_id)
@@ -252,40 +292,11 @@ def return_loan(db: Session, loan_id: int) -> models.Loan:
   )
   
   if loan:
-    loan.return_date = date.today()
-    loan.loan_status_id = 2
-    
+    loan.return_date = return_date
+    loan.loan_status_id = status_id
     db.commit()
     db.refresh(loan)
   return loan
-
-
-# -----------------------------------------------------------------
-# UPDATE - EXPIRE OVERDUE (solo actualiza - lógica de negocio en service)
-def expire_overdue_as_overdue(db: Session) -> int:
-  overdue_loans = (
-    db.query(models.Loan)
-    .filter(
-      and_(
-        models.Loan.due_date < date.today(),
-        models.Loan.loan_status_id == 1
-      )
-    )
-  )
-  
-  copy_ids = [loan.copy_id for loan in overdue_loans.all()]
-  
-  result = overdue_loans.update({"loan_status_id": 3})
-  
-  if copy_ids:
-    (
-      db.query(copy_models.Copy)
-      .filter(copy_models.Copy.id_copy.in_(copy_ids))
-      .update({"status_id": 2}, synchronize_session=False)
-    )
-  
-  db.commit()
-  return result
 
 
 # -----------------------------------------------------------------

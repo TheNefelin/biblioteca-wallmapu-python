@@ -68,6 +68,9 @@ def create(db: Session, data: dtos.CreateCopyDTO) -> dtos.CopyDTO:
 # -----------------------------------------------------------------
 # UPDATE COPY
 def update(db: Session, id: int, data: dtos.UpdateCopyDTO) -> dtos.CopyDTO | None:
+  if data.id_copy != id:
+    raise ValueError("El ID no coincide")
+
   if not db.get(edition_models.Edition, data.edition_id):
     raise ValueError("No se encontró la edición")
   if not db.get(status_models.CopyStatus, data.status_id):

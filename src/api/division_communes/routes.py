@@ -18,7 +18,9 @@ router = APIRouter(prefix="/division-commune", tags=["division-commune"], depend
 @router.get(
   "/", 
   response_model=ApiResponse[List[dtos.CommuneDTO]],
-  status_code=HTTP_200_OK
+  status_code=HTTP_200_OK,
+  summary="Listar comunas",
+  description="Obtiene lista completa de comunas ordenada por nombre",
 )
 def get_all_commune(db: Session = Depends(get_db)):
   try:

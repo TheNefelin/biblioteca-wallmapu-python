@@ -8,8 +8,6 @@ class CreateReservationDTO(BaseModel):
   """DTO para crear una nueva reserva"""
   copy_id: int = Field(..., description="ID del ejemplar a reservar")
 
-  model_config = ConfigDict(from_attributes=True)
-
 
 class ReservationDTO(CreateReservationDTO):
   id_reservation: Optional[int] = None
@@ -17,6 +15,8 @@ class ReservationDTO(CreateReservationDTO):
   expiration_date: datetime
   user_id: UUID
   reservation_status_id: Optional[int] = None
+
+  model_config = ConfigDict(from_attributes=True)
 
 
 class ReservationDetailDTO(BaseModel):
@@ -42,8 +42,6 @@ class ReservationDetailDTO(BaseModel):
 class ReservationPickupDTO(BaseModel):
   """DTO para confirmar retiro de reserva"""
   copy_id: int = Field(..., description="ID del ejemplar a entregar")
-
-  model_config = ConfigDict(from_attributes=True)
 
 
 class ReservationFilterDTO(BaseModel):

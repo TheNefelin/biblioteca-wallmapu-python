@@ -76,9 +76,6 @@ def create_copy(copy: dtos.CreateCopyDTO, db: Session = Depends(get_db)):
   dependencies=[admin_required],
 )
 def update_copy(id: int, copy: dtos.UpdateCopyDTO, db: Session = Depends(get_db)):
-  if copy.id_copy != id:
-    return ApiResponse.bad_request(message="El ID no coincide")
-
   try:
     res = service.update(db, id, copy)
     if not res:

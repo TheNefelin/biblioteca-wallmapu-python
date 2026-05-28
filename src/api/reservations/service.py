@@ -202,4 +202,4 @@ def mark_as_expired(db: Session, id: int) -> dtos.ReservationDTO:
 # -----------------------------------------------------------------
 # UPDATE - EXPIRE OVERDUE
 def expire_overdue_reservations(db: Session) -> int:
-  return repository.expire_overdue_as_expired(db)
+  return repository.bulk_update_status_by_expired(db, old_status_id=1, new_status_id=4)

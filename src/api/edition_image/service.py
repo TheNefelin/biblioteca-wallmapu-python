@@ -10,21 +10,11 @@ PATH = "edition"
 # -----------------------------------------------------------------
 # CREATE
 def create_edition_image(file: UploadFile) -> str:
-  public_id = None
-
-  try:
-    url, public_id = cloudinary_service.upload_image_7_10(
-      file_bytes=file.file.read(),
-      folder=f"{PATH}"
-    )
-    return url
-  except Exception as e:
-    try:
-      cloudinary_service.delete_image(public_id)
-    except Exception:
-      pass
-
-    raise e
+  url, _ = cloudinary_service.upload_image_7_10(
+    file_bytes=file.file.read(),
+    folder=f"{PATH}"
+  )
+  return url
 
 
 # -----------------------------------------------------------------

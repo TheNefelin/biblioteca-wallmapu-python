@@ -65,6 +65,9 @@ def create_edition(db: Session, data: dtos.CreateEditionDTO) -> dtos.EditionDTO:
 # -----------------------------------------------------------------
 # UPDATE
 def update_edition(db: Session, id: int, data: dtos.UpdateEditionDTO) -> dtos.EditionDTO | None:
+  if data.id_edition != id:
+    raise ValueError("El ID no coincide")
+
   edition = repository.get_entity_by_id(db, id)
   if not edition:
     return None

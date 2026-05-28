@@ -90,37 +90,27 @@ def get_by_email(db: Session, email: str) -> models.User:
     )
 
 # -----------------------------------------------------------------
-# GET OR CREATE
-def get_or_create_user(db: Session, data: dict) -> tuple[models.User, bool]:
-  user = (
-    db.query(models.User)
-    .options(
-      joinedload(models.User.user_role),
-      joinedload(models.User.user_status),
-    )
-    .filter(models.User.email == data.get("email"))
-    .first()
-  )
-
-  if user:
-    return user, False
-
-  new_user = models.User(**data)
-  db.add(new_user)
+# CREATE
+def create(db: Session, data: dict) -> models.User:
+  user = models.User(**data)
+  db.add(user)
   db.commit()
-  db.refresh(new_user)
+  db.refresh(user)
+  return user
 
-  user = (
+
+# -----------------------------------------------------------------
+# GET BY ID USER WITH ROLE AND STATUS
+def get_by_id_with_role_status(db: Session, id_user: UUID) -> models.User | None:
+  return (
     db.query(models.User)
     .options(
       joinedload(models.User.user_role),
       joinedload(models.User.user_status),
     )
-    .filter(models.User.id_user == new_user.id_user)
+    .filter(models.User.id_user == id_user)
     .first()
   )
-  
-  return user, True
 
 # -----------------------------------------------------------------
 #UPDATE

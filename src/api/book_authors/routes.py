@@ -22,7 +22,9 @@ router = APIRouter(
 @router.put(
   "/{id_book}",
   response_model=ApiResponse[list[dtos.BookAuthorDTO]],
-  status_code=HTTP_201_CREATED
+  status_code=HTTP_201_CREATED,
+  summary="Reemplazar autores de un libro",
+  description="Elimina todos los autores actuales y asigna la nueva lista. Body vacío elimina todos.",
 )
 def update_book_author(
   id_book: int,
@@ -30,7 +32,7 @@ def update_book_author(
   db: Session = Depends(get_db)
 ):
   try:
-    res = service.update_authors(id_book, author_ids, db)
+    res = service.update_authors(db, id_book, author_ids)
     return ApiResponse.success(data=res)
   except ValueError as e:
     return ApiResponse.bad_request(message=str(e))
@@ -43,7 +45,9 @@ def update_book_author(
 @router.delete(
   "/{id_book}/{id_author}",
   response_model=ApiResponse[bool],
-  status_code=HTTP_200_OK
+  status_code=HTTP_200_OK,
+  summary="Eliminar un autor de un libro",
+  description="Elimina la relación autor-libro específica",
 )
 def delete_book_author(
   id_book: int,
@@ -51,7 +55,7 @@ def delete_book_author(
   db: Session = Depends(get_db)
 ):
   try:
-    res = service.delete_author(id_book, id_author, db)
+    res = service.delete_author(db, id_book, id_author)
     if not res:
       return ApiResponse.not_found()
     return ApiResponse.success(data=res)
@@ -66,14 +70,16 @@ def delete_book_author(
 @router.delete(
   "/book/{id_book}",
   response_model=ApiResponse[bool],
-  status_code=HTTP_200_OK
+  status_code=HTTP_200_OK,
+  summary="Eliminar todos los autores de un libro",
+  description="Elimina todas las relaciones de autor para un libro específico",
 )
 def delete_book_author_by_book(
   id_book: int,
   db: Session = Depends(get_db)
 ):
   try:
-    res = service.delete_author_by_book(id_book, db)
+    res = service.delete_author_by_book(db, id_book)
     if not res:
       return ApiResponse.not_found()
     return ApiResponse.success(data=res)

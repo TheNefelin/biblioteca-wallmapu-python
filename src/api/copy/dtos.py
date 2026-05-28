@@ -10,8 +10,6 @@ class CreateCopyDTO(BaseModel):
   edition_id: int
   copy_number: int
 
-  model_config = ConfigDict(from_attributes=True)
-
 
 class UpdateCopyDTO(CreateCopyDTO):
   id_copy: int
@@ -22,6 +20,8 @@ class CopyDTO(UpdateCopyDTO):
   barcode: str  
   created_at: datetime
   updated_at: datetime
+
+  model_config = ConfigDict(from_attributes=True)
 
 
 class CopyDetailDTO(BaseModel):

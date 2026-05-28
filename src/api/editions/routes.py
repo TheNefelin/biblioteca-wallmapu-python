@@ -143,9 +143,6 @@ def create_edition(item: dtos.CreateEditionDTO, db: Session = Depends(get_db)):
   dependencies=[admin_required],
 )
 def update_edition(id: int, item: dtos.UpdateEditionDTO, db: Session = Depends(get_db)):
-  if item.id_edition != id:
-    return ApiResponse.bad_request(message="El ID no coincide")
-
   try:
     result = service.update_edition(db, id, item)
     if not result:

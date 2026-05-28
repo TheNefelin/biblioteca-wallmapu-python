@@ -9,8 +9,6 @@ class CreateLoanDTO(BaseModel):
   copy_id: int = Field(..., description="ID del ejemplar a prestar")
   user_id: UUID = Field(..., description="UUID del usuario que toma el préstamo")
 
-  model_config = ConfigDict(from_attributes=True)
-
 
 class LoanDTO(CreateLoanDTO):
   """DTO de préstamo con todos los campos básicos"""
@@ -21,6 +19,8 @@ class LoanDTO(CreateLoanDTO):
   loan_status_id: Optional[int] = Field(None, description="ID del estado del préstamo (1=activo, 2=devuelto, 3=vencido)")
   created_at: Optional[datetime] = Field(None, description="Fecha de creación del registro en base de datos")
   updated_at: Optional[datetime] = Field(None, description="Fecha de última actualización del registro")
+
+  model_config = ConfigDict(from_attributes=True)
 
 
 class LoanFilterDTO(BaseModel):

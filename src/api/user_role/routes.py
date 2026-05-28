@@ -18,8 +18,13 @@ router = APIRouter(prefix="/user-role", tags=["user-role"], dependencies=[admin_
 @router.get(
   "/", 
   response_model=ApiResponse[List[dtos.UserRoleDTO]],
-  status_code=HTTP_200_OK
+  status_code=HTTP_200_OK,
+  summary="Listar roles de usuario",
+  description="Obtiene lista completa de roles de usuario ordenada por ID",
 )
 def get_all_role(db: Session = Depends(get_db)):
-  res = service.get_all(db)
-  return ApiResponse.success(data=res)
+  try:
+    res = service.get_all(db)
+    return ApiResponse.success(data=res)
+  except Exception as e:
+    return ApiResponse.server_error(str(e))

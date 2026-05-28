@@ -4,8 +4,6 @@ from pydantic import BaseModel, ConfigDict
 
 class CreateGenreDTO(BaseModel):
   name: str
-  
-  model_config = ConfigDict(from_attributes=True)
 
 
 class UpdateGenreDTO(CreateGenreDTO):
@@ -15,4 +13,6 @@ class UpdateGenreDTO(CreateGenreDTO):
 class GenreDTO(UpdateGenreDTO):
   created_at: datetime
   updated_at: datetime
+
+  model_config = ConfigDict(from_attributes=True)
 

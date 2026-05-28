@@ -21,7 +21,9 @@ router = APIRouter(
 @router.put(
   "/{id_book}",
   response_model=ApiResponse[list[dtos.BookSubjectDTO]],
-  status_code=HTTP_200_OK
+  status_code=HTTP_200_OK,
+  summary="Reemplazar descriptores de un libro",
+  description="Elimina todos los descriptores actuales y asigna la nueva lista. Body vacío elimina todos.",
 )
 def update_book_subject(
   id_book: int,
@@ -29,19 +31,22 @@ def update_book_subject(
   db: Session = Depends(get_db)
 ):
   try:
-    res = service.update_subjects(id_book, subject_ids, db)
+    res = service.update_subjects(db, id_book, subject_ids)
     return ApiResponse.success(data=res)
   except ValueError as e:
     return ApiResponse.bad_request(message=str(e))
   except Exception as e:
     return ApiResponse.server_error(message=str(e))
 
+
 # -----------------------------------------------------------------
 # DELETE
 @router.delete(
   "/{id_book}/{id_subject}",
   response_model=ApiResponse[bool],
-  status_code=HTTP_200_OK
+  status_code=HTTP_200_OK,
+  summary="Eliminar un descriptor de un libro",
+  description="Elimina la relación descriptor-libro específica",
 )
 def delete_book_subject(
   id_book: int,
@@ -49,7 +54,7 @@ def delete_book_subject(
   db: Session = Depends(get_db)
 ):
   try:
-    res = service.delete_subject(id_book, id_subject, db)
+    res = service.delete_subject(db, id_book, id_subject)
     if not res:
       return ApiResponse.not_found()
     return ApiResponse.success(data=res)
@@ -64,14 +69,16 @@ def delete_book_subject(
 @router.delete(
   "/book/{id_book}",
   response_model=ApiResponse[bool],
-  status_code=HTTP_200_OK
+  status_code=HTTP_200_OK,
+  summary="Eliminar todos los descriptores de un libro",
+  description="Elimina todas las relaciones de descriptor para un libro específico",
 )
 def delete_book_author_by_book(
   id_book: int,
   db: Session = Depends(get_db)
 ):
   try:
-    res = service.delete_subject_by_book(id_book, db)
+    res = service.delete_subject_by_book(db, id_book)
     if not res:
       return ApiResponse.not_found()
     return ApiResponse.success(data=res)

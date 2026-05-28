@@ -54,9 +54,12 @@ def get_by_id_detailed(db: Session, id_user: UUID) -> dtos.UserDetailDTO | None:
 # GET OR CREATE USER (Auth)
 def get_or_create_user(db: Session, dto: dtos.CreateUser) -> dtos.UserDetailDTO:
   """Obtiene usuario por email o lo crea si no existe (usado por Auth)"""
-  entity, is_new = repository.get_or_create_user(db, dto.model_dump(exclude_none=True))
+  entity = repository.get_by_email(db, dto.email)
 
-  if is_new:
+  if not entity:
+    created = repository.create(db, dto.model_dump(exclude_none=True))
+    entity = repository.get_by_id_with_role_status(db, created.id_user)
+
     try:
       notification_service.create_welcome_notification(
         db=db,

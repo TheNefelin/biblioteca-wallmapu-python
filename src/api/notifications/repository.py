@@ -39,16 +39,13 @@ def get_all_paginated(db: Session, pagination: PaginationRequestDTO) -> Paginati
     .all()
   )
 
-  next_url = f"/api/notifications?page={page + 1}&limit={pagination.limit}" if page < total_pages else None
-  prev_url = f"/api/notifications?page={page - 1}&limit={pagination.limit}" if page > 1 else None
-
   return PaginationResponseDTO(
     page=page,
     pages=total_pages,
     items=total_items,
     data=result,
-    next=next_url,
-    prev=prev_url
+    next=None,
+    prev=None
   )
 
 
@@ -86,16 +83,13 @@ def get_by_user_paginated(db: Session, user_id: str, pagination: PaginationReque
     .all()
   )
 
-  next_url = f"/api/notifications/user?page={page + 1}&limit={pagination.limit}" if page < total_pages else None
-  prev_url = f"/api/notifications/user?page={page - 1}&limit={pagination.limit}" if page > 1 else None
-
   return PaginationResponseDTO(
     page=page,
     pages=total_pages,
     items=total_items,
     data=result,
-    next=next_url,
-    prev=prev_url
+    next=None,
+    prev=None
   )
 
 

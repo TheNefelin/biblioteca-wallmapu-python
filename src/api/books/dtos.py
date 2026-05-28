@@ -14,8 +14,6 @@ class CreateBookDTO(BaseModel):
   author_ids: List[int]
   subject_ids: List[int]
 
-  model_config = ConfigDict(from_attributes=True)
-
 
 class UpdateBookDTO(CreateBookDTO):
   id_book: int

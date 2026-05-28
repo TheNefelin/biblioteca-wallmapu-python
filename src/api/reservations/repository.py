@@ -44,16 +44,13 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
     .all()
   )
 
-  next_url = f"/api/reservations/pagination?page={page + 1}&limit={pagination.limit}" if page < total_pages else None
-  prev_url = f"/api/reservations/pagination?page={page - 1}&limit={pagination.limit}" if page > 1 else None
-
   return PaginationResponseDTO(
     page=page,
     pages=total_pages,
     items=total_items,
     data=result,
-    next=next_url,
-    prev=prev_url
+    next=None,
+    prev=None
   )
 
 
@@ -92,16 +89,13 @@ def get_all_pagination_by_user(db: Session, user_id: UUID, pagination: Paginatio
     .all()
   )
 
-  next_url = f"/api/reservations/pagination/user?page={page + 1}&limit={pagination.limit}" if page < total_pages else None
-  prev_url = f"/api/reservations/pagination/user?page={page - 1}&limit={pagination.limit}" if page > 1 else None
-
   return PaginationResponseDTO(
     page=page,
     pages=total_pages,
     items=total_items,
     data=result,
-    next=next_url,
-    prev=prev_url
+    next=None,
+    prev=None
   )
 
 
@@ -150,18 +144,18 @@ def update_status(db: Session, id: int, status_id: int) -> models.Reservation:
 
 
 # -----------------------------------------------------------------
-# UPDATE - EXPIRE OVERDUE (Bulk update)
-def expire_overdue_as_expired(db: Session) -> int:
+# UPDATE - BULK UPDATE STATUS BY CONDITION
+def bulk_update_status_by_expired(db: Session, old_status_id: int, new_status_id: int) -> int:
   from datetime import datetime
   result = (
     db.query(models.Reservation)
     .filter(
       and_(
-        models.Reservation.reservation_status_id == 1,
+        models.Reservation.reservation_status_id == old_status_id,
         models.Reservation.expiration_date < datetime.now()
       )
     )
-    .update({"reservation_status_id": 4})
+    .update({"reservation_status_id": new_status_id})
   )
   db.commit()
   return result

@@ -18,7 +18,9 @@ router = APIRouter(prefix="/division-region", tags=["division-region"], dependen
 @router.get(
   "/", 
   response_model=ApiResponse[List[dtos.RegionDTO]],
-  status_code=HTTP_200_OK  
+  status_code=HTTP_200_OK,
+  summary="Listar regiones",
+  description="Obtiene lista completa de regiones ordenada por nombre",
 )
 def get_all_region(db: Session = Depends(get_db)):
   try:

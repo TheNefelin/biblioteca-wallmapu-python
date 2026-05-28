@@ -1,6 +1,6 @@
 from typing import List
 from uuid import UUID
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 
@@ -31,6 +31,7 @@ router = APIRouter(
   dependencies=[admin_required]
 )
 def get_reservations_paginated(
+  request: Request,
   page: int = Query(default=1, ge=1),
   limit: int = Query(default=10, ge=1, le=100),
   search: str = Query(default=""),
@@ -48,6 +49,12 @@ def get_reservations_paginated(
     )
 
     pagination_response = service.get_all_pagination(db, pagination_request)
+
+    if pagination_response.pages > pagination_response.page:
+      pagination_response.next = str(request.url.include_query_params(page=pagination_response.page + 1, limit=limit))
+    if pagination_response.page > 1:
+      pagination_response.prev = str(request.url.include_query_params(page=pagination_response.page - 1, limit=limit))
+
     return ApiResponse.success(data=pagination_response)
   except Exception as e:
     return ApiResponse.server_error(str(e))
@@ -64,6 +71,7 @@ def get_reservations_paginated(
   dependencies=[user_required]
 )
 def get_my_reservations_paginated(
+  request: Request,
   page: int = Query(default=1, ge=1),
   limit: int = Query(default=10, ge=1, le=100),
   search: str = Query(default=""),
@@ -84,6 +92,12 @@ def get_my_reservations_paginated(
     )
     
     pagination_response = service.get_all_pagination_by_user(db, user_id, pagination_request)
+
+    if pagination_response.pages > pagination_response.page:
+      pagination_response.next = str(request.url.include_query_params(page=pagination_response.page + 1, limit=limit))
+    if pagination_response.page > 1:
+      pagination_response.prev = str(request.url.include_query_params(page=pagination_response.page - 1, limit=limit))
+
     return ApiResponse.success(data=pagination_response)
   except Exception as e:
     return ApiResponse.server_error(str(e))
@@ -207,8 +221,11 @@ def cancel_reservation(
   dependencies=[admin_required]
 )
 def expire_overdue_reservations(db: Session = Depends(get_db)):
-  count = service.expire_overdue_reservations(db)
-  return ApiResponse.success(data=count, message=f"{count} reservas marcadas como vencidas")
+  try:
+    count = service.expire_overdue_reservations(db)
+    return ApiResponse.success(data=count, message=f"{count} reservas marcadas como vencidas")
+  except Exception as e:
+    return ApiResponse.server_error(str(e))
 
 
 

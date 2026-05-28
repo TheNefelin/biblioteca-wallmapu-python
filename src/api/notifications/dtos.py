@@ -10,18 +10,16 @@ class CreateNotificationDTO(BaseModel):
   is_priority: bool = Field(default=False, description="True = Alta prioridad (urgente), False = Normal")
   user_id: UUID = Field(..., description="UUID del usuario destinatario")
 
-  model_config = ConfigDict(from_attributes=True)
-
 
 class UpdateNotificationDTO(BaseModel):
   id_notification: int = Field(..., description="ID único de la notificación")
   is_read: bool = Field(..., description="Estado de lectura: True = Leída, False = No leída")
 
-  model_config = ConfigDict(from_attributes=True)
-
 
 class NotificationDTO(CreateNotificationDTO, UpdateNotificationDTO):
   created_at: datetime = Field(..., description="Fecha de creación de la notificación")
+
+  model_config = ConfigDict(from_attributes=True)
 
 
 class NotificationDetailDTO(NotificationDTO):
