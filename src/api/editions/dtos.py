@@ -43,6 +43,7 @@ class EditionFilterDTO(BaseModel):
   id_editorial: Optional[int] = Field(None, description="Filtrar por editorial")
   id_genre: Optional[int] = Field(None, description="Filtrar por género")
   id_format: Optional[int] = Field(None, description="Filtrar por formato")
+  id_subject: Optional[int] = Field(None, description="Filtrar por descriptores")
 
 
 class EditionDetailDTO(BaseModel):

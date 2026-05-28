@@ -20,7 +20,7 @@ router = APIRouter(prefix="/edition", tags=["edition"])
   response_model=ApiResponse[PaginationResponseDTO[List[dtos.EditionDetailDTO]]],
   status_code=HTTP_200_OK,
   summary="Listar ediciones con paginación (DTO plano)",
-  description="Retorna lista paginada con DTO plano. Filtros: id_author, id_editorial, id_genre, id_format, search",
+  description="Retorna lista paginada con DTO plano. Filtros: id_author, id_editorial, id_genre, id_format, id_subject, search",
 )
 def get_all_pagination(
   request: Request,
@@ -31,6 +31,7 @@ def get_all_pagination(
   id_editorial: Optional[int] = Query(default=None),
   id_genre: Optional[int] = Query(default=None),
   id_format: Optional[int] = Query(default=None),
+  id_subject: Optional[int] = Query(default=None),
   db: Session = Depends(get_db)
 ):
   try:
@@ -38,8 +39,9 @@ def get_all_pagination(
       id_author=id_author,
       id_editorial=id_editorial,
       id_genre=id_genre,
-      id_format=id_format
-    ) if any([id_author, id_editorial, id_genre, id_format]) else None
+      id_format=id_format,
+      id_subject=id_subject
+    ) if any([id_author, id_editorial, id_genre, id_format, id_subject]) else None
 
     pagination = PaginationRequestDTO[dtos.EditionFilterDTO](
       page=page,

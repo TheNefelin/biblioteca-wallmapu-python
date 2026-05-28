@@ -11,6 +11,7 @@ from src.api.copy import models as copy_models
 from src.api.editorials import models as editorial_models
 from src.api.genres import models as genre_models
 from src.api.edition_format import models as edition_format_models
+from src.api.book_subjects import models as book_subjects_models
 from . import models
 
 
@@ -112,6 +113,10 @@ def get_all_pagination(
         models.Edition.id_edition == edition_format_models.EditionFormat.id_edition
       ).filter(
         edition_format_models.EditionFormat.id_format == pagination.filter.id_format
+      )
+    if pagination.filter.id_subject:
+      query = query.join(book_models.Book.book_subjects).filter(
+        book_subjects_models.BookSubject.id_subject == pagination.filter.id_subject
       )
 
   total_items = query.count()
