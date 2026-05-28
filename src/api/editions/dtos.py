@@ -1,6 +1,8 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel, ConfigDict
+
+from src.api.format.dtos import FormatDTO
 
 
 class CreateEditionDTO(BaseModel):
@@ -11,6 +13,7 @@ class CreateEditionDTO(BaseModel):
   cover_image: Optional[str]
   editorial_id: int
   book_id: int
+  format_ids: Optional[list[int]] = None
 
   model_config = ConfigDict(from_attributes=True)
 
@@ -19,9 +22,20 @@ class UpdateEditionDTO(CreateEditionDTO):
   id_edition: int
 
 
-class EditionDTO(UpdateEditionDTO):
+class EditionDTO(BaseModel):
+  id_edition: int
+  edition: str
+  isbn: str
+  publication_year: int
+  pages: int
+  cover_image: Optional[str]
+  editorial_id: int
+  book_id: int
   created_at: datetime
   updated_at: datetime
+  formats: List[FormatDTO]
+
+  model_config = ConfigDict(from_attributes=True)
 
 
 class EditionDetailDTO(BaseModel):

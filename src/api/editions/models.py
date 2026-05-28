@@ -23,4 +23,8 @@ class Edition(Base):
   book = relationship("Book", back_populates="editions")
 
   copies = relationship("Copy", back_populates="edition")
+  edition_formats = relationship("EditionFormat", back_populates="edition")
+
+  @property
+  def formats(self): return [ef.format_rel for ef in self.edition_formats]
   

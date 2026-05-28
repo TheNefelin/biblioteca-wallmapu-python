@@ -17,6 +17,9 @@ DROP TABLE wm_subjects
 DROP TABLE wm_authors
 DROP TABLE wm_editorials
 
+DROP TABLE wm_edition_format
+DROP TABLE wm_formats
+
 
 CREATE TABLE IF NOT EXISTS wm_regions (
   id_region INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -276,6 +279,18 @@ CREATE INDEX idx_editorial_id ON wm_editions(editorial_id);
 CREATE INDEX idx_reservation_copy ON wm_reservations(copy_id);
 CREATE INDEX idx_reservation_user ON wm_reservations(user_id);
 
+INSERT INTO wm_formats (name) VALUES
+('Versión Original completa'),
+('Versión Comentada'),
+('Versión Resumida'),
+('Adaptación infantil'),
+('Adaptación juvenil'),
+('Traducción / Bilingüe'),
+('Idioma inglés'),
+('Adaptación moderna'),
+('Edición Ilustrada'),
+('Accesible (tipografía grande)'),
+('Libro álbum');
 
 INSERT INTO wm_regions (region) VALUES
 ('Región de Arica y Parinacota'),

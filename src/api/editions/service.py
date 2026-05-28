@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO, BookFilterDTO
 from src.services import cloudinary_service
+from src.api.edition_format import service as edition_format_service
 from . import dtos, repository
 
 
@@ -39,7 +40,7 @@ def get_by_book_id(db: Session, book_id: int) -> list[dtos.EditionDTO]:
 # -----------------------------------------------------------------
 # GET BY ID (básico)
 def get_edition_by_id(db: Session, id: int) -> dtos.EditionDTO | None:
-  edition = repository.get_entity_by_id(db, id)
+  edition = repository.get_by_id(db, id)
   if not edition:
     return None
   return dtos.EditionDTO.model_validate(edition)
@@ -48,7 +49,15 @@ def get_edition_by_id(db: Session, id: int) -> dtos.EditionDTO | None:
 # -----------------------------------------------------------------
 # CREATE
 def create_edition(db: Session, data: dtos.CreateEditionDTO) -> dtos.EditionDTO:
-  created = repository.create(db, data.model_dump())
+  dump = data.model_dump()
+  format_ids = dump.pop("format_ids", None)
+
+  created = repository.create(db, dump)
+
+  if format_ids is not None:
+    edition_format_service.update_formats(db, created.id_edition, format_ids)
+    db.refresh(created)
+
   return dtos.EditionDTO.model_validate(created)
 
 
@@ -58,7 +67,16 @@ def update_edition(db: Session, id: int, data: dtos.UpdateEditionDTO) -> dtos.Ed
   edition = repository.get_entity_by_id(db, id)
   if not edition:
     return None
-  updated = repository.update(db, edition, data.model_dump(exclude_unset=True))
+
+  dump = data.model_dump(exclude_unset=True)
+  format_ids = dump.pop("format_ids", None)
+
+  updated = repository.update(db, edition, dump)
+
+  if format_ids is not None:
+    edition_format_service.update_formats(db, updated.id_edition, format_ids)
+    db.refresh(updated)
+
   return dtos.EditionDTO.model_validate(updated)
 
 

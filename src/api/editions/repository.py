@@ -1,6 +1,6 @@
 from math import ceil
 from sqlalchemy import and_, func, or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO, BookFilterDTO
 from src.api.books import models as book_models
@@ -9,6 +9,7 @@ from src.api.book_authors import models as book_authors_models
 from src.api.copy import models as copy_models
 from src.api.editorials import models as editorial_models
 from src.api.genres import models as genre_models
+from src.api.edition_format import models as edition_format_models
 from . import models
 
 
@@ -180,8 +181,24 @@ def get_by_book_id(db: Session, book_id: int) -> list[models.Edition]:
   return (
     db.query(models.Edition)
     .filter(models.Edition.book_id == book_id)
+    .options(
+      joinedload(models.Edition.edition_formats).joinedload(edition_format_models.EditionFormat.format_rel),
+    )
     .order_by(models.Edition.edition.asc())
     .all()
+  )
+
+
+# -----------------------------------------------------------------
+# GET BY ID (con joins para formatos)
+def get_by_id(db: Session, id: int) -> models.Edition | None:
+  return (
+    db.query(models.Edition)
+    .filter(models.Edition.id_edition == id)
+    .options(
+      joinedload(models.Edition.edition_formats).joinedload(edition_format_models.EditionFormat.format_rel),
+    )
+    .first()
   )
 
 
