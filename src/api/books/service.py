@@ -106,8 +106,8 @@ def delete_book(db: Session, id: int) -> bool:
   if dependencies:
     raise ValueError(f"No se puede eliminar el libro. Dependencias: {', '.join(dependencies)}")
 
-  book_authors_repository.delete_by_book(id, db)
-  book_subjects_repository.delete_by_book(id, db)
+  book_authors_repository.delete_by_book(db, id)
+  book_subjects_repository.delete_by_book(db, id)
   repository.delete(db, book)
   return True
 
