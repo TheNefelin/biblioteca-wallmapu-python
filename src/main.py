@@ -41,6 +41,7 @@ app.add_middleware(
   allow_origins=[
     #"http://localhost:4200",
     "https://biblioteca-wallmapu-angular.vercel.app",
+    "https://biblioteca-wallmapu-angular-gamma.vercel.app",
     "https://wallmapumesana.cl"
   ],
   allow_credentials=True,
