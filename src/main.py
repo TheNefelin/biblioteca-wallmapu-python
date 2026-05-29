@@ -42,7 +42,7 @@ app.add_middleware(
     "http://localhost:4200",
     "https://biblioteca-wallmapu-angular.vercel.app",
     "https://biblioteca-wallmapu-angular-gamma.vercel.app",
-    "https://www.wallmapumesana.cl/",
+    "https://www.wallmapumesana.cl",
     "https://wallmapumesana.cl",
   ],
   allow_credentials=True,
