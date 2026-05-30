@@ -9,7 +9,7 @@ class Edition(Base):
 
   id_edition = Column(Integer, primary_key=True, autoincrement=True)
   edition = Column(String(20), nullable=True)
-  isbn = Column(String(20), nullable=False)
+  isbn = Column(String(20), nullable=True)
   publication_year = Column(Integer, nullable=False)
   pages = Column(Integer, nullable=False)
   cover_image = Column(String(256), nullable=True)
