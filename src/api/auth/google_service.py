@@ -10,7 +10,8 @@ def verify_google_token(access_token: str) -> dtos.GoogleUserInfo:
     # Llamar a la API de Google para obtener info del usuario
     googleResponse = requests.get(
       'https://www.googleapis.com/oauth2/v2/userinfo',
-      headers={'Authorization': f'Bearer {access_token}'}
+      headers={'Authorization': f'Bearer {access_token}'},
+      timeout=10
     )
     
     if googleResponse.status_code != 200:

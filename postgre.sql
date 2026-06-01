@@ -10,15 +10,17 @@ DROP TABLE wm_communes;
 DROP TABLE wm_provinces;
 DROP TABLE wm_regions;
 
-DROP TABLE wm_book_author
-DROP TABLE wm_book_subject
-DROP TABLE wm_books
-DROP TABLE wm_subjects
-DROP TABLE wm_authors
-DROP TABLE wm_editorials
-
-DROP TABLE wm_edition_format
-DROP TABLE wm_formats
+DROP TABLE wm_edition_format;
+DROP TABLE wm_copies;
+DROP TABLE wm_editions;
+DROP TABLE wm_book_author;
+DROP TABLE wm_book_subject;
+DROP TABLE wm_books;
+DROP TABLE wm_subjects;
+DROP TABLE wm_authors;
+DROP TABLE wm_editorials;
+DROP TABLE wm_genres;
+DROP TABLE wm_formats;
 
 
 CREATE TABLE IF NOT EXISTS wm_regions (
@@ -130,15 +132,6 @@ CREATE TABLE IF NOT EXISTS wm_formats (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS wm_edition_format (
-  id_format INTEGER NOT NULL,
-  id_edition INTEGER NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT pk_edition_format PRIMARY KEY (id_edition, id_format),
-  CONSTRAINT fk_ef_format FOREIGN KEY (id_format) REFERENCES wm_formats(id_format),
-  CONSTRAINT fk_ef_edition FOREIGN KEY (id_edition) REFERENCES wm_editions(id_edition)
-);
-
 CREATE TABLE IF NOT EXISTS wm_copy_status (
   id_status INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   name VARCHAR(30) UNIQUE NOT NULL
@@ -171,6 +164,15 @@ CREATE TABLE IF NOT EXISTS wm_editions (
   
   CONSTRAINT wm_editions_wm_books_fk FOREIGN KEY (book_id) REFERENCES wm_books(id_book),
   CONSTRAINT wm_editions_wm_editorials_fk FOREIGN KEY (editorial_id) REFERENCES wm_editorials(id_editorial)
+);
+
+CREATE TABLE IF NOT EXISTS wm_edition_format (
+  id_format INTEGER NOT NULL,
+  id_edition INTEGER NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT pk_edition_format PRIMARY KEY (id_edition, id_format),
+  CONSTRAINT fk_ef_format FOREIGN KEY (id_format) REFERENCES wm_formats(id_format),
+  CONSTRAINT fk_ef_edition FOREIGN KEY (id_edition) REFERENCES wm_editions(id_edition)
 );
 
 CREATE TABLE IF NOT EXISTS wm_copies (
@@ -370,7 +372,7 @@ INSERT INTO wm_provinces (province, region_id) VALUES
 ('Antártica Chilena', 16);
 
 
-INSERT INTO wm_communes (commune, province_id) VALUES
+INSERT INTO wm_communes (name, province_id) VALUES
 ('Arica', 1),
 ('Camarones', 2),
 ('Putre', 2),
@@ -495,14 +497,14 @@ INSERT INTO wm_communes (commune, province_id) VALUES
 ('Antártica', 56);
 
 
-INSERT INTO wm_user_status (status)
+INSERT INTO wm_user_status (name)
 VALUES 
 ('Activo/a'),
 ('Deudor/a'),
 ('Bloqueado/a');
 
 
-INSERT INTO wm_user_role (role)
+INSERT INTO wm_user_role (name)
 VALUES 
 ('Super Admin'),
 ('Admin'),
@@ -634,7 +636,7 @@ INSERT INTO wm_news_gallery (alt, url, news_id) VALUES
 ('GTA 5','https://res.cloudinary.com/dsvkbe0mc/image/upload/v1771888407/news/lhjoz9ethysntixpm373.webp',12);
 
 
-INSERT INTO wm_editorials (editorial) VALUES 
+INSERT INTO wm_editorials (name) VALUES 
 ('Academia Chilena de la Lengua'),
 ('Alfaguara'),
 ('Ediciones Desidia'),
@@ -765,7 +767,8 @@ INSERT INTO wm_genres (name) VALUES
 INSERT INTO wm_copy_status (id_status, name) VALUES
 (1,'Disponible'),
 (2,'En reparación'),
-(3,'Extraviado');
+(3,'Extraviado'),
+(4,'Dado de baja');
 
 
 INSERT INTO wm_books (title, summary, genre_id) VALUES
@@ -891,14 +894,14 @@ INSERT INTO wm_book_subject (id_book, id_subject) VALUES
 (12,8),(12,9),(12,28),(12,30);
 
 
-INSERT INTO wm_reservation_status (id_status, status) VALUES
+INSERT INTO wm_reservation_status (id_status, name) VALUES
 (1, 'Pendiente de retiro'),
 (2, 'Completada'),
 (3, 'Cancelada'),
 (4, 'Vencido');
 
 
-INSERT INTO wm_loan_status (id_status, status) VALUES
+INSERT INTO wm_loan_status (id_status, name) VALUES
 (1, 'En Préstamo'),
 (2, 'Devuelto'),
 (3, 'Vencido');

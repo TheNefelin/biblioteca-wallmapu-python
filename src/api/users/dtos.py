@@ -7,7 +7,7 @@ from pydantic import UUID4, BaseModel, ConfigDict, Field, field_validator
 class CreateUser(BaseModel):
   """DTO para crear un nuevo usuario (usado por Auth)"""
   email: str = Field(..., description="Correo electrónico del usuario")
-  name: str = Field(..., description="Nombre del usuario")
+  name: Optional[str] = Field(None, description="Nombre del usuario (puede no venir de Google)")
 
 
 class UpdateUserDTO(BaseModel):

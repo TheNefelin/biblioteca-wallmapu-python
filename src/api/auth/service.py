@@ -23,6 +23,9 @@ def auth_service(
   
   user = user_service.get_or_create_user(db, user)
 
+  if not user.user_role_name:
+    raise ValueError("El usuario no tiene un rol asignado")
+
   # 4. generar JWT de tu backend
   token = jwt_service.create_access_token(
     user.id_user, 
