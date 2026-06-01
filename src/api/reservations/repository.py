@@ -2,7 +2,6 @@ from uuid import UUID
 from math import ceil
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_
-from sqlalchemy.exc import SQLAlchemyError
 
 from src.api.editions import models as edition_models
 from src.api.copy import models as copy_models

@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATED (Admin)
-def get_all_paginated(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[dtos.NotificationDetailDTO]]:
-  pagination_response = repository.get_all_paginated(db, pagination)
+def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[dtos.NotificationDetailDTO]]:
+  pagination_response = repository.get_all_pagination(db, pagination)
   items = pagination_response.data or []
 
   data = [dtos.NotificationDetailDTO(

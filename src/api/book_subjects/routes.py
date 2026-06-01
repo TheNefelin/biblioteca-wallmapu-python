@@ -73,7 +73,7 @@ def delete_book_subject(
   summary="Eliminar todos los descriptores de un libro",
   description="Elimina todas las relaciones de descriptor para un libro específico",
 )
-def delete_book_author_by_book(
+def delete_book_subject_by_book(
   id_book: int,
   db: Session = Depends(get_db)
 ):

@@ -48,7 +48,7 @@ def get_all_notifications_paginated(
       filter=filter,
     )
 
-    pagination_response = service.get_all_paginated(db, pagination_request)
+    pagination_response = service.get_all_pagination(db, pagination_request)
 
     if pagination_response.pages > pagination_response.page:
       pagination_response.next = str(request.url.include_query_params(page=pagination_response.page + 1, limit=limit))

@@ -6,7 +6,7 @@ from . import models
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATED (Admin)
-def get_all_paginated(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
   query = (
     db.query(models.Notification)
     .options(

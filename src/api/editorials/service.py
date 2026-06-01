@@ -1,4 +1,3 @@
-from datetime import datetime
 from sqlalchemy.orm import Session
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
@@ -44,8 +43,6 @@ def create(db: Session, dto: dtos.CreateEditorialDTO) -> dtos.EditorialDTO:
     raise ValueError("La editorial ya existe")
 
   data = dto.model_dump()
-  data["created_at"] = datetime.now()
-  data["updated_at"] = datetime.now()
 
   entity = repository.create(db, data)
   return dtos.EditorialDTO.model_validate(entity)

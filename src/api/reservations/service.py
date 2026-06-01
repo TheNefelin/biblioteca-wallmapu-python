@@ -82,10 +82,11 @@ def get_by_id(db: Session, id: int) -> dtos.ReservationDetailDTO | None:
 # CREATE
 def create(db: Session, user_id: UUID, dto: dtos.CreateReservationDTO) -> dtos.ReservationDTO:
   copy = copy_repository.get_by_id(db, dto.copy_id)
-  book_id = copy.edition.book_id
 
   if not copy:
     raise ValueError("Ejemplar no encontrado")
+
+  book_id = copy.edition.book_id
 
   if int(copy.status_id) != 1:
     raise ValueError("El ejemplar no está disponible")

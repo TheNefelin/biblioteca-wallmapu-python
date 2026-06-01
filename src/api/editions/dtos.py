@@ -6,8 +6,8 @@ from src.api.format.dtos import FormatDTO
 
 
 class CreateEditionDTO(BaseModel):
-  edition: str
-  isbn: Optional[str]
+  edition: Optional[str] = None
+  isbn: Optional[str] = None
   publication_year: int
   pages: int
   cover_image: Optional[str]
@@ -22,7 +22,7 @@ class UpdateEditionDTO(CreateEditionDTO):
 
 class EditionDTO(BaseModel):
   id_edition: int
-  edition: str
+  edition: Optional[str]
   isbn: Optional[str]
   publication_year: int
   pages: int
@@ -46,7 +46,7 @@ class EditionFilterDTO(BaseModel):
 
 class EditionDetailDTO(BaseModel):
   id_edition: int
-  edition: str
+  edition: Optional[str]
   isbn: Optional[str]
   publication_year: int
   pages: int

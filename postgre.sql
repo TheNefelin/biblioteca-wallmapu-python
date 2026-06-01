@@ -637,6 +637,7 @@ INSERT INTO wm_news_gallery (alt, url, news_id) VALUES
 
 
 INSERT INTO wm_editorials (name) VALUES 
+('Sin Editorial'),
 ('Academia Chilena de la Lengua'),
 ('Alfaguara'),
 ('Ediciones Desidia'),
