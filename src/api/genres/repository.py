@@ -1,3 +1,4 @@
+import unicodedata
 from math import ceil
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -13,8 +14,9 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
   
   search_filter = pagination.search if pagination.search else None
   if search_filter:
+    search_norm = unicodedata.normalize('NFKD', search_filter).encode('ascii', 'ignore').decode('ascii')
     query = query.filter(
-      func.unaccent(models.Genre.name).ilike(f"%{search_filter}%")
+      func.unaccent(models.Genre.name).ilike(f"%{search_norm}%")
     )
   
   total_items = query.count()

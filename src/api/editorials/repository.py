@@ -1,3 +1,4 @@
+import unicodedata
 from datetime import datetime
 from math import ceil
 from sqlalchemy import func
@@ -14,7 +15,8 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
 
   search = pagination.search.strip() if pagination.search else ""
   if search:
-    query = query.filter(func.unaccent(models.Editorial.name).ilike(f"%{search}%"))
+    search_norm = unicodedata.normalize('NFKD', search).encode('ascii', 'ignore').decode('ascii')
+    query = query.filter(func.unaccent(models.Editorial.name).ilike(f"%{search_norm}%"))
 
   total_items = query.count()
   total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0

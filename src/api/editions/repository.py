@@ -1,3 +1,4 @@
+import unicodedata
 from math import ceil
 from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session, joinedload
@@ -88,10 +89,11 @@ def get_all_pagination(
   )
 
   if pagination.search:
+    search_norm = unicodedata.normalize('NFKD', pagination.search).encode('ascii', 'ignore').decode('ascii')
     query = query.filter(
       or_(
-        func.unaccent(models.Edition.isbn).ilike(f"%{pagination.search}%"),
-        func.unaccent(book_models.Book.title).ilike(f"%{pagination.search}%"),
+        func.unaccent(models.Edition.isbn).ilike(f"%{search_norm}%"),
+        func.unaccent(book_models.Book.title).ilike(f"%{search_norm}%"),
       )
     )
 
