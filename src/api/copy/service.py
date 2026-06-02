@@ -40,6 +40,7 @@ def get_all_detail_by_edition_id(db: Session, edition_id: int) -> list[dtos.Copy
 # GET ALL DETAIL BY BOOK ID
 def get_all_detail_by_book_id(db: Session, book_id: int) -> list[dtos.CopyDetailDTO]:
   rows = repository.get_all_detail_by_book_id(db, book_id)
+  rows = [r for r in rows if r.status_id == 1]
   loaned_ids = {l.copy_id for l in loan_repository.get_all_active(db)}
   reserved_ids = {r.copy_id for r in reservation_repository.get_all_pending(db)}
   return [_map_to_detail(r, loaned_ids, reserved_ids) for r in rows]

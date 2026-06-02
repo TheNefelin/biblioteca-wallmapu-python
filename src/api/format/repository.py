@@ -1,4 +1,5 @@
 from math import ceil
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
@@ -13,7 +14,7 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
   search_filter = pagination.search if pagination.search else None
   if search_filter:
     query = query.filter(
-      models.Format.name.ilike(f"%{search_filter}%")
+      func.unaccent(models.Format.name).ilike(f"%{search_filter}%")
     )
   
   total_items = query.count()
@@ -45,6 +46,16 @@ def get_all(db: Session) -> list[models.Format]:
     db.query(models.Format)
     .order_by(models.Format.name.asc())
     .all()
+  )
+
+
+# -----------------------------------------------------------------#
+# GET BY NAME
+def get_by_name(db: Session, name: str) -> models.Format | None:
+  return (
+    db.query(models.Format)
+    .filter(models.Format.name.ilike(name))
+    .first()
   )
 
 

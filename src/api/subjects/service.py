@@ -30,6 +30,9 @@ def get_all(db: Session) -> list[dtos.SubjectDTO]:
 # -----------------------------------------------------------------
 # CREATE
 def create(db: Session, dto: dtos.CreateSubjectDTO) -> dtos.SubjectDTO | None:
+  if repository.get_by_name(db, dto.name):
+    raise ValueError(f"Ya existe un descriptor con el nombre '{dto.name}'")
+
   created = repository.create(db, dto.model_dump(exclude_unset=True))
   
   if not created or not created.id_subject:
@@ -43,7 +46,11 @@ def create(db: Session, dto: dtos.CreateSubjectDTO) -> dtos.SubjectDTO | None:
 def update(db: Session, id: int, dto: dtos.UpdateSubjectDTO) -> dtos.SubjectDTO | None:
   if dto.id_subject and dto.id_subject != id:
     raise ValueError(f"ID de ruta ({id}) no coincide con ID del body ({dto.id_subject})")
-  
+
+  existing = repository.get_by_name(db, dto.name)
+  if existing and existing.id_subject != id:
+    raise ValueError(f"Ya existe un descriptor con el nombre '{dto.name}'")
+
   updated = repository.update(db, id, dto.model_dump(exclude_unset=True))
   
   if not updated:

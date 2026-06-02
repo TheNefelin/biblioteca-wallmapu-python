@@ -90,9 +90,8 @@ def get_all_pagination(
   if pagination.search:
     query = query.filter(
       or_(
-        models.Edition.isbn.ilike(f"%{pagination.search}%"),
-        book_models.Book.title.ilike(f"%{pagination.search}%"),
-        book_models.Book.summary.ilike(f"%{pagination.search}%"),
+        func.unaccent(models.Edition.isbn).ilike(f"%{pagination.search}%"),
+        func.unaccent(book_models.Book.title).ilike(f"%{pagination.search}%"),
       )
     )
 
@@ -119,6 +118,7 @@ def get_all_pagination(
         book_subjects_models.BookSubject.id_subject == pagination.filter.id_subject
       )
 
+  query = query.distinct()
   total_items = query.count()
   total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
   page = min(pagination.page, total_pages) if total_pages > 0 else 1

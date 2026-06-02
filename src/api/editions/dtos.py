@@ -10,7 +10,7 @@ class CreateEditionDTO(BaseModel):
   isbn: Optional[str] = None
   publication_year: int
   pages: int
-  cover_image: Optional[str]
+  cover_image: Optional[str] = None
   editorial_id: int
   book_id: int
   format_ids: Optional[list[int]] = None

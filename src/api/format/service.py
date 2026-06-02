@@ -30,6 +30,9 @@ def get_all(db: Session) -> list[dtos.FormatDTO]:
 # -----------------------------------------------------------------#
 # CREATE
 def create(db: Session, dto: dtos.CreateFormatDTO) -> dtos.FormatDTO | None:
+  if repository.get_by_name(db, dto.name):
+    raise ValueError(f"Ya existe un formato con el nombre '{dto.name}'")
+
   created = repository.create(db, dto.model_dump(exclude_unset=True))
   
   if not created or not created.id_format:
@@ -43,7 +46,11 @@ def create(db: Session, dto: dtos.CreateFormatDTO) -> dtos.FormatDTO | None:
 def update(db: Session, id: int, dto: dtos.UpdateFormatDTO) -> dtos.FormatDTO | None:
   if dto.id_format and dto.id_format != id:
     raise ValueError(f"ID de ruta ({id}) no coincide con ID del body ({dto.id_format})")
-  
+
+  existing = repository.get_by_name(db, dto.name)
+  if existing and existing.id_format != id:
+    raise ValueError(f"Ya existe un formato con el nombre '{dto.name}'")
+
   updated = repository.update(db, id, dto.model_dump(exclude_unset=True))
   
   if not updated:
