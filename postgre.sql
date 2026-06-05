@@ -1,6 +1,5 @@
 SELECT
   (SELECT COUNT(*) FROM wm_loan_policies) AS count_loan_policies,
-  (SELECT COUNT(*) FROM wm_formats) AS count_formats,
   (SELECT COUNT(*) FROM wm_user_status) AS count_user_status,
   (SELECT COUNT(*) FROM wm_user_role) AS count_user_role,
   (SELECT COUNT(*) FROM wm_copy_status) AS count_copy_status,
@@ -9,6 +8,27 @@ SELECT
   (SELECT COUNT(*) FROM wm_regions) AS count_regions,
   (SELECT COUNT(*) FROM wm_provinces) AS count_provinces,
   (SELECT COUNT(*) FROM wm_communes) AS count_communes;
+
+SELECT
+  (SELECT COUNT(*) FROM wm_notifications) AS count_notifications,
+  (SELECT COUNT(*) FROM wm_loans) AS count_loans,
+  (SELECT COUNT(*) FROM wm_reservations) AS count_reservations,
+  (SELECT COUNT(*) FROM wm_users) AS count_users;
+
+SELECT
+  (SELECT COUNT(*) FROM wm_news) AS count_news,
+  (SELECT COUNT(*) FROM wm_news_gallery) AS count_news_gallery,
+  (SELECT COUNT(*) FROM wm_books) AS count_books,
+  (SELECT COUNT(*) FROM wm_book_author) AS count_books_author,
+  (SELECT COUNT(*) FROM wm_book_subject) AS count_book_subject,
+  (SELECT COUNT(*) FROM wm_authors) AS count_authors,
+  (SELECT COUNT(*) FROM wm_subjects) AS count_subjects,
+  (SELECT COUNT(*) FROM wm_genres) AS count_genres,  
+  (SELECT COUNT(*) FROM wm_editions) AS count_editions,
+  (SELECT COUNT(*) FROM wm_edition_format) AS count_edition_format,
+  (SELECT COUNT(*) FROM wm_formats) AS count_formats,
+  (SELECT COUNT(*) FROM wm_copies) AS count_copies,
+  (SELECT COUNT(*) FROM wm_editorials) AS count_editorials;
 
 DROP TABLE IF EXISTS wm_notifications CASCADE;
 DROP TABLE IF EXISTS wm_loans CASCADE;
@@ -331,20 +351,6 @@ INSERT INTO wm_loan_status (name) VALUES
 ('En Préstamo'),
 ('Devuelto'),
 ('Vencido');
-
-INSERT INTO wm_formats (name) VALUES
-('Sin Clasificar'), -- Siempre es el primero registro
-('Versión Original completa'),
-('Versión Comentada'),
-('Versión Resumida'),
-('Adaptación infantil'),
-('Adaptación juvenil'),
-('Traducción / Bilingüe'),
-('Idioma inglés'),
-('Adaptación moderna'),
-('Edición Ilustrada'),
-('Accesible (tipografía grande)'),
-('Libro álbum');
 
 INSERT INTO wm_regions (region) VALUES
 ('Región de Arica y Parinacota'),
@@ -898,6 +904,20 @@ INSERT INTO wm_editorials (name) VALUES
 ('Publicaciones y Ediciones Salamanca'),
 ('St. Martin''s Press'),
 ('Tusquets Editores');
+
+INSERT INTO wm_formats (name) VALUES
+('Sin Clasificar'), -- Siempre es el primero registro
+('Versión Original completa'),
+('Versión Comentada'),
+('Versión Resumida'),
+('Adaptación infantil'),
+('Adaptación juvenil'),
+('Traducción / Bilingüe'),
+('Idioma inglés'),
+('Adaptación moderna'),
+('Edición Ilustrada'),
+('Accesible (tipografía grande)'),
+('Libro álbum');
 
 INSERT INTO wm_authors (name) VALUES
 ('Sin Clasificar'), -- Siempre es el primero registro
