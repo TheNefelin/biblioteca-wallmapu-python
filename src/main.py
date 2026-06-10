@@ -63,7 +63,7 @@ async def root():
   return {
     "status": "Api Running",
     "swagger": "/docs",
-    "version": "229", 
+    "version": "230", 
   }
 
 app.include_router(stats_router, prefix="/api")

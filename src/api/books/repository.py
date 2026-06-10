@@ -118,7 +118,10 @@ def get_all_pagination(
 
   result = (
     query
-    .order_by(models.Book.updated_at.desc())
+    .order_by(
+      models.Book.updated_at.desc(),
+      models.Book.id_book.desc()
+    )
     .offset(offset)
     .limit(pagination.limit)
     .all()

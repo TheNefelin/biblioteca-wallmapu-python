@@ -1,3 +1,5 @@
+SET client_encoding = 'UTF8';
+
 SELECT
   (SELECT COUNT(*) FROM wm_loan_policies) AS count_loan_policies,
   (SELECT COUNT(*) FROM wm_user_status) AS count_user_status,
@@ -337,19 +339,6 @@ INSERT INTO wm_loan_status (name) VALUES
 ('En Préstamo'),
 ('Devuelto'),
 ('Vencido');
-
-INSERT INTO wm_formats (name) VALUES
-('Versión Original completa'),
-('Versión Comentada'),
-('Versión Resumida'),
-('Adaptación infantil'),
-('Adaptación juvenil'),
-('Traducción / Bilingüe'),
-('Idioma inglés'),
-('Adaptación moderna'),
-('Edición Ilustrada'),
-('Accesible (tipografía grande)'),
-('Libro álbum');
 
 INSERT INTO wm_regions (region) VALUES
 ('Región de Arica y Parinacota'),
