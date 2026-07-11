@@ -35,7 +35,7 @@ class CopyDetailDTO(BaseModel):
   status_name: str
   edition_id: int
   edition_name: str
-  edition_isbn: str
+  edition_isbn: Optional[str] = None
   edition_cover_image: Optional[str] = None
   editorial_id: int
   editorial_name: str  
