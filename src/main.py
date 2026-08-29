@@ -38,6 +38,7 @@ from src.api.loan_policies.routes import router as loan_policies_router
 from src.api.loan_status.routes import router as loan_status_router
 from src.api.notifications.routes import router as notifications_router
 
+from src.core.config import settings
 from src.core.limiter import limiter
 from src.core.logger import logger, set_request_id
 from src.core.exceptions import AppError
@@ -49,9 +50,7 @@ app = FastAPI(title="Biblioteca Wallmapu API", description="In development", ver
 
 app.add_middleware(
   CORSMiddleware,
-  allow_origins=[
-    "http://localhost:4200"
-  ],
+  allow_origins=settings.cors_origins_list,
   allow_credentials=True,
   allow_methods=["GET", "POST", "PUT", "DELETE"],
   allow_headers=["*"],

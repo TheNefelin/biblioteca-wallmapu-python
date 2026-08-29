@@ -1,5 +1,6 @@
 from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
+import json
 
 class Settings(BaseSettings):
   # Engine legacy (síncrono, psycopg2)
@@ -10,6 +11,8 @@ class Settings(BaseSettings):
   GOOGLE_CLIENT_ID: str
   DEBUG: bool = False
 
+  CORS_ORIGINS: str
+
   CLOUDINARY_CLOUD_NAME: str
   CLOUDINARY_API_KEY: str
   CLOUDINARY_API_SECRET: str
@@ -17,6 +20,10 @@ class Settings(BaseSettings):
   BREVO_API_KEY: Optional[str] = None
   BREVO_FROM_EMAIL: Optional[str] = None
   BREVO_FROM_NAME: Optional[str] = None
+
+  @property
+  def cors_origins_list(self) -> list[str]:
+    return json.loads(self.CORS_ORIGINS)
 
   model_config = SettingsConfigDict(
     env_file=".env",
