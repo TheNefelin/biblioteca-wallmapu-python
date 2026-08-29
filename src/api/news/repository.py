@@ -1,9 +1,9 @@
-from math import ceil
+﻿from math import ceil
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.models import models
 
 

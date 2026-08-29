@@ -1,7 +1,7 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+﻿from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.schemas.dtos import (
   CreateNotificationByEmailDTO,
   CreateNotificationDTO,
@@ -11,7 +11,7 @@ from src.schemas.dtos import (
 from src.api.reservations import repository as reservation_repository
 from src.api.loans import repository as loan_repository
 from src.api.users import repository as user_repository
-from src.services import email_service
+from src.core import email
 from . import repository
 
 logger = logging.getLogger(__name__)
@@ -82,7 +82,7 @@ async def create(db: AsyncSession, dto: CreateNotificationByEmailDTO) -> Notific
   if not user:
     raise ValueError("El Usuario no Existe en la Base de Datos")
 
-  email_data = email_service.AdminEmailData(
+  email_data = email.AdminEmailData(
     title=dto.title,
     message=dto.message,
     is_priority=dto.is_priority,
@@ -102,7 +102,7 @@ async def create(db: AsyncSession, dto: CreateNotificationByEmailDTO) -> Notific
     raise ValueError("Error al crear la Notificacion")
 
   try:
-    response = await email_service.send_admin_email(data=email_data)
+    response = await email.send_admin_email(data=email_data)
 
     if not response or response.get("messageId") is None:
       logger.warning(f"Email no fue enviado correctamente para notification {created.id_notification}")
@@ -118,19 +118,19 @@ async def create(db: AsyncSession, dto: CreateNotificationByEmailDTO) -> Notific
 async def create_welcome_notification(db: AsyncSession, user_id: str, user_email: str, user_name: str):
   notification = CreateNotificationDTO(
     title="BIENVENIDO/A",
-    message=f"¡Bienvenido/a {user_name}! Tu cuenta ha sido creada exitosamente en Biblioteca Wallmapu.",
+    message=f"Â¡Bienvenido/a {user_name}! Tu cuenta ha sido creada exitosamente en Biblioteca Wallmapu.",
     is_priority=False,
     user_id=user_id
   )
   created = await repository.create(db, notification.model_dump(exclude_unset=True))
 
   if not created or not created.id_notification:
-    logger.warning(f"Error al crear notificación de bienvenida para user {user_id}")
+    logger.warning(f"Error al crear notificaciÃ³n de bienvenida para user {user_id}")
     return
 
   try:
-    email_data = email_service.WelcomeEmailData(user_email=user_email, user_name=user_name)
-    await email_service.send_welcome_email(data=email_data)
+    email_data = email.WelcomeEmailData(user_email=user_email, user_name=user_name)
+    await email.send_welcome_email(data=email_data)
   except Exception:
     logger.error(f"Error al enviar email de bienvenida para user {user_id}", exc_info=True)
 
@@ -140,7 +140,7 @@ async def create_welcome_notification(db: AsyncSession, user_id: str, user_email
 async def notification_for_create_reservation_and_send_email(db: AsyncSession, reservation_id: int):
   reservation = await reservation_repository.get_by_id(db, reservation_id)
 
-  email_data = email_service.EmailData(
+  email_data = email.EmailData(
     id=reservation.id_reservation,
     book_title=reservation.copy.edition.book.title,
     book_barcode=reservation.copy.barcode,
@@ -161,7 +161,7 @@ async def notification_for_create_reservation_and_send_email(db: AsyncSession, r
     raise ValueError("Error al crear la Notificacion")
 
   try:
-    await email_service.send_reservation_created_email(data=email_data)
+    await email.send_reservation_created_email(data=email_data)
   except Exception:
     print(f"Error al enviar el email: {created.id_notification}")
     logger.error(f"Error al enviar el email: {created.id_notification}", exc_info=True)
@@ -172,7 +172,7 @@ async def notification_for_create_reservation_and_send_email(db: AsyncSession, r
 async def notification_for_cancel_reservation_and_send_email(db: AsyncSession, reservation_id: int):
   reservation = await reservation_repository.get_by_id(db, reservation_id)
 
-  email_data = email_service.EmailData(
+  email_data = email.EmailData(
     id=reservation.id_reservation,
     book_title=reservation.copy.edition.book.title,
     book_barcode=reservation.copy.barcode,
@@ -192,10 +192,10 @@ async def notification_for_cancel_reservation_and_send_email(db: AsyncSession, r
     raise ValueError("Error al crear la Notificacion")
 
   try:
-    await email_service.send_reservation_cancelled_email(data=email_data)
+    await email.send_reservation_cancelled_email(data=email_data)
   except Exception:
-    print(f"Error creando notificación para reserva cancelada {reservation_id}")
-    logger.error(f"Error creando notificación para reserva cancelada {reservation_id}", exc_info=True)
+    print(f"Error creando notificaciÃ³n para reserva cancelada {reservation_id}")
+    logger.error(f"Error creando notificaciÃ³n para reserva cancelada {reservation_id}", exc_info=True)
 
 
 # -----------------------------------------------------------------
@@ -203,7 +203,7 @@ async def notification_for_cancel_reservation_and_send_email(db: AsyncSession, r
 async def notification_for_create_loan_and_send_email(db: AsyncSession, loan_id: int):
   loan = await loan_repository.get_by_id(db, loan_id)
 
-  email_data = email_service.EmailData(
+  email_data = email.EmailData(
     id=loan.id_loan,
     book_title=loan.copy.edition.book.title,
     book_barcode=loan.copy.barcode,
@@ -212,8 +212,8 @@ async def notification_for_create_loan_and_send_email(db: AsyncSession, loan_id:
   )
 
   notification = CreateNotificationDTO(
-    title="PRÉSTAMO REALIZADO",
-    message=f"Préstamo #{email_data.id} registrado. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}. Vence: {email_data.expiration_date.strftime('%d-%m-%Y')}",
+    title="PRÃ‰STAMO REALIZADO",
+    message=f"PrÃ©stamo #{email_data.id} registrado. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}. Vence: {email_data.expiration_date.strftime('%d-%m-%Y')}",
     is_priority=False,
     user_id=loan.user_id
   )
@@ -224,7 +224,7 @@ async def notification_for_create_loan_and_send_email(db: AsyncSession, loan_id:
     raise ValueError("Error al crear la Notificacion")
 
   try:
-    await email_service.send_loan_created_email(data=email_data)
+    await email.send_loan_created_email(data=email_data)
   except Exception:
     print(f"Error al enviar el email: {created.id_notification}")
     logger.error(f"Error al enviar el email: {created.id_notification}", exc_info=True)
@@ -235,7 +235,7 @@ async def notification_for_create_loan_and_send_email(db: AsyncSession, loan_id:
 async def notification_for_return_loan_and_send_email(db: AsyncSession, loan_id: int):
   loan = await loan_repository.get_by_id(db, loan_id)
 
-  email_data = email_service.EmailData(
+  email_data = email.EmailData(
     id=loan.id_loan,
     book_title=loan.copy.edition.book.title,
     book_barcode=loan.copy.barcode,
@@ -243,8 +243,8 @@ async def notification_for_return_loan_and_send_email(db: AsyncSession, loan_id:
   )
 
   notification = CreateNotificationDTO(
-    title="PRÉSTAMO DEVUELTO",
-    message=f"Préstamo #{loan.id_loan} devuelto exitosamente.",
+    title="PRÃ‰STAMO DEVUELTO",
+    message=f"PrÃ©stamo #{loan.id_loan} devuelto exitosamente.",
     is_priority=False,
     user_id=loan.user_id
   )
@@ -255,7 +255,7 @@ async def notification_for_return_loan_and_send_email(db: AsyncSession, loan_id:
     raise ValueError("Error al crear la Notificacion")
 
   try:
-    await email_service.send_loan_returned_email(data=email_data)
+    await email.send_loan_returned_email(data=email_data)
   except Exception:
     print(f"Error al enviar el email: {created.id_notification}")
     logger.error(f"Error al enviar el email: {created.id_notification}", exc_info=True)
@@ -268,7 +268,7 @@ async def mark_as_read(db: AsyncSession, id: int, user_id: str) -> bool:
   if not notification:
     return False
 
-  # Validar que la notificación pertenezca al usuario
+  # Validar que la notificaciÃ³n pertenezca al usuario
   if str(notification.user_id) != str(user_id):
     return False
 

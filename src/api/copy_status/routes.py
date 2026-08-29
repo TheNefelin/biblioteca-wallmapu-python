@@ -7,7 +7,7 @@ from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.schemas.dtos import CopyStatusDTO
-from src.shared.dtos import ApiResponse
+from src.schemas.dtos import ApiResponse
 from . import service
 
 

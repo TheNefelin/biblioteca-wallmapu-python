@@ -1,9 +1,9 @@
-from datetime import datetime, timedelta, date
+﻿from datetime import datetime, timedelta, date
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.schemas.dtos import (
     CreateReservationDTO,
     ReservationDTO,
@@ -94,27 +94,27 @@ async def create(db: AsyncSession, user_id: UUID, dto: CreateReservationDTO) -> 
   book_id = copy.edition.book_id
 
   if int(copy.status_id) != 1:
-    raise ValueError("El ejemplar no está disponible")
+    raise ValueError("El ejemplar no estÃ¡ disponible")
 
   user_entity = await user_repository.get_by_id_detailed(db, user_id)
   if not user_entity or int(user_entity.user_status_id) != 1:
-    raise ValueError("No puedes realizar reservas si tu cuenta no está activa")
+    raise ValueError("No puedes realizar reservas si tu cuenta no estÃ¡ activa")
 
   loan_policy = await loan_policy_repository.get_default_policy(db)
   reservation_days = int(loan_policy.reservation_days)
   expiration_date = date.today() + timedelta(days=reservation_days)
 
-  # Obtener reservas y préstamos activos del usuario
+  # Obtener reservas y prÃ©stamos activos del usuario
   active_reservations = await repository.get_active_by_user(db, user_id)
   active_loans = await loan_repository.get_active_by_user(db, user_id)
 
-  # 1. Validar límite de Loan Policies
+  # 1. Validar lÃ­mite de Loan Policies
   total = len(active_reservations) + len(active_loans)
 
   if total >= loan_policy.max_books:
-    raise ValueError("Has alcanzado el límite máximo de reservas y/o préstamos de libros")
+    raise ValueError("Has alcanzado el lÃ­mite mÃ¡ximo de reservas y/o prÃ©stamos de libros")
 
-  # 2. Validar que el libro NO esté ya en reservas o préstamos activos
+  # 2. Validar que el libro NO estÃ© ya en reservas o prÃ©stamos activos
   book_in_reservations = any(r[2] == book_id for r in active_reservations)
   book_in_loans = any(l[2] == book_id for l in active_loans)
 
@@ -133,7 +133,7 @@ async def create(db: AsyncSession, user_id: UUID, dto: CreateReservationDTO) -> 
   if not created or not created.id_reservation:
     raise ValueError("Error al crear la reserva")
 
-  # Disparar notificación (efecto secundario resiliente)
+  # Disparar notificaciÃ³n (efecto secundario resiliente)
   await notification_service.notification_for_create_reservation_and_send_email(db, created.id_reservation)
 
   return ReservationDTO.model_validate(created)
@@ -153,7 +153,7 @@ async def mark_as_cancelled(db: AsyncSession, id: int) -> ReservationDTO:
   # Actualiza Reserva
   updated = await repository.update_status(db, id, 3)
 
-  # Disparar notificación (efecto secundario resiliente)
+  # Disparar notificaciÃ³n (efecto secundario resiliente)
   await notification_service.notification_for_cancel_reservation_and_send_email(db, updated.id_reservation)
 
   return ReservationDTO.model_validate(updated)
@@ -177,7 +177,7 @@ async def mark_as_pickup(db: AsyncSession, id: int, copy_id: int) -> Reservation
     raise ValueError("Ejemplar no encontrado")
 
   if int(copy.status_id) != 1:
-    raise ValueError("El ejemplar no está disponible")
+    raise ValueError("El ejemplar no estÃ¡ disponible")
 
   loan_dto = loan_dtos.CreateLoanDTO(
     copy_id=copy.id_copy,

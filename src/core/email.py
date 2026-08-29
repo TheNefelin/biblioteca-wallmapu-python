@@ -244,4 +244,3 @@ async def send_loan_returned_email(
   </html>
   """
   return await send_email(data.user_email, f"PRÉSTAMO DEVUELTO - #{ data.id }", html)
-

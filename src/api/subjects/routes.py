@@ -8,7 +8,7 @@ from src.core.exceptions import AppError
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.schemas.dtos import SubjectRequest, SubjectResponse
-from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
 from . import service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))

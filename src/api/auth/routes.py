@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends
+﻿from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_200_OK
 
-from src.shared.dtos import ApiResponse
+from src.schemas.dtos import ApiResponse
 from src.schemas.dtos import AuthGoogleRequest, AuthGoogleResponse
 from src.core.database import get_db_async
 from . import service

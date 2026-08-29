@@ -1,10 +1,10 @@
-from math import ceil
+﻿from math import ceil
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import UUID
 
 from src.models import models
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 
 
 # -----------------------------------------------------------------

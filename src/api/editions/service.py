@@ -1,8 +1,8 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+﻿from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.schemas.dtos import EditionDTO, EditionDetailDTO, EditionFilterDTO, CreateEditionDTO, UpdateEditionDTO
-from src.services import cloudinary_service
+from src.core import cloudinary
 from src.api.edition_format import service as edition_format_service
 from . import repository
 
@@ -32,14 +32,14 @@ async def get_all_by_book_id_detail(db: AsyncSession, book_id: int) -> list[Edit
 
 
 # -----------------------------------------------------------------
-# GET BY BOOK ID (básico)
+# GET BY BOOK ID (bÃ¡sico)
 async def get_by_book_id(db: AsyncSession, book_id: int) -> list[EditionDTO]:
   editions = await repository.get_by_book_id(db, book_id)
   return [EditionDTO.model_validate(e) for e in editions]
 
 
 # -----------------------------------------------------------------
-# GET BY ID (básico)
+# GET BY ID (bÃ¡sico)
 async def get_edition_by_id(db: AsyncSession, id: int) -> EditionDTO | None:
   edition = await repository.get_by_id(db, id)
   if not edition:
@@ -92,12 +92,12 @@ async def delete_edition_with_image(db: AsyncSession, id: int) -> bool:
     return False
 
   if await repository.has_copies(db, edition.id_edition):
-    raise ValueError(f"La edición ({edition.edition}) tiene copias asociadas")
+    raise ValueError(f"La ediciÃ³n ({edition.edition}) tiene copias asociadas")
 
   url = await repository.delete(db, edition)
 
   if url:
-    public_id = cloudinary_service.extract_public_id(url)
-    cloudinary_service.delete_image(public_id)
+    public_id = cloudinary.extract_public_id(url)
+    cloudinary.delete_image(public_id)
 
   return True

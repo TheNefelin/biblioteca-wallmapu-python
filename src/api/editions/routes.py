@@ -6,7 +6,7 @@ from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
-from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
 from src.schemas.dtos import (
     CreateEditionDTO,
     EditionDTO,

@@ -1,8 +1,8 @@
-import logging
+﻿import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import UUID
 
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.schemas.dtos import CreateUser, UserDTO, UserDetailDTO, UpdateUserDTO, UpdateUserByAdminDTO
 from src.api.notifications import service as notification_service
 from . import repository
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 # -----------------------------------------------------------------
-# MAPPER: User ORM → UserDetailDTO
+# MAPPER: User ORM â†’ UserDetailDTO
 def _map_user_to_detail(user) -> UserDetailDTO:
   return UserDetailDTO(
     **UserDTO.model_validate(user).model_dump(),
@@ -63,7 +63,7 @@ async def get_or_create_user(db: AsyncSession, dto: CreateUser) -> UserDetailDTO
         user_name=entity.name,
       )
     except Exception:
-      logger.warning(f"Error al enviar notificación de bienvenida para user {entity.id_user}")
+      logger.warning(f"Error al enviar notificaciÃ³n de bienvenida para user {entity.id_user}")
 
   return _map_user_to_detail(entity)
 

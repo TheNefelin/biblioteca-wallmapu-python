@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 
 from src.core.database import get_db_async
-from src.shared.dtos import ApiResponse
+from src.schemas.dtos import ApiResponse
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.schemas.dtos import CopyDTO, CopyDetailDTO, CreateCopyDTO, UpdateCopyDTO

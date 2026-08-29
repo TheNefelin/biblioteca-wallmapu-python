@@ -1,10 +1,10 @@
-import unicodedata
+﻿import unicodedata
 from math import ceil
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.schemas.dtos import EditionFilterDTO
 from src.models import models
 
@@ -185,7 +185,7 @@ async def get_by_book_id_detail(db: AsyncSession, book_id: int) -> list:
 
 
 # -----------------------------------------------------------------
-# GET BY BOOK ID (básico, sin joins)
+# GET BY BOOK ID (bÃ¡sico, sin joins)
 async def get_by_book_id(db: AsyncSession, book_id: int) -> list[models.Edition]:
   result = await db.execute(
     select(models.Edition)

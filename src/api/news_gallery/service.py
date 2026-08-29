@@ -1,10 +1,10 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+﻿from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
 from src.api.news import repository as news_repository
 from src.models import models
 from src.schemas.dtos import NewsGalleryDTO
-from src.services import cloudinary_service
+from src.core import cloudinary
 from . import repository
 
 PATH = "news"
@@ -40,7 +40,7 @@ async def create_news_gallery_with_images(
   try:
     for file, alt in zip(files, alts):
       file_bytes = await file.read()
-      url, public_id = cloudinary_service.upload_image_16_9(
+      url, public_id = cloudinary.upload_image_16_9(
         file_bytes=file_bytes,
         folder=f"{PATH}"
       )
@@ -66,7 +66,7 @@ async def create_news_gallery_with_images(
 
     for public_id in uploaded_public_ids:
       try:
-        cloudinary_service.delete_image(public_id)
+        cloudinary.delete_image(public_id)
       except Exception:
         pass
 
@@ -77,9 +77,9 @@ async def delete_news_gallery_by_news_id(db: AsyncSession, news_id: int) -> int:
   items = await repository.get_by_news_id(db, news_id)
 
   for item in items:
-    public_id = cloudinary_service.extract_public_id(item.url)
+    public_id = cloudinary.extract_public_id(item.url)
     if public_id:
-      cloudinary_service.delete_image(public_id)
+      cloudinary.delete_image(public_id)
 
   await repository.delete_by_news_id(db, news_id)
   return len(items)
@@ -91,9 +91,9 @@ async def delete_news_gallery(db: AsyncSession, id: int) -> bool:
   if not item:
     return False
 
-  public_id = cloudinary_service.extract_public_id(item.url)
+  public_id = cloudinary.extract_public_id(item.url)
   if public_id:
-    cloudinary_service.delete_image(public_id)
+    cloudinary.delete_image(public_id)
 
   await repository.delete(db, id)
   return True

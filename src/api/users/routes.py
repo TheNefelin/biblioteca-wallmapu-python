@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 from starlette.status import HTTP_200_OK
 
-from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.core.database import get_db_async

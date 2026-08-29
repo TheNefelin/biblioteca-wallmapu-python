@@ -1,8 +1,8 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+﻿from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.exceptions import AppError, DuplicateNameError, NotFoundError
 from src.schemas.dtos import FormatResponse
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from . import repository
 
 

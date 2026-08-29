@@ -1,6 +1,6 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+﻿from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.schemas.dtos import CreateNewsDTO, NewsDTO, NewsWithGalleryDTO, UpdateNewsDTO
 from . import repository
 
@@ -42,6 +42,6 @@ async def delete(db: AsyncSession, id: int) -> bool:
     return False
 
   if entity.images:
-    raise ValueError("No se puede eliminar la noticia porque tiene imágenes asociadas")
+    raise ValueError("No se puede eliminar la noticia porque tiene imÃ¡genes asociadas")
 
   return await repository.delete(db, id)

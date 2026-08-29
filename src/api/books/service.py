@@ -1,6 +1,6 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+﻿from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.schemas.dtos import CreateBookDTO, BookDTO, BookDetailDTO, UpdateBookDTO
 from src.api.book_authors import repository as book_authors_repository
 from src.api.book_authors import service as book_author_service
@@ -45,7 +45,7 @@ async def create_book(db: AsyncSession, data: CreateBookDTO) -> BookDTO:
   subject_ids = dump.pop("subject_ids", []) or []
 
   if dump.get("genre_id") == 0:
-    raise ValueError("El género es requerido")
+    raise ValueError("El gÃ©nero es requerido")
 
   book = await repository.create(db, dump)
   await book_author_service.update_authors(db, book.id_book, author_ids)
@@ -70,7 +70,7 @@ async def update_book(db: AsyncSession, id: int, data: UpdateBookDTO) -> BookDTO
   dump.pop("id_book", None)
 
   if dump.get("genre_id") == 0:
-    raise ValueError("El género es requerido")
+    raise ValueError("El gÃ©nero es requerido")
 
   book = await repository.update(db, book, dump)
   await book_author_service.update_authors(db, book.id_book, author_ids)
@@ -101,7 +101,7 @@ async def delete_book(db: AsyncSession, id: int) -> bool:
 
   active_loans = await loans_repository.get_active_by_book_id(db, id)
   if active_loans:
-    dependencies.append("préstamos activos")
+    dependencies.append("prÃ©stamos activos")
 
   if dependencies:
     raise ValueError(f"No se puede eliminar el libro. Dependencias: {', '.join(dependencies)}")

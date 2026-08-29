@@ -65,17 +65,12 @@ pip install -r requirements.txt
 ```
 
 ### 3. Configurar variables de entorno
-Crear archivo `.env` basado en `.env_demo`:
+Crear archivo `.env` basado en `.env_demo` (fuente de verdad de las variables requeridas):
 ```sh
 cp .env_demo .env
 ```
 
-Editar `.env` con tus credenciales:
-```env
-DATABASE_URL=postgresql://user:password@localhost:5432/biblioteca_wallmapu
-SECRET_KEY=your-secret-key-here
-CLOUDINARY_URL=cloudinary://...
-```
+Editar `.env` con tus credenciales reales. Ver el **formato y las variables requeridas** en `.env_demo`.
 
 ### 4. Generar SECRET_KEY
 ```sh
@@ -273,15 +268,14 @@ biblioteca-wallmapu-python/
 │   │   ├── logger.py               # Logging JSON + request_id
 │   │   ├── exceptions.py           # AppError y subclases
 │   │   ├── roles.py                # Roles de usuario
+│   │   ├── cloudinary.py           # Upload/delete de imágenes (Cloudinary)
+│   │   ├── email.py                # Envío de emails (Brevo, httpx)
 │   │   └── url_helper.py           # Helper para URLs
 │   │
-│   ├── services/                   # Servicios externos
-│   │   ├── cloudinary_service.py   # Upload de imágenes
-│   │   ├── email_service.py        # Envío de emails
-│   │   └── image_service.py        # Procesamiento de imágenes
+│   ├── models/                     # models.py centralizado (SQLAlchemy)
 │   │
-│   └── shared/                     # DTOs compartidos
-│       └── dtos.py                 # ApiResponse, PaginationRequest/Response
+│   └── schemas/                    # DTOs y contratos de respuesta
+│       └── dtos.py                 # ApiResponse, PaginationRequest/Response, DTOs
 │
 ├── static/                         # Archivos estáticos
 ├── .env                            # Variables de entorno

@@ -1,11 +1,11 @@
-from typing import List
+﻿from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_200_OK
 
 from src.core.database import get_db_async
 from src.schemas.dtos import LoanStatusDTO
-from src.shared.dtos import ApiResponse
+from src.schemas.dtos import ApiResponse
 from . import service
 
 router = APIRouter(
@@ -17,8 +17,8 @@ router = APIRouter(
   "/",
   response_model=ApiResponse[List[LoanStatusDTO]],
   status_code=HTTP_200_OK,
-  summary="Listar estados de préstamo",
-  description="Obtiene lista completa de estados de préstamo ordenada por ID",
+  summary="Listar estados de prÃ©stamo",
+  description="Obtiene lista completa de estados de prÃ©stamo ordenada por ID",
 )
 async def get_all_loan_status(db: AsyncSession = Depends(get_db_async)):
   try:

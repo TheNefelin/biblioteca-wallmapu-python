@@ -1,11 +1,11 @@
-import unicodedata
+﻿import unicodedata
 from datetime import datetime
 from math import ceil
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.models import Editorial
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 
 
 # -----------------------------------------------------------------

@@ -1,4 +1,4 @@
-from uuid import UUID
+﻿from uuid import UUID
 from math import ceil
 from datetime import datetime
 from sqlalchemy import and_, func, select, update as sa_update
@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models import models
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 
 
 def _reservation_detail_options():

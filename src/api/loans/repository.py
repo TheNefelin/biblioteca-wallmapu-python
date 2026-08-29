@@ -1,4 +1,4 @@
-from math import ceil
+﻿from math import ceil
 from datetime import date
 from uuid import UUID
 from sqlalchemy import and_, select, update as sa_update, func
@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models import models
-from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 
 
 def _loan_detail_options():
@@ -256,7 +256,7 @@ async def bulk_update_copy_status(db: AsyncSession, copy_ids: list[int], status_
 
 
 # -----------------------------------------------------------------
-# RETURN (actualiza campos de devolución)
+# RETURN (actualiza campos de devoluciÃ³n)
 async def return_loan(db: AsyncSession, loan_id: int, return_date: date, status_id: int) -> models.Loan | None:
   loan = (await db.execute(
     select(models.Loan).where(models.Loan.id_loan == loan_id)
