@@ -1,18 +1,18 @@
-from sqlalchemy.orm import Session
-from . import models
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.models.models import CopyStatus
 
 
 # -----------------------------------------------------------------
 # GET ALL
-def get_all(db: Session) -> list[models.CopyStatus]:
-  return (
-    db.query(models.CopyStatus)
-    .order_by(models.CopyStatus.name.asc())
-    .all()
-  )
+async def get_all(db: AsyncSession) -> list[CopyStatus]:
+  result = await db.execute(select(CopyStatus).order_by(CopyStatus.name.asc()))
+  return list(result.scalars().all())
 
 
 # -----------------------------------------------------------------
 # GET BY ID
-def get_by_id(db: Session, status_id: int) -> models.CopyStatus | None:
-  return db.query(models.CopyStatus).filter(models.CopyStatus.id_status == status_id).first()
+async def get_by_id(db: AsyncSession, status_id: int) -> CopyStatus | None:
+  result = await db.execute(select(CopyStatus).where(CopyStatus.id_status == status_id))
+  return result.scalar_one_or_none()

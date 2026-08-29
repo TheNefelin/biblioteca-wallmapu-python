@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, File, Form, UploadFile, status
-from sqlalchemy.orm import Session
+﻿from fastapi import APIRouter, Depends, File, Form, UploadFile, status
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_200_OK
 
-from src.core.jwt_service import get_current_user
+from src.core.security import get_current_user
 from src.core.roles import UserRole
-from src.core.database import get_db
+from src.core.database import get_db_async
 from src.shared.dtos import ApiResponse
-from . import dtos, service
+from src.schemas.dtos import NewsGalleryDTO
+from . import service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
@@ -16,17 +17,17 @@ router = APIRouter(prefix="/news-gallery", tags=["news-gallery"])
 # GET ALL
 @router.get(
   "/news/{news_id}",
-  response_model=ApiResponse[list[dtos.NewsGalleryDTO]],
+  response_model=ApiResponse[list[NewsGalleryDTO]],
   status_code=HTTP_200_OK,
   summary="Obtener imágenes de una noticia",
   description="Retorna todas las imágenes asociadas a una noticia por su ID"
 )
-def get_by_news_id(
+async def get_by_news_id(
   news_id: int,
-  db: Session = Depends(get_db)
+  db: AsyncSession = Depends(get_db_async)
 ):
   try:
-    res = service.get_by_news_id(db, news_id)
+    res = await service.get_by_news_id(db, news_id)
 
     return ApiResponse.success(res)
   except Exception as e:
@@ -36,17 +37,17 @@ def get_by_news_id(
 # CREATE
 @router.post(
   "/news/{news_id}",
-  response_model=ApiResponse[list[dtos.NewsGalleryDTO]],
+  response_model=ApiResponse[list[NewsGalleryDTO]],
   status_code=status.HTTP_201_CREATED,
   summary="Subir imágenes a noticia",
   description="Sube hasta 3 imágenes a una noticia existente (solo admin)",
   dependencies=[admin_required],
 )
-def create_gallery(
+async def create_gallery(
   news_id: int,
   files: list[UploadFile] = File(...),
   alts: list[str] = Form(...),
-  db: Session = Depends(get_db)
+  db: AsyncSession = Depends(get_db_async)
 ):
   if len(files) != len(alts):
     return ApiResponse.bad_request("La cantidad de imágenes y textos alt no coincide")
@@ -55,7 +56,7 @@ def create_gallery(
     return ApiResponse.bad_request("Solo se permiten hasta 3 imágenes")
 
   try:
-    result = service.create_news_gallery_with_images(
+    result = await service.create_news_gallery_with_images(
       news_id=news_id,
       files=files,
       alts=alts,
@@ -78,12 +79,12 @@ def create_gallery(
   description="Elimina todas las imágenes asociadas a una noticia (solo admin)",
   dependencies=[admin_required],
 )
-def delete_by_news_id(
+async def delete_by_news_id(
   news_id: int,
-  db: Session = Depends(get_db)
+  db: AsyncSession = Depends(get_db_async)
 ):
   try:
-    service.delete_news_gallery_by_news_id(db, news_id)
+    await service.delete_news_gallery_by_news_id(db, news_id)
 
     return ApiResponse.deleted()
   except Exception as e:
@@ -99,12 +100,12 @@ def delete_by_news_id(
   description="Elimina una imagen específica de la galería por su ID (solo admin)",
   dependencies=[admin_required],
 )
-def delete(
+async def delete(
   id: int,
-  db: Session = Depends(get_db)
+  db: AsyncSession = Depends(get_db_async)
 ):
   try:
-    service.delete_news_gallery(db, id)
+    await service.delete_news_gallery(db, id)
 
     return ApiResponse.deleted()
   except Exception as e:

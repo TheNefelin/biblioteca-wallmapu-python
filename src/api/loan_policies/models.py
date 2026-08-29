@@ -1,13 +1,3 @@
-from sqlalchemy import Column, Integer, String, Numeric
+from src.models.models import LoanPolicy
 
-from src.core.database import Base
-
-
-class LoanPolicy(Base):
-  __tablename__ = "wm_loan_policies"
-
-  id_policy = Column(Integer, primary_key=True, autoincrement=True)
-  name = Column(String(100))
-  max_books = Column(Integer)
-  max_days = Column(Integer)
-  reservation_days = Column(Integer, default=3)
+__all__ = ["LoanPolicy"]

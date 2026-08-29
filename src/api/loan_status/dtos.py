@@ -1,8 +1,3 @@
-from pydantic import BaseModel, ConfigDict
+from src.schemas.dtos import LoanStatusDTO
 
-
-class LoanStatusDTO(BaseModel):
-  id_status: int
-  name: str
-  
-  model_config = ConfigDict(from_attributes=True)
+__all__ = ["LoanStatusDTO"]

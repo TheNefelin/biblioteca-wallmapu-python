@@ -1,8 +1,3 @@
-from pydantic import BaseModel, ConfigDict
+from src.schemas.dtos import BookAuthorDTO
 
-
-class BookAuthorDTO(BaseModel):
-  id_book: int
-  id_author: int
-
-  model_config = ConfigDict(from_attributes=True)
+__all__ = ["BookAuthorDTO"]

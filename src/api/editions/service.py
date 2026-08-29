@@ -1,20 +1,20 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
-from .dtos import EditionFilterDTO
+from src.schemas.dtos import EditionDTO, EditionDetailDTO, EditionFilterDTO, CreateEditionDTO, UpdateEditionDTO
 from src.services import cloudinary_service
 from src.api.edition_format import service as edition_format_service
-from . import dtos, repository
+from . import repository
 
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION REAL (flat DTO)
-def get_all_pagination(db: Session, pagination: PaginationRequestDTO[EditionFilterDTO]) -> PaginationResponseDTO[list[dtos.EditionDetailDTO]]:
-  response = repository.get_all_pagination(db, pagination)
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO[EditionFilterDTO]) -> PaginationResponseDTO[list[EditionDetailDTO]]:
+  response = await repository.get_all_pagination(db, pagination)
   editions = response.data or []
-  data = [dtos.EditionDetailDTO.model_validate(item) for item in (editions)]
+  data = [EditionDetailDTO.model_validate(item) for item in editions]
 
-  return PaginationResponseDTO[list[dtos.EditionDetailDTO]](
+  return PaginationResponseDTO[list[EditionDetailDTO]](
     page=response.page,
     pages=response.pages,
     items=response.items,
@@ -26,75 +26,75 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO[EditionFilt
 
 # -----------------------------------------------------------------
 # GET BY BOOK ID DETAIL (flat DTO)
-def get_all_by_book_id_detail(db: Session, book_id: int) -> list[dtos.EditionDetailDTO]:
-  rows = repository.get_by_book_id_detail(db, book_id)
-  return [dtos.EditionDetailDTO.model_validate(dict(row._mapping)) for row in (rows or [])]
+async def get_all_by_book_id_detail(db: AsyncSession, book_id: int) -> list[EditionDetailDTO]:
+  rows = await repository.get_by_book_id_detail(db, book_id)
+  return [EditionDetailDTO.model_validate(dict(row._mapping)) for row in (rows or [])]
 
 
 # -----------------------------------------------------------------
 # GET BY BOOK ID (básico)
-def get_by_book_id(db: Session, book_id: int) -> list[dtos.EditionDTO]:
-  editions = repository.get_by_book_id(db, book_id)
-  return [dtos.EditionDTO.model_validate(e) for e in editions]
+async def get_by_book_id(db: AsyncSession, book_id: int) -> list[EditionDTO]:
+  editions = await repository.get_by_book_id(db, book_id)
+  return [EditionDTO.model_validate(e) for e in editions]
 
 
 # -----------------------------------------------------------------
 # GET BY ID (básico)
-def get_edition_by_id(db: Session, id: int) -> dtos.EditionDTO | None:
-  edition = repository.get_by_id(db, id)
+async def get_edition_by_id(db: AsyncSession, id: int) -> EditionDTO | None:
+  edition = await repository.get_by_id(db, id)
   if not edition:
     return None
-  return dtos.EditionDTO.model_validate(edition)
+  return EditionDTO.model_validate(edition)
 
 
 # -----------------------------------------------------------------
 # CREATE
-def create_edition(db: Session, data: dtos.CreateEditionDTO) -> dtos.EditionDTO:
+async def create_edition(db: AsyncSession, data: CreateEditionDTO) -> EditionDTO:
   dump = data.model_dump()
   format_ids = dump.pop("format_ids", None)
 
-  created = repository.create(db, dump)
+  created = await repository.create(db, dump)
 
   if format_ids is not None:
-    edition_format_service.update_formats(db, created.id_edition, format_ids)
-    db.refresh(created)
+    await edition_format_service.update_formats(db, created.id_edition, format_ids)
+    await db.refresh(created)
 
-  return dtos.EditionDTO.model_validate(created)
+  return EditionDTO.model_validate(created)
 
 
 # -----------------------------------------------------------------
 # UPDATE
-def update_edition(db: Session, id: int, data: dtos.UpdateEditionDTO) -> dtos.EditionDTO | None:
+async def update_edition(db: AsyncSession, id: int, data: UpdateEditionDTO) -> EditionDTO | None:
   if data.id_edition != id:
     raise ValueError("El ID no coincide")
 
-  edition = repository.get_entity_by_id(db, id)
+  edition = await repository.get_entity_by_id(db, id)
   if not edition:
     return None
 
   dump = data.model_dump(exclude_unset=True)
   format_ids = dump.pop("format_ids", None)
 
-  updated = repository.update(db, edition, dump)
+  updated = await repository.update(db, edition, dump)
 
   if format_ids is not None:
-    edition_format_service.update_formats(db, updated.id_edition, format_ids)
-    db.refresh(updated)
+    await edition_format_service.update_formats(db, updated.id_edition, format_ids)
+    await db.refresh(updated)
 
-  return dtos.EditionDTO.model_validate(updated)
+  return EditionDTO.model_validate(updated)
 
 
 # -----------------------------------------------------------------
 # DELETE
-def delete_edition_with_image(db: Session, id: int) -> bool:
-  edition = repository.get_entity_by_id(db, id)
+async def delete_edition_with_image(db: AsyncSession, id: int) -> bool:
+  edition = await repository.get_entity_by_id(db, id)
   if not edition:
     return False
 
-  if repository.has_copies(db, edition.id_edition):
+  if await repository.has_copies(db, edition.id_edition):
     raise ValueError(f"La edición ({edition.edition}) tiene copias asociadas")
 
-  url = repository.delete(db, edition)
+  url = await repository.delete(db, edition)
 
   if url:
     public_id = cloudinary_service.extract_public_id(url)

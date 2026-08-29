@@ -1,21 +1,24 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import CreateBookDTO, BookDTO, BookDetailDTO, UpdateBookDTO
 from src.api.book_authors import repository as book_authors_repository
 from src.api.book_authors import service as book_author_service
 from src.api.book_subjects import repository as book_subjects_repository
 from src.api.book_subjects import service as book_subject_service
-from . import dtos, repository
+from src.api.reservations import repository as reservations_repository
+from src.api.loans import repository as loans_repository
+from . import repository
 
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
-def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[dtos.BookDetailDTO]]:
-  response = repository.get_all_pagination(db, pagination)
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[BookDetailDTO]]:
+  response = await repository.get_all_pagination(db, pagination)
   books = response.data or []
-  data = [dtos.BookDetailDTO.model_validate(dict(row._mapping)) for row in books]
+  data = [BookDetailDTO.model_validate(dict(row._mapping)) for row in books]
 
-  return PaginationResponseDTO[list[dtos.BookDetailDTO]](
+  return PaginationResponseDTO[list[BookDetailDTO]](
     page=response.page,
     pages=response.pages,
     items=response.items,
@@ -27,16 +30,16 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
 
 # -----------------------------------------------------------------
 # GET BY ID
-def get_book_by_id(db: Session, id: int) -> dtos.BookDTO | None:
-  item = repository.get_by_id(db, id)
+async def get_book_by_id(db: AsyncSession, id: int) -> BookDTO | None:
+  item = await repository.get_by_id(db, id)
   if not item:
     return None
-  return dtos.BookDTO.model_validate(item)
+  return BookDTO.model_validate(item)
 
 
 # -----------------------------------------------------------------
 # CREATE
-def create_book(db: Session, data: dtos.CreateBookDTO) -> dtos.BookDTO:
+async def create_book(db: AsyncSession, data: CreateBookDTO) -> BookDTO:
   dump = data.model_dump(exclude_unset=True)
   author_ids = dump.pop("author_ids", []) or []
   subject_ids = dump.pop("subject_ids", []) or []
@@ -44,20 +47,20 @@ def create_book(db: Session, data: dtos.CreateBookDTO) -> dtos.BookDTO:
   if dump.get("genre_id") == 0:
     raise ValueError("El género es requerido")
 
-  book = repository.create(db, dump)
-  book_author_service.update_authors(db, book.id_book, author_ids)
-  book_subject_service.update_subjects(db, book.id_book, subject_ids)
-  db.refresh(book)
-  return dtos.BookDTO.model_validate(book)
+  book = await repository.create(db, dump)
+  await book_author_service.update_authors(db, book.id_book, author_ids)
+  await book_subject_service.update_subjects(db, book.id_book, subject_ids)
+  await db.refresh(book)
+  return BookDTO.model_validate(book)
 
 
 # -----------------------------------------------------------------
 # UPDATE
-def update_book(db: Session, id: int, data: dtos.UpdateBookDTO) -> dtos.BookDTO | None:
+async def update_book(db: AsyncSession, id: int, data: UpdateBookDTO) -> BookDTO | None:
   if data.id_book != id:
     raise ValueError("El ID no coincide")
 
-  book = repository.get_entity_by_id(db, data.id_book)
+  book = await repository.get_entity_by_id(db, data.id_book)
   if not book:
     return None
 
@@ -69,45 +72,41 @@ def update_book(db: Session, id: int, data: dtos.UpdateBookDTO) -> dtos.BookDTO 
   if dump.get("genre_id") == 0:
     raise ValueError("El género es requerido")
 
-  book = repository.update(db, book, dump)
-  book_author_service.update_authors(db, book.id_book, author_ids)
-  book_subject_service.update_subjects(db, book.id_book, subject_ids)
-  db.refresh(book)
-  return dtos.BookDTO.model_validate(book)
+  book = await repository.update(db, book, dump)
+  await book_author_service.update_authors(db, book.id_book, author_ids)
+  await book_subject_service.update_subjects(db, book.id_book, subject_ids)
+  await db.refresh(book)
+  return BookDTO.model_validate(book)
 
 
 # -----------------------------------------------------------------
 # DELETE
-def delete_book(db: Session, id: int) -> bool:
-  from src.api.reservations import repository as reservations_repository
-  from src.api.loans import repository as loans_repository
-
-  book = repository.get_entity_by_id(db, id)
+async def delete_book(db: AsyncSession, id: int) -> bool:
+  book = await repository.get_entity_by_id(db, id)
   if not book:
     return False
 
-  if repository.has_authors(db, id):
+  if await repository.has_authors(db, id):
     raise ValueError("El libro tiene autores asociados")
-  if repository.has_subjects(db, id):
+  if await repository.has_subjects(db, id):
     raise ValueError("El libro tiene descriptores asociados")
-  if repository.has_editions(db, id):
+  if await repository.has_editions(db, id):
     raise ValueError("El libro tiene ediciones/ejemplares asociados")
 
   dependencies = []
 
-  active_reservations = reservations_repository.get_active_by_book_id(db, id)
+  active_reservations = await reservations_repository.get_active_by_book_id(db, id)
   if active_reservations:
     dependencies.append("reservas activas")
 
-  active_loans = loans_repository.get_active_by_book_id(db, id)
+  active_loans = await loans_repository.get_active_by_book_id(db, id)
   if active_loans:
     dependencies.append("préstamos activos")
 
   if dependencies:
     raise ValueError(f"No se puede eliminar el libro. Dependencias: {', '.join(dependencies)}")
 
-  book_authors_repository.delete_by_book(db, id)
-  book_subjects_repository.delete_by_book(db, id)
-  repository.delete(db, book)
+  await book_authors_repository.delete_by_book(db, id)
+  await book_subjects_repository.delete_by_book(db, id)
+  await repository.delete(db, book)
   return True
-

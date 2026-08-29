@@ -1,13 +1,13 @@
 from typing import Dict
 from fastapi import WebSocket
-from sqlalchemy.orm import Session
 import logging
 import asyncio
 
-from src.core.database import SessionLocal
+from src.core.database import AsyncSessionLocal
 from . import repository
 
 logger = logging.getLogger(__name__)
+
 
 class ConnectionManager:
     def __init__(self):
@@ -18,7 +18,7 @@ class ConnectionManager:
         await websocket.accept()
         self.active_connections[user_id] = websocket
         logger.info(f"WebSocket connected for user {user_id}")
-        
+
         # Iniciar "observador" para este usuario
         asyncio.create_task(self._observe_notifications(user_id))
 
@@ -42,23 +42,21 @@ class ConnectionManager:
         Envía actualizaciones automáticas cuando hay cambios (cada 5 segundos).
         """
         last_count = None
-        
+
         while user_id in self.active_connections:
-            db = SessionLocal()
-            try:
-                count = repository.count_unread_by_user_id(db, user_id)
-                
-                if last_count != count:
-                    last_count = count
-                    await self.send_to_user(user_id, {
-                        "type": "unread_count",
-                        "unread_count": count
-                    })
-            except Exception as e:
-                logger.error(f"Error observing notifications for user {user_id}: {e}")
-            finally:
-                db.close()
-            
+            async with AsyncSessionLocal() as db:
+                try:
+                    count = await repository.count_unread_by_user_id(db, user_id)
+
+                    if last_count != count:
+                        last_count = count
+                        await self.send_to_user(user_id, {
+                            "type": "unread_count",
+                            "unread_count": count
+                        })
+                except Exception as e:
+                    logger.error(f"Error observing notifications for user {user_id}: {e}")
+
             await asyncio.sleep(5)  # Revisar cada 5 segundos
 
 

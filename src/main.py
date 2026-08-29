@@ -1,8 +1,12 @@
 import os
-from fastapi import FastAPI
+import time
+import uuid
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.responses import FileResponse
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from starlette.responses import FileResponse, JSONResponse
 
 from src.api.stats.routes import router as stats_router
 from src.api.auth.routes import router as auth_router
@@ -34,6 +38,13 @@ from src.api.loan_policies.routes import router as loan_policies_router
 from src.api.loan_status.routes import router as loan_status_router
 from src.api.notifications.routes import router as notifications_router
 
+from src.core.limiter import limiter
+from src.core.logger import logger, set_request_id
+from src.core.exceptions import AppError
+from src.shared.dtos import ApiResponse
+
+start_time = time.time()
+
 app = FastAPI(title="Biblioteca Wallmapu API", description="In development", version="1.0")
 
 app.add_middleware(
@@ -46,6 +57,51 @@ app.add_middleware(
   allow_headers=["*"],
 )
 
+# Rate limiting (slowapi) — key por identidad (JWT) o por IP
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+  response = ApiResponse(
+    isSuccess=False,
+    statusCode=429,
+    message="Demasiadas solicitudes. Inténtelo más tarde.",
+    data=None,
+  )
+  return JSONResponse(status_code=429, content=response.model_dump())
+
+
+@app.exception_handler(AppError)
+async def app_error_handler(request: Request, exc: AppError):
+  response = ApiResponse(
+    isSuccess=False,
+    statusCode=exc.status_code,
+    message=exc.message,
+    data=None,
+  )
+  return JSONResponse(status_code=exc.status_code, content=response.model_dump())
+
+
+# Logging JSON por petición: asigna un request_id y registra cada request
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+  request_id = str(uuid.uuid4())
+  set_request_id(request_id)
+  start = time.time()
+  response = await call_next(request)
+  logger.info("%s %s", request.method, request.url.path, extra={
+    "props": {
+      "request_id": request_id,
+      "method": request.method,
+      "path": request.url.path,
+      "status_code": response.status_code,
+      "duration_ms": round((time.time() - start) * 1000, 2),
+    }
+  })
+  return response
+
 BASE_DIR = os.getcwd()  # raíz del proyecto
 STATIC_PATH = os.path.join(BASE_DIR, "static") 
 
@@ -55,12 +111,14 @@ app.mount("/static", StaticFiles(directory=STATIC_PATH), name="static")
 async def favicon():
   return FileResponse(os.path.join(STATIC_PATH, "favicon.ico"))
 
+#health
 @app.get("/")
 async def root():
   return {
     "status": "Api Running",
     "swagger": "/docs",
-    "version": "231", 
+    "version": "1.0.231",
+    "uptime_seconds": round(time.time() - start_time, 2),
   }
 
 app.include_router(stats_router, prefix="/api")

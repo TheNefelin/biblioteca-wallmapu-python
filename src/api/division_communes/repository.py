@@ -1,13 +1,11 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from . import models
+from src.models.models import Commune
+
 
 # -----------------------------------------------------------------
 # GET ALL
-def get_all(db: Session) -> list[models.Commune]:
-  return (
-    db.query(models.Commune)
-    .order_by(models.Commune.name.asc())
-    .all()
-  )
-  
+async def get_all(db: AsyncSession) -> list[Commune]:
+  result = await db.execute(select(Commune).order_by(Commune.name.asc()))
+  return list(result.scalars().all())

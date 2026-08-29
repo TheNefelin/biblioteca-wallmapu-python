@@ -1,49 +1,51 @@
 from math import ceil
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func, or_, select, update as sa_update
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from src.models import models
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
-from . import models
 
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATED (Admin)
-def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
-  query = (
-    db.query(models.Notification)
-    .options(
-      joinedload(models.Notification.user)
-    )
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+  stmt = select(models.Notification).options(
+    selectinload(models.Notification.user)
   )
 
   is_read_filter = pagination.filter.is_read if pagination.filter else True
   if not is_read_filter:
-    query = query.filter(models.Notification.is_read == False)
+    stmt = stmt.where(models.Notification.is_read == False)
 
   search_filter = pagination.search if pagination.search else None
   if search_filter:
-    query = query.filter(
-      models.Notification.title.ilike(f"%{search_filter}%") |
-      models.Notification.message.ilike(f"%{search_filter}%")
+    stmt = stmt.where(
+      or_(
+        models.Notification.title.ilike(f"%{search_filter}%"),
+        models.Notification.message.ilike(f"%{search_filter}%")
+      )
     )
 
-  total_items = query.count()
+  total_items_result = await db.execute(select(func.count()).select_from(stmt.subquery()))
+  total_items = total_items_result.scalar_one()
   total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
 
   page = min(pagination.page, total_pages) if total_pages > 0 else 1
   offset = (page - 1) * pagination.limit
 
-  result = (
-    query
+  result = (await db.execute(
+    stmt
     .order_by(models.Notification.created_at.desc())
     .offset(offset)
     .limit(pagination.limit)
-    .all()
-  )
+  )).scalars().all()
 
   return PaginationResponseDTO(
     page=page,
     pages=total_pages,
     items=total_items,
-    data=result,
+    data=list(result),
     next=None,
     prev=None
   )
@@ -51,43 +53,43 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
 
 # -----------------------------------------------------------------
 # GET BY USER PAGINATED
-def get_by_user_paginated(db: Session, user_id: str, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
-  query = (
-    db.query(models.Notification)
-    .options(joinedload(models.Notification.user))
-    .filter(models.Notification.user_id == user_id)
-  )
+async def get_by_user_paginated(db: AsyncSession, user_id: str, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+  stmt = select(models.Notification).options(
+    selectinload(models.Notification.user)
+  ).where(models.Notification.user_id == user_id)
 
   is_read_filter = pagination.filter.is_read if pagination.filter else True
   if not is_read_filter:
-    query = query.filter(models.Notification.is_read == False)
+    stmt = stmt.where(models.Notification.is_read == False)
 
   search_filter = pagination.search if pagination.search else None
   if search_filter:
-    query = query.filter(
-      models.Notification.title.ilike(f"%{search_filter}%") |
-      models.Notification.message.ilike(f"%{search_filter}%")
+    stmt = stmt.where(
+      or_(
+        models.Notification.title.ilike(f"%{search_filter}%"),
+        models.Notification.message.ilike(f"%{search_filter}%")
+      )
     )
 
-  total_items = query.count()
+  total_items_result = await db.execute(select(func.count()).select_from(stmt.subquery()))
+  total_items = total_items_result.scalar_one()
   total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
 
   page = min(pagination.page, total_pages) if total_pages > 0 else 1
   offset = (page - 1) * pagination.limit
 
-  result = (
-    query
+  result = (await db.execute(
+    stmt
     .order_by(models.Notification.created_at.desc())
     .offset(offset)
     .limit(pagination.limit)
-    .all()
-  )
+  )).scalars().all()
 
   return PaginationResponseDTO(
     page=page,
     pages=total_pages,
     items=total_items,
-    data=result,
+    data=list(result),
     next=None,
     prev=None
   )
@@ -95,60 +97,62 @@ def get_by_user_paginated(db: Session, user_id: str, pagination: PaginationReque
 
 # -----------------------------------------------------------------
 # GET BY ID
-def get_by_id(db: Session, id: int):
-  return (
-    db.query(models.Notification)
-    .options(joinedload(models.Notification.user))
-    .filter(models.Notification.id_notification == id)
-    .first()
+async def get_by_id(db: AsyncSession, id: int):
+  result = await db.execute(
+    select(models.Notification)
+    .options(selectinload(models.Notification.user))
+    .where(models.Notification.id_notification == id)
   )
+  return result.scalar_one_or_none()
 
 
 # -----------------------------------------------------------------
 # COUNT UNREAD BY USER (For badge)
-def count_unread_by_user_id(db: Session, user_id: str) -> int:
-  return (
-    db.query(models.Notification)
-    .filter(
+async def count_unread_by_user_id(db: AsyncSession, user_id: str) -> int:
+  result = await db.execute(
+    select(func.count())
+    .select_from(models.Notification)
+    .where(
       models.Notification.user_id == user_id,
       models.Notification.is_read == False
     )
-    .count()
   )
+  return result.scalar_one()
 
 
 # -----------------------------------------------------------------
 # CREATE
-def create(db: Session, data: dict) -> models.Notification | None:
+async def create(db: AsyncSession, data: dict) -> models.Notification | None:
   item = models.Notification(**data)
   db.add(item)
-  db.commit()
-  db.refresh(item)
-
+  await db.commit()
+  await db.refresh(item)
   return item
 
 
 # -----------------------------------------------------------------
 # MARK AS READ
-def mark_as_read(db: Session, id: int):
-  notification = db.query(models.Notification).filter(models.Notification.id_notification == id).first()
+async def mark_as_read(db: AsyncSession, id: int):
+  notification = (await db.execute(
+    select(models.Notification).where(models.Notification.id_notification == id)
+  )).scalar_one_or_none()
   if notification:
     notification.is_read = True
-    db.commit()
-    db.refresh(notification)
+    await db.commit()
+    await db.refresh(notification)
   return notification
 
 
 # -----------------------------------------------------------------
 # MARK ALL AS READ
-def mark_all_as_read(db: Session, user_id: str):
-  result = (
-    db.query(models.Notification)
-    .filter(
+async def mark_all_as_read(db: AsyncSession, user_id: str):
+  result = await db.execute(
+    sa_update(models.Notification)
+    .where(
       models.Notification.user_id == user_id,
       models.Notification.is_read == False
     )
-    .update({"is_read": True})
+    .values(is_read=True)
   )
-  db.commit()
-  return result
+  await db.commit()
+  return result.rowcount

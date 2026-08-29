@@ -1,23 +1,24 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from . import dtos, repository
+from src.schemas.dtos import BookSubjectDTO
+from . import repository
 
 
 # -----------------------------------------------------------------
 # UPDATE (reemplaza relaciones; si subject_ids viene vacío, elimina todas)
-def update_subjects(db: Session, id_book: int, subject_ids: list[int]) -> list[dtos.BookSubjectDTO]:
+async def update_subjects(db: AsyncSession, id_book: int, subject_ids: list[int]) -> list[BookSubjectDTO]:
   subject_ids = list(set(subject_ids or []))
-  items = repository.update(db, id_book, subject_ids)
-  return [dtos.BookSubjectDTO.model_validate(item) for item in items]
+  items = await repository.update(db, id_book, subject_ids)
+  return [BookSubjectDTO.model_validate(item) for item in items]
 
 
 # -----------------------------------------------------------------
 # DELETE (elimina una relación book-subject)
-def delete_subject(db: Session, id_book: int, id_subject: int) -> bool:
-  return repository.delete(db, id_book, id_subject)
+async def delete_subject(db: AsyncSession, id_book: int, id_subject: int) -> bool:
+  return await repository.delete(db, id_book, id_subject)
 
 
 # -----------------------------------------------------------------
 # DELETE (elimina toda las relaciónes book-subject)
-def delete_subject_by_book(db: Session, id_book: int) -> bool:
-  return repository.delete_by_book(db, id_book)
+async def delete_subject_by_book(db: AsyncSession, id_book: int) -> bool:
+  return await repository.delete_by_book(db, id_book)

@@ -1,11 +1,3 @@
-from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from src.schemas.dtos import UserStatusDTO
 
-class UserStatusDTO(BaseModel):
-  id_user_status: int
-  name: str
-  created_at: datetime
-  updated_at: datetime
-
-  model_config = ConfigDict(from_attributes=True)
-  
+__all__ = ["UserStatusDTO"]

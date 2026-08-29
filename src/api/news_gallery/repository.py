@@ -1,67 +1,63 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import select, delete
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from . import models
+from src.models import models
 
 
 # -----------------------------------------------------------------
 # GET ALL
-def get_by_news_id(db: Session, news_id: int) -> list[models.NewsGallery]:
-  return (db
-    .query(models.NewsGallery)
-    .filter(models.NewsGallery.news_id == news_id)
+async def get_by_news_id(db: AsyncSession, news_id: int) -> list[models.NewsGallery]:
+  result = await db.execute(
+    select(models.NewsGallery)
+    .where(models.NewsGallery.news_id == news_id)
     .order_by(models.NewsGallery.id_news_gallery.desc())
-    .all()
   )
+  return list(result.scalars().all())
 
 
 # -----------------------------------------------------------------
 # GET BY ID
-def get_by_id(db: Session, id: int):
-  return (
-    db.query(models.NewsGallery)
-    .filter(models.NewsGallery.id_news_gallery == id)
-    .first()
+async def get_by_id(db: AsyncSession, id: int):
+  result = await db.execute(
+    select(models.NewsGallery).where(models.NewsGallery.id_news_gallery == id)
   )
+  return result.scalar_one_or_none()
 
 
 # -----------------------------------------------------------------
 # CREATE
-def create(db: Session, data: dict) -> models.NewsGallery:
+async def create(db: AsyncSession, data: dict) -> models.NewsGallery:
   new_item = models.NewsGallery(**data)
   db.add(new_item)
-  db.commit()
-  db.refresh(new_item)
+  await db.commit()
+  await db.refresh(new_item)
   return new_item
 
 
 # -----------------------------------------------------------------
 # DELETE BY ID NEWS
-def delete_by_news_id(db: Session, news_id: int) -> bool:
-  items = (
-    db.query(models.NewsGallery)
-    .filter(models.NewsGallery.news_id == news_id)
-    .all()
-  )
+async def delete_by_news_id(db: AsyncSession, news_id: int) -> bool:
+  items = (await db.execute(
+    select(models.NewsGallery).where(models.NewsGallery.news_id == news_id)
+  )).scalars().all()
 
   for item in items:
-    db.delete(item)
-  
-  db.commit()
+    await db.delete(item)
+
+  await db.commit()
   return True
 
 
 # -----------------------------------------------------------------
 # DELETE BY ID GALLERY
-def delete(db: Session, id: int) -> bool:
-  item = (
-    db.query(models.NewsGallery)
-    .filter(models.NewsGallery.id_news_gallery == id)
-    .first()
-  )
-  
+async def delete(db: AsyncSession, id: int) -> bool:
+  item = (await db.execute(
+    select(models.NewsGallery).where(models.NewsGallery.id_news_gallery == id)
+  )).scalar_one_or_none()
+
   if not item:
     return False
 
-  db.delete(item)
-  db.commit()
+  await db.delete(item)
+  await db.commit()
   return True

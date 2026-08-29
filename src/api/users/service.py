@@ -1,20 +1,20 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import UUID
 import logging
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import UUID
 
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import CreateUser, UserDTO, UserDetailDTO, UpdateUserDTO, UpdateUserByAdminDTO
 from src.api.notifications import service as notification_service
-from . import dtos, repository
+from . import repository
 
 logger = logging.getLogger(__name__)
 
 
 # -----------------------------------------------------------------
 # MAPPER: User ORM → UserDetailDTO
-def _map_user_to_detail(user) -> dtos.UserDetailDTO:
-  """Convierte entidad User ORM a UserDetailDTO con nombres de relaciones resueltos"""
-  return dtos.UserDetailDTO(
-    **dtos.UserDTO.model_validate(user).model_dump(),
+def _map_user_to_detail(user) -> UserDetailDTO:
+  return UserDetailDTO(
+    **UserDTO.model_validate(user).model_dump(),
     commune_name=user.commune.name if user.commune else "",
     user_role_name=user.user_role.name if user.user_role else "",
     user_status_name=user.user_status.name if user.user_status else "",
@@ -23,14 +23,13 @@ def _map_user_to_detail(user) -> dtos.UserDetailDTO:
 
 # -----------------------------------------------------------------
 # GET ALL DETAILED (PAGINATED)
-def get_all_detailed(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[dtos.UserDetailDTO]]:
-  """Retorna lista paginada de usuarios con datos resueltos"""
-  pagination_response = repository.get_all_detailed(db, pagination)
+async def get_all_detailed(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[UserDetailDTO]]:
+  pagination_response = await repository.get_all_detailed(db, pagination)
   users = pagination_response.data or []
 
   data = [_map_user_to_detail(user) for user in users]
 
-  return PaginationResponseDTO[list[dtos.UserDetailDTO]](
+  return PaginationResponseDTO[list[UserDetailDTO]](
     page=pagination_response.page,
     pages=pagination_response.pages,
     items=pagination_response.items,
@@ -40,28 +39,24 @@ def get_all_detailed(db: Session, pagination: PaginationRequestDTO) -> Paginatio
 
 # -----------------------------------------------------------------
 # GET BY ID DETAILED
-def get_by_id_detailed(db: Session, id_user: UUID) -> dtos.UserDetailDTO | None:
-  """Retorna un usuario por su UUID con datos resueltos"""
-  entity = repository.get_by_id_detailed(db, id_user)
-
+async def get_by_id_detailed(db: AsyncSession, id_user: UUID) -> UserDetailDTO | None:
+  entity = await repository.get_by_id_detailed(db, id_user)
   if not entity:
     return None
-
   return _map_user_to_detail(entity)
 
 
 # -----------------------------------------------------------------
 # GET OR CREATE USER (Auth)
-def get_or_create_user(db: Session, dto: dtos.CreateUser) -> dtos.UserDetailDTO:
-  """Obtiene usuario por email o lo crea si no existe (usado por Auth)"""
-  entity = repository.get_by_email(db, dto.email)
+async def get_or_create_user(db: AsyncSession, dto: CreateUser) -> UserDetailDTO:
+  entity = await repository.get_by_email(db, dto.email)
 
   if not entity:
-    created = repository.create(db, dto.model_dump(exclude_none=True))
-    entity = repository.get_by_id_with_role_status(db, created.id_user)
+    created = await repository.create(db, dto.model_dump(exclude_none=True))
+    entity = await repository.get_by_id_with_role_status(db, created.id_user)
 
     try:
-      notification_service.create_welcome_notification(
+      await notification_service.create_welcome_notification(
         db=db,
         user_id=str(entity.id_user),
         user_email=entity.email,
@@ -75,26 +70,32 @@ def get_or_create_user(db: Session, dto: dtos.CreateUser) -> dtos.UserDetailDTO:
 
 # -----------------------------------------------------------------
 # UPDATE USER
-def update(db: Session, id_user: UUID, update_dto: dtos.UpdateUserDTO) -> dtos.UserDTO | None:
-  """Actualiza datos del propio perfil (LECTOR). No incluye rol/estado"""
-  entity = repository.update(db, id_user, update_dto.model_dump(exclude_unset=True))
+async def update(db: AsyncSession, id_user: UUID, update_dto: UpdateUserDTO) -> UserDTO | None:
+  entity = await repository.update(db, id_user, update_dto.model_dump(exclude_unset=True))
   if not entity:
     return None
-  return dtos.UserDTO.model_validate(entity)
+  return UserDTO.model_validate(entity)
 
 
 # -----------------------------------------------------------------
 # UPDATE USER BY ADMIN
-def update_by_admin(db: Session, id_user: UUID, update_dto: dtos.UpdateUserByAdminDTO, current_user_id: str) -> dtos.UserDTO | None:
-  """Actualiza cualquier usuario como admin. Si es auto-edición, no permite cambiar rol ni estado"""
+async def update_by_admin(db: AsyncSession, id_user: UUID, update_dto: UpdateUserByAdminDTO, current_user_id: str) -> UserDTO | None:
   update_data = update_dto.model_dump(exclude_unset=True)
 
   if str(id_user) == current_user_id:
     update_data.pop("user_role_id", None)
     update_data.pop("user_status_id", None)
 
-  entity = repository.update(db, id_user, update_data)
+  entity = await repository.update(db, id_user, update_data)
   if not entity:
     return None
-  return dtos.UserDTO.model_validate(entity)
+  return UserDTO.model_validate(entity)
 
+
+# -----------------------------------------------------------------
+# GET ROLE NAME BY USER ID (para security: el rol real se lee de la BD)
+async def get_role_name_by_id(db: AsyncSession, id_user: UUID) -> str | None:
+  entity = await repository.get_by_id_with_role_status(db, id_user)
+  if not entity or not entity.user_role:
+    return None
+  return entity.user_role.name

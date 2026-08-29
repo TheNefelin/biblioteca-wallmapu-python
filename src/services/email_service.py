@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-import requests
+import httpx
 from typing import Optional
 
 from src.core.config import settings
@@ -31,7 +31,7 @@ class EmailData:
 
 # -----------------------------------------------------------------
 # TEMPLATE: Welcome
-def send_welcome_email(data: WelcomeEmailData) -> Optional[dict]:
+async def send_welcome_email(data: WelcomeEmailData) -> Optional[dict]:
   html = f"""
   <html>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -49,12 +49,12 @@ def send_welcome_email(data: WelcomeEmailData) -> Optional[dict]:
     </body>
   </html>
   """
-  return send_email(data.user_email, "¡Bienvenido/a a Biblioteca Wallmapu!", html)
+  return await send_email(data.user_email, "¡Bienvenido/a a Biblioteca Wallmapu!", html)
 
 
 # -----------------------------------------------------------------
 # TEMPLATE: Admin Message
-def send_admin_email(
+async def send_admin_email(
   data: AdminEmailData
 ) -> Optional[dict]:
 
@@ -111,27 +111,28 @@ def send_admin_email(
 
   subject = f"{priority_subject_prefix}{data.title}"
 
-  return send_email(data.user_email, subject, html)
+  return await send_email(data.user_email, subject, html)
 
 
 # -----------------------------------------------------------------
 # SEND EMAIL - Brevo API
-def send_email(to: str, subject: str, html: str) -> Optional[dict]:
+async def send_email(to: str, subject: str, html: str) -> Optional[dict]:
   try:
-    response = requests.post(
-      "https://api.brevo.com/v3/smtp/email",
-      headers={
-        "accept": "application/json",
-        "api-key": settings.BREVO_API_KEY,
-        "content-type": "application/json"
-      },
-      json={
-        "sender": {"email": settings.BREVO_FROM_EMAIL, "name": settings.BREVO_FROM_NAME},
-        "to": [{"email": to}],
-        "subject": subject,
-        "htmlContent": html
-      }
-    )
+    async with httpx.AsyncClient(timeout=30) as client:
+      response = await client.post(
+        "https://api.brevo.com/v3/smtp/email",
+        headers={
+          "accept": "application/json",
+          "api-key": settings.BREVO_API_KEY,
+          "content-type": "application/json"
+        },
+        json={
+          "sender": {"email": settings.BREVO_FROM_EMAIL, "name": settings.BREVO_FROM_NAME},
+          "to": [{"email": to}],
+          "subject": subject,
+          "htmlContent": html
+        }
+      )
     return response.json()
   except Exception as e:
     print(f"Error sending email to {to}: {e}")
@@ -140,7 +141,7 @@ def send_email(to: str, subject: str, html: str) -> Optional[dict]:
 
 # -----------------------------------------------------------------
 # TEMPLATE: Reservation Created
-def send_reservation_created_email(
+async def send_reservation_created_email(
   data: EmailData
 ) -> Optional[dict]:
   html = f"""
@@ -163,12 +164,12 @@ def send_reservation_created_email(
     </body>
   </html>
   """
-  return send_email(data.user_email, f"RESERVA CREADA - #{ data.id }", html)
+  return await send_email(data.user_email, f"RESERVA CREADA - #{ data.id }", html)
 
 
 # -----------------------------------------------------------------
 # TEMPLATE: Reservation Cancelled
-def send_reservation_cancelled_email(
+async def send_reservation_cancelled_email(
   data: EmailData
 ) -> Optional[dict]:
   html = f"""
@@ -189,12 +190,12 @@ def send_reservation_cancelled_email(
     </body>
   </html>
   """
-  return send_email(data.user_email, f"RESERVA CANCELADA - #{ data.id }", html)
+  return await send_email(data.user_email, f"RESERVA CANCELADA - #{ data.id }", html)
 
 
 # -----------------------------------------------------------------
 # TEMPLATE: Reservation Pickup
-def send_loan_created_email(
+async def send_loan_created_email(
   data: EmailData
 ) -> Optional[dict]:
   html = f"""
@@ -216,12 +217,12 @@ def send_loan_created_email(
     </body>
   </html>
   """
-  return send_email(data.user_email, f"PRÉSTAMO REALIZADO - #{ data.id }", html)
+  return await send_email(data.user_email, f"PRÉSTAMO REALIZADO - #{ data.id }", html)
 
 
 # -----------------------------------------------------------------
 # TEMPLATE: Reservation Returned
-def send_loan_returned_email(
+async def send_loan_returned_email(
   data: EmailData
 ) -> Optional[dict]:
   html = f"""
@@ -242,5 +243,5 @@ def send_loan_returned_email(
     </body>
   </html>
   """
-  return send_email(data.user_email, f"PRÉSTAMO DEVUELTO - #{ data.id }", html)
+  return await send_email(data.user_email, f"PRÉSTAMO DEVUELTO - #{ data.id }", html)
 

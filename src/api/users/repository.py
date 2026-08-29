@@ -1,133 +1,125 @@
 from math import ceil
-from sqlalchemy import or_
+from sqlalchemy import func, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import UUID
-from sqlalchemy.orm import Session, joinedload
 
+from src.models import models
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
-from src.api.user_status import models as status_models
-from src.api.user_role import models as role_models
-from . import models
 
 
 # -----------------------------------------------------------------
 # GET ALL DETAILED
-def get_all_detailed(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+async def get_all_detailed(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
   query = (
-    db.query(models.User)
+    select(models.User)
     .options(
-      joinedload(models.User.commune),
-      joinedload(models.User.user_role),
-      joinedload(models.User.user_status),                
+      models.User.commune,
+      models.User.user_role,
+      models.User.user_status,
     )
   )
 
   if pagination.search:
-    query = query.filter(
+    query = query.where(
       or_(
         models.User.name.ilike(f"%{pagination.search}%"),
         models.User.lastname.ilike(f"%{pagination.search}%"),
         models.User.email.ilike(f"%{pagination.search}%"),
-        models.User.user_role.has(role_models.UserRole.name.ilike(f"%{pagination.search}%")),
-        models.User.user_status.has(status_models.UserStatus.name.ilike(f"%{pagination.search}%")),          
       )
     )
 
-  items = query.count()
+  items_result = await db.execute(select(func.count()).select_from(query.subquery()))
+  items = items_result.scalar_one()
   pages = ceil(items / pagination.limit) if items > 0 else 0
 
   page = min(pagination.page, pages) if pages > 0 else 1
   skip = (page - 1) * pagination.limit
 
-  result = (
-    query
-    .order_by(models.User.updated_at.desc())
-    .offset(skip)
-    .limit(pagination.limit)
-    .all()
-  )
+  result = (await db.execute(
+    query.order_by(models.User.updated_at.desc()).offset(skip).limit(pagination.limit)
+  )).scalars().all()
 
   return PaginationResponseDTO(
     page=page,
     pages=pages,
     items=items,
-    data=result,
+    data=list(result),
   )
+
 
 # -----------------------------------------------------------------
 # GET BY ID DETAILED
-def get_by_id_detailed(
-  db: Session,
+async def get_by_id_detailed(
+  db: AsyncSession,
   id_user: UUID
 ) -> models.User | None:
-  entity = (
-    db.query(models.User)
+  result = await db.execute(
+    select(models.User)
     .options(
-      joinedload(models.User.commune),
-      joinedload(models.User.user_role),
-      joinedload(models.User.user_status),                
+      models.User.commune,
+      models.User.user_role,
+      models.User.user_status,
     )
     .filter(models.User.id_user == id_user)
-    .first()
   )
+  return result.scalar_one_or_none()
 
-  if not entity:
-    return None
 
-  return entity
-  
 # -----------------------------------------------------------------
 # GET BY EMAIL
-def get_by_email(db: Session, email: str) -> models.User:
-  return (
-      db.query(models.User)
-      .options(
-        joinedload(models.User.commune),
-        joinedload(models.User.user_role),
-        joinedload(models.User.user_status),                
-      )
-      .filter(models.User.email == email)
-      .first()
+async def get_by_email(db: AsyncSession, email: str) -> models.User | None:
+  result = await db.execute(
+    select(models.User)
+    .options(
+      models.User.commune,
+      models.User.user_role,
+      models.User.user_status,
     )
+    .filter(models.User.email == email)
+  )
+  return result.scalar_one_or_none()
+
 
 # -----------------------------------------------------------------
 # CREATE
-def create(db: Session, data: dict) -> models.User:
+async def create(db: AsyncSession, data: dict) -> models.User:
   user = models.User(**data)
   db.add(user)
-  db.commit()
-  db.refresh(user)
+  await db.commit()
+  await db.refresh(user)
   return user
 
 
 # -----------------------------------------------------------------
 # GET BY ID USER WITH ROLE AND STATUS
-def get_by_id_with_role_status(db: Session, id_user: UUID) -> models.User | None:
-  return (
-    db.query(models.User)
+async def get_by_id_with_role_status(db: AsyncSession, id_user: UUID) -> models.User | None:
+  result = await db.execute(
+    select(models.User)
     .options(
-      joinedload(models.User.user_role),
-      joinedload(models.User.user_status),
+      models.User.user_role,
+      models.User.user_status,
     )
     .filter(models.User.id_user == id_user)
-    .first()
   )
+  return result.scalar_one_or_none()
+
 
 # -----------------------------------------------------------------
-#UPDATE
-def update(
-  db: Session,
-  id: UUID, 
+# UPDATE
+async def update(
+  db: AsyncSession,
+  id: UUID,
   update_data: dict
 ) -> models.User | None:
-  entity = db.query(models.User).filter(models.User.id_user == id).first()
-  
+  entity = await db.get(models.User, id)
+
   if not entity:
     return None
-  
+
   for key, value in update_data.items():
     setattr(entity, key, value)
-  
-  db.commit()
-  db.refresh(entity)
 
-  return entity  
+  await db.commit()
+  await db.refresh(entity)
+
+  return entity

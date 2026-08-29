@@ -1,30 +1,3 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, func
-from sqlalchemy.orm import relationship
+from src.models.models import Edition
 
-from src.core.database import Base
-
-
-class Edition(Base):
-  __tablename__ = "wm_editions"
-
-  id_edition = Column(Integer, primary_key=True, autoincrement=True)
-  edition = Column(String(20), nullable=True)
-  isbn = Column(String(20), nullable=True)
-  publication_year = Column(Integer, nullable=False)
-  pages = Column(Integer, nullable=False)
-  cover_image = Column(String(256), nullable=True)
-  created_at = Column(DateTime, server_default=func.now())
-  updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
-
-  editorial_id = Column(Integer, ForeignKey('wm_editorials.id_editorial'))
-  editorial = relationship("Editorial", back_populates="editions")
-
-  book_id = Column(Integer, ForeignKey('wm_books.id_book'))
-  book = relationship("Book", back_populates="editions")
-
-  copies = relationship("Copy", back_populates="edition")
-  edition_formats = relationship("EditionFormat", back_populates="edition")
-
-  @property
-  def formats(self): return [ef.format_rel for ef in self.edition_formats]
-  
+__all__ = ["Edition"]

@@ -1,84 +1,78 @@
 from math import ceil
-from sqlalchemy import and_, func, or_
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import and_, func, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from src.api.book_authors import models as book_authors_model
-from src.api.book_subjects import models as book_subjects_model
-from src.api.editions import models as edition_models
-from src.api.copy import models as copy_model
-from src.api.authors import models as authors_models
-from src.api.genres import models as genre_models
+from src.models import models
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
-
-from . import models
 
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
-def get_all_pagination(
-  db: Session,
+async def get_all_pagination(
+  db: AsyncSession,
   pagination: PaginationRequestDTO
 ) -> PaginationResponseDTO:
   first_author_subq = (
-    db.query(
-      book_authors_model.BookAuthor.id_book,
-      authors_models.Author.id_author.label("author_id"),
-      authors_models.Author.name.label("author_name"),
+    select(
+      models.BookAuthor.id_book,
+      models.Author.id_author.label("author_id"),
+      models.Author.name.label("author_name"),
       func.row_number().over(
-        partition_by=book_authors_model.BookAuthor.id_book,
-        order_by=book_authors_model.BookAuthor.id_author
+        partition_by=models.BookAuthor.id_book,
+        order_by=models.BookAuthor.id_author
       ).label("rn")
     )
-    .join(authors_models.Author, book_authors_model.BookAuthor.id_author == authors_models.Author.id_author)
+    .join(models.Author, models.BookAuthor.id_author == models.Author.id_author)
     .subquery()
   )
 
   edition_count_subq = (
-    db.query(
-      edition_models.Edition.book_id,
-      func.count(edition_models.Edition.id_edition).label("edition_count")
+    select(
+      models.Edition.book_id,
+      func.count(models.Edition.id_edition).label("edition_count")
     )
-    .group_by(edition_models.Edition.book_id)
+    .group_by(models.Edition.book_id)
     .subquery()
   )
 
   first_cover_subq = (
-    db.query(
-      edition_models.Edition.book_id,
-      edition_models.Edition.cover_image.label("cover_image"),
+    select(
+      models.Edition.book_id,
+      models.Edition.cover_image.label("cover_image"),
       func.row_number().over(
-        partition_by=edition_models.Edition.book_id,
-        order_by=edition_models.Edition.id_edition
+        partition_by=models.Edition.book_id,
+        order_by=models.Edition.id_edition
       ).label("rn")
     )
     .subquery()
   )
 
   copy_count_subq = (
-    db.query(
-      edition_models.Edition.book_id,
-      func.count(copy_model.Copy.id_copy).label("copy_count")
+    select(
+      models.Edition.book_id,
+      func.count(models.Copy.id_copy).label("copy_count")
     )
-    .join(copy_model.Copy, copy_model.Copy.edition_id == edition_models.Edition.id_edition)
-    .group_by(edition_models.Edition.book_id)
+    .join(models.Copy, models.Copy.edition_id == models.Edition.id_edition)
+    .group_by(models.Edition.book_id)
     .subquery()
   )
 
   query = (
-    db.query(
+    select(
       models.Book.id_book,
       models.Book.title,
       first_cover_subq.c.cover_image.label("edition_cover_image"),
       models.Book.created_at,
       models.Book.updated_at,
       models.Book.genre_id,
-      genre_models.Genre.name.label("genre_name"),
+      models.Genre.name.label("genre_name"),
       func.coalesce(first_author_subq.c.author_id, 0).label("author_id"),
       func.coalesce(first_author_subq.c.author_name, "Sin Autor").label("author_name"),
       func.coalesce(edition_count_subq.c.edition_count, 0).label("edition_count"),
       func.coalesce(copy_count_subq.c.copy_count, 0).label("copy_count"),
     )
-    .join(genre_models.Genre, models.Book.genre_id == genre_models.Genre.id_genre)
+    .join(models.Genre, models.Book.genre_id == models.Genre.id_genre)
     .outerjoin(
       first_author_subq,
       and_(
@@ -111,27 +105,24 @@ def get_all_pagination(
       )
     )
 
-  total_items = query.count()
+  total_items_result = await db.execute(select(func.count()).select_from(query.subquery()))
+  total_items = total_items_result.scalar_one()
   total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
   page = min(pagination.page, total_pages) if total_pages > 0 else 1
   offset = (page - 1) * pagination.limit
 
-  result = (
+  result = (await db.execute(
     query
-    .order_by(
-      models.Book.updated_at.desc(),
-      models.Book.id_book.desc()
-    )
+    .order_by(models.Book.updated_at.desc(), models.Book.id_book.desc())
     .offset(offset)
     .limit(pagination.limit)
-    .all()
-  )
+  )).scalars().all()
 
   return PaginationResponseDTO(
     page=page,
     pages=total_pages,
     items=total_items,
-    data=result,
+    data=list(result),
     next=None,
     prev=None,
   )
@@ -139,65 +130,74 @@ def get_all_pagination(
 
 # -----------------------------------------------------------------
 # GET BY ID
-def get_by_id(db: Session, id: int) -> models.Book | None:
-  return (
-    db.query(models.Book)
+async def get_by_id(db: AsyncSession, id: int) -> models.Book | None:
+  result = await db.execute(
+    select(models.Book)
     .filter(models.Book.id_book == id)
     .options(
-      joinedload(models.Book.genre),
-      joinedload(models.Book.book_authors).joinedload(book_authors_model.BookAuthor.author),
-      joinedload(models.Book.book_subjects).joinedload(book_subjects_model.BookSubject.subject),
+      selectinload(models.Book.genre),
+      selectinload(models.Book.book_authors).selectinload(models.BookAuthor.author),
+      selectinload(models.Book.book_subjects).selectinload(models.BookSubject.subject),
     )
-    .first()
   )
+  return result.scalar_one_or_none()
 
 
 # -----------------------------------------------------------------
 # CREATE
-def create(db: Session, data: dict) -> models.Book:
+async def create(db: AsyncSession, data: dict) -> models.Book:
   book = models.Book(**data)
   db.add(book)
-  db.commit()
-  db.refresh(book)
+  await db.commit()
+  await db.refresh(book)
   return book
 
 
 # -----------------------------------------------------------------
 # UPDATE
-def update(db: Session, book: models.Book, data: dict) -> models.Book:
+async def update(db: AsyncSession, book: models.Book, data: dict) -> models.Book:
   for key, value in data.items():
     setattr(book, key, value)
-  db.commit()
-  db.refresh(book)
+  await db.commit()
+  await db.refresh(book)
   return book
 
 
 # -----------------------------------------------------------------
 # GET ENTITY BY ID
-def get_entity_by_id(db: Session, id: int) -> models.Book | None:
-  return db.get(models.Book, id)
+async def get_entity_by_id(db: AsyncSession, id: int) -> models.Book | None:
+  return await db.get(models.Book, id)
 
 
 # -----------------------------------------------------------------
 # DELETE
-def delete(db: Session, book: models.Book) -> None:
-  db.delete(book)
-  db.commit()
+async def delete(db: AsyncSession, book: models.Book) -> None:
+  await db.delete(book)
+  await db.commit()
 
 
 # -----------------------------------------------------------------
 # HAS AUTHORS
-def has_authors(db: Session, book_id: int) -> bool:
-  return db.query(book_authors_model.BookAuthor).filter_by(id_book=book_id).first() is not None
+async def has_authors(db: AsyncSession, book_id: int) -> bool:
+  result = await db.execute(
+    select(models.BookAuthor).filter(models.BookAuthor.id_book == book_id)
+  )
+  return result.first() is not None
 
 
 # -----------------------------------------------------------------
 # HAS SUBJECTS
-def has_subjects(db: Session, book_id: int) -> bool:
-  return db.query(book_subjects_model.BookSubject).filter_by(id_book=book_id).first() is not None
+async def has_subjects(db: AsyncSession, book_id: int) -> bool:
+  result = await db.execute(
+    select(models.BookSubject).filter(models.BookSubject.id_book == book_id)
+  )
+  return result.first() is not None
 
 
 # -----------------------------------------------------------------
 # HAS EDITIONS
-def has_editions(db: Session, book_id: int) -> bool:
-  return db.query(edition_models.Edition).filter_by(book_id=book_id).first() is not None
+async def has_editions(db: AsyncSession, book_id: int) -> bool:
+  result = await db.execute(
+    select(models.Edition).filter(models.Edition.book_id == book_id)
+  )
+  return result.first() is not None

@@ -1,12 +1,11 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from . import models
+from src.models.models import UserStatus
+
 
 # -----------------------------------------------------------------
-# GET ALL 
-def get_all(db: Session) -> list[models.UserStatus]:
-  return (
-    db.query(models.UserStatus)
-    .order_by(models.UserStatus.id_user_status.asc())
-    .all()
-  )
+# GET ALL
+async def get_all(db: AsyncSession) -> list[UserStatus]:
+  result = await db.execute(select(UserStatus).order_by(UserStatus.id_user_status.asc()))
+  return list(result.scalars().all())

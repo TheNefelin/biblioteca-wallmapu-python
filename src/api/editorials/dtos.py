@@ -1,17 +1,7 @@
-from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from src.schemas.dtos import EditorialRequest, EditorialResponse
 
+CreateEditorialDTO = EditorialRequest
+UpdateEditorialDTO = EditorialRequest
+EditorialDTO = EditorialResponse
 
-class CreateEditorialDTO(BaseModel):
-  name: str
-
-
-class UpdateEditorialDTO(CreateEditorialDTO):
-  id_editorial: int
-
-
-class EditorialDTO(UpdateEditorialDTO):
-  created_at: datetime
-  updated_at: datetime
-
-  model_config = ConfigDict(from_attributes=True)
+__all__ = ["CreateEditorialDTO", "UpdateEditorialDTO", "EditorialDTO", "EditorialRequest", "EditorialResponse"]

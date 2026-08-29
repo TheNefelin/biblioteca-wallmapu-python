@@ -1,14 +1,21 @@
-from typing import List
+﻿from typing import List
 from uuid import UUID
 from fastapi import APIRouter, Depends, Query, Request
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 
-from src.core.database import get_db
-from src.core.jwt_service import get_current_user
+from src.core.database import get_db_async
+from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.shared.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
-from . import dtos, service
+from src.schemas.dtos import (
+    CreateReservationDTO,
+    ReservationDTO,
+    ReservationDetailDTO,
+    ReservationFilterDTO,
+    ReservationPickupDTO,
+)
+from . import service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 user_required = Depends(get_current_user(required_roles=[UserRole.LECTOR]))
@@ -24,31 +31,31 @@ router = APIRouter(
 # GET ALL PAGINATION
 @router.get(
   "/pagination",
-  response_model=ApiResponse[PaginationResponseDTO[List[dtos.ReservationDetailDTO]]],
+  response_model=ApiResponse[PaginationResponseDTO[List[ReservationDetailDTO]]],
   status_code=HTTP_200_OK,
   summary="Listar todas las reservas con paginación",
   description="Retorna lista paginada de reservas. Filtros: id_status (1=pendiente, 2=retirada, 3=cancelada, 4=vencida)",
   dependencies=[admin_required]
 )
-def get_reservations_paginated(
+async def get_reservations_paginated(
   request: Request,
   page: int = Query(default=1, ge=1),
   limit: int = Query(default=10, ge=1, le=100),
   search: str = Query(default=""),
   id_status: int = Query(default=0),
-  db: Session = Depends(get_db)
+  db: AsyncSession = Depends(get_db_async)
 ):
   try:
-    filter = dtos.ReservationFilterDTO(id_status=id_status) if id_status > 0 else None
-    
-    pagination_request = PaginationRequestDTO[dtos.ReservationFilterDTO](
+    filter = ReservationFilterDTO(id_status=id_status) if id_status > 0 else None
+
+    pagination_request = PaginationRequestDTO[ReservationFilterDTO](
       page=page,
       limit=limit,
       search=search or "",
       filter=filter
     )
 
-    pagination_response = service.get_all_pagination(db, pagination_request)
+    pagination_response = await service.get_all_pagination(db, pagination_request)
 
     if pagination_response.pages > pagination_response.page:
       pagination_response.next = str(request.url.include_query_params(page=pagination_response.page + 1, limit=limit))
@@ -64,34 +71,34 @@ def get_reservations_paginated(
 # GET USER RESERVATIONS PAGINATION (Usuario actual)
 @router.get(
   "/pagination/user",
-  response_model=ApiResponse[PaginationResponseDTO[List[dtos.ReservationDetailDTO]]],
+  response_model=ApiResponse[PaginationResponseDTO[List[ReservationDetailDTO]]],
   status_code=HTTP_200_OK,
   summary="Listar mis reservas con paginación",
   description="Retorna lista paginada de reservas por usuario. Filtros: id_status (1=pendiente, 2=retirada, 3=cancelada, 4=vencida)",
   dependencies=[user_required]
 )
-def get_my_reservations_paginated(
+async def get_my_reservations_paginated(
   request: Request,
   page: int = Query(default=1, ge=1),
   limit: int = Query(default=10, ge=1, le=100),
   search: str = Query(default=""),
   id_status: int = Query(default=0),
-  current_user: dict = Depends(get_current_user()),  
-  db: Session = Depends(get_db)
+  current_user: dict = Depends(get_current_user()),
+  db: AsyncSession = Depends(get_db_async)
 ):
   try:
     user_id = UUID(current_user["sub"])
-    
-    filter = dtos.ReservationFilterDTO(id_status=id_status) if id_status > 0 else None
-    
-    pagination_request = PaginationRequestDTO[dtos.ReservationFilterDTO](
+
+    filter = ReservationFilterDTO(id_status=id_status) if id_status > 0 else None
+
+    pagination_request = PaginationRequestDTO[ReservationFilterDTO](
       page=page,
       limit=limit,
       search=search or "",
       filter=filter
     )
-    
-    pagination_response = service.get_all_pagination_by_user(db, user_id, pagination_request)
+
+    pagination_response = await service.get_all_pagination_by_user(db, user_id, pagination_request)
 
     if pagination_response.pages > pagination_response.page:
       pagination_response.next = str(request.url.include_query_params(page=pagination_response.page + 1, limit=limit))
@@ -107,18 +114,18 @@ def get_my_reservations_paginated(
 # GET BY ID
 @router.get(
   "/{id}",
-  response_model=ApiResponse[dtos.ReservationDetailDTO],
+  response_model=ApiResponse[ReservationDetailDTO],
   status_code=HTTP_200_OK,
   summary="Obtener una reserva por ID",
   description="Retorna los detalles completos de una reserva específica por su ID",
   dependencies=[user_or_admin_required]
 )
-def get_reservation_by_id(
+async def get_reservation_by_id(
   id: int,
-  db: Session = Depends(get_db)
+  db: AsyncSession = Depends(get_db_async)
 ):
   try:
-    res = service.get_by_id(db, id)
+    res = await service.get_by_id(db, id)
     if not res:
       return ApiResponse.not_found(message="Reserva no encontrada")
     return ApiResponse.success(data=res)
@@ -130,19 +137,19 @@ def get_reservation_by_id(
 # CREATE
 @router.post(
   "/",
-  response_model=ApiResponse[dtos.ReservationDTO],
+  response_model=ApiResponse[ReservationDTO],
   status_code=HTTP_201_CREATED,
   summary="Crear una nueva reserva",
   description="Crea una nueva reserva. La fecha de expiración se calcula automáticamente según las políticas de préstamo",
   dependencies=[user_or_admin_required]
 )
-def create_reservation(
-  dto: dtos.CreateReservationDTO,
-  db: Session = Depends(get_db),
+async def create_reservation(
+  dto: CreateReservationDTO,
+  db: AsyncSession = Depends(get_db_async),
   current_user: dict = Depends(get_current_user()),
 ):
   try:
-    res = service.create(db, current_user["sub"], dto)
+    res = await service.create(db, current_user["sub"], dto)
     return ApiResponse.created(data=res, message="Reserva creada exitosamente")
   except ValueError as e:
     return ApiResponse.bad_request(message=str(e))
@@ -154,19 +161,19 @@ def create_reservation(
 # UPDATE - MARK AS PICKUP
 @router.put(
   "/{id}/pickup",
-  response_model=ApiResponse[dtos.ReservationDTO],
+  response_model=ApiResponse[ReservationDTO],
   status_code=HTTP_200_OK,
   summary="Marcar reserva como retirada (libro recogido)",
   description="Confirma el retiro de una reserva y crea automáticamente un préstamo. Requiere verificación del ejemplar físico",
   dependencies=[admin_required]
 )
-def mark_reservation_as_pickup(
+async def mark_reservation_as_pickup(
   id: int,
-  dto: dtos.ReservationPickupDTO,
-  db: Session = Depends(get_db)
+  dto: ReservationPickupDTO,
+  db: AsyncSession = Depends(get_db_async)
 ):
   try:
-    res = service.mark_as_pickup(db, id, dto.copy_id)
+    res = await service.mark_as_pickup(db, id, dto.copy_id)
     if not res:
       return ApiResponse.not_found(message="Reserva no encontrada")
     return ApiResponse.success(data=res, message="Reserva marcada como retirada")
@@ -180,19 +187,19 @@ def mark_reservation_as_pickup(
 # UPDATE - CANCEL
 @router.put(
   "/{id}/cancel",
-  response_model=ApiResponse[dtos.ReservationDTO],
+  response_model=ApiResponse[ReservationDTO],
   status_code=HTTP_200_OK,
   summary="Cancelar una reserva (usuario dueño o admin)",
   description="Cancela una reserva pendiente. Solo el dueño de la reserva o un administrador pueden cancelarla",
   dependencies=[user_or_admin_required]
 )
-def cancel_reservation(
+async def cancel_reservation(
   id: int,
-  db: Session = Depends(get_db),
+  db: AsyncSession = Depends(get_db_async),
   current_user: dict = Depends(get_current_user()),
 ):
   try:
-    reservation = service.get_by_id(db, id)
+    reservation = await service.get_by_id(db, id)
     if not reservation:
       return ApiResponse.not_found(message="Reserva no encontrada")
 
@@ -202,7 +209,7 @@ def cancel_reservation(
     if not is_admin and not is_owner:
       return ApiResponse.forbidden(message="No puedes cancelar esta reserva")
 
-    res = service.mark_as_cancelled(db, id)
+    res = await service.mark_as_cancelled(db, id)
     return ApiResponse.success(data=res, message="Reserva cancelada")
   except ValueError as e:
     return ApiResponse.bad_request(message=str(e))
@@ -220,12 +227,9 @@ def cancel_reservation(
   description="Actualiza el estado de reservas vencidas (fecha límite pasada y no retiradas) a estado vencida",
   dependencies=[admin_required]
 )
-def expire_overdue_reservations(db: Session = Depends(get_db)):
+async def expire_overdue_reservations(db: AsyncSession = Depends(get_db_async)):
   try:
-    count = service.expire_overdue_reservations(db)
+    count = await service.expire_overdue_reservations(db)
     return ApiResponse.success(data=count, message=f"{count} reservas marcadas como vencidas")
   except Exception as e:
     return ApiResponse.server_error(str(e))
-
-
-

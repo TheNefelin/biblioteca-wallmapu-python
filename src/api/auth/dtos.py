@@ -1,29 +1,3 @@
-from typing import Optional
-from pydantic import BaseModel, EmailStr
-from uuid import UUID
+from src.schemas.dtos import AuthUser, GoogleUserInfo, AuthGoogleRequest, AuthGoogleResponse
 
-
-# DTO para el usuario en la respuesta
-class AuthUser(BaseModel):
-  id_user: UUID  # O str si usas el ID de Google
-  email: EmailStr
-  name: Optional[str] = None
-  picture: Optional[str] = None
-  profileComplete: bool
-  role: str
-
-class GoogleUserInfo(BaseModel):
-  google_id: str
-  email: str
-  name: Optional[str] = None
-  picture: Optional[str] = None
-  email_verified: bool  
-
-# DTO para request de autenticación
-class AuthGoogleRequest(BaseModel):
-  googleToken: str
-
-# DTO para respuesta de autenticación
-class AuthGoogleResponse(BaseModel):
-  token: str  # JWT de tu backend
-  user: AuthUser
+__all__ = ["AuthUser", "GoogleUserInfo", "AuthGoogleRequest", "AuthGoogleResponse"]

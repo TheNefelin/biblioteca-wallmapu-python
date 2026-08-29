@@ -1,37 +1,31 @@
 import unicodedata
 from math import ceil
-from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.models.models import Genre
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
-from . import models
 
 
 # -----------------------------------------------------------------#
 # GET ALL PAGINATION
-def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
-  query = db.query(models.Genre)
-  
-  search_filter = pagination.search if pagination.search else None
-  if search_filter:
-    search_norm = unicodedata.normalize('NFKD', search_filter).encode('ascii', 'ignore').decode('ascii')
-    query = query.filter(
-      func.unaccent(models.Genre.name).ilike(f"%{search_norm}%")
-    )
-  
-  total_items = query.count()
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+  search_norm = None
+  if pagination.search:
+    search_norm = unicodedata.normalize('NFKD', pagination.search).encode('ascii', 'ignore').decode('ascii')
+
+  query = select(Genre).order_by(Genre.name.asc())
+
+  if search_norm:
+    query = query.where(func.unaccent(Genre.name).ilike(f"%{search_norm}%"))
+
+  total_items = len((await db.execute(select(func.count()).select_from(query.subquery()))).scalar_one())
+
   total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
-  
   page = min(pagination.page, total_pages) if total_pages > 0 else 1
   offset = (page - 1) * pagination.limit
-  
-  result = (
-    query
-    .order_by(models.Genre.name.asc())
-    .offset(offset)
-    .limit(pagination.limit)
-    .all()
-  )
+
+  result = list((await db.execute(query.offset(offset).limit(pagination.limit))).scalars().all())
 
   return PaginationResponseDTO(
     page=page,
@@ -43,78 +37,62 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
 
 # -----------------------------------------------------------------#
 # GET ALL
-def get_all(db: Session) -> list[models.Genre]:
-  return (
-    db.query(models.Genre)
-    .order_by(models.Genre.name.asc())
-    .all()
-  )
+async def get_all(db: AsyncSession) -> list[Genre]:
+  result = await db.execute(select(Genre).order_by(Genre.name.asc()))
+  return list(result.scalars().all())
 
 
 # -----------------------------------------------------------------#
 # GET BY NAME
-def get_by_name(db: Session, name: str) -> models.Genre | None:
-  return (
-    db.query(models.Genre)
-    .filter(models.Genre.name.ilike(name))
-    .first()
-  )
+async def get_by_name(db: AsyncSession, name: str) -> Genre | None:
+  result = await db.execute(select(Genre).where(Genre.name.ilike(name)))
+  return result.scalar_one_or_none()
 
 
 # -----------------------------------------------------------------#
 # CREATE
-def create(db: Session, data: dict) -> models.Genre | None:
-  item = models.Genre(**data)
+async def create(db: AsyncSession, data: dict) -> Genre | None:
+  item = Genre(**data)
   db.add(item)
-  db.commit()
-  db.refresh(item)
-  
+  await db.commit()
+  await db.refresh(item)
   return item
 
 
 # -----------------------------------------------------------------#
 # UPDATE
-def update(db: Session, id: int, data: dict) -> models.Genre | None:
-  item = (
-    db.query(models.Genre)
-    .filter(models.Genre.id_genre == id)
-    .first()
-  )
-  
+async def update(db: AsyncSession, id: int, data: dict) -> Genre | None:
+  result = await db.execute(select(Genre).where(Genre.id_genre == id))
+  item = result.scalar_one_or_none()
+
   if not item:
     return None
-  
+
   for key, value in data.items():
     setattr(item, key, value)
-  
-  db.commit()
-  db.refresh(item)
-  
+
+  await db.commit()
+  await db.refresh(item)
   return item
 
 
 # -----------------------------------------------------------------#
 # DELETE
-def delete(db: Session, id: int) -> bool | None:
+async def delete(db: AsyncSession, id: int) -> bool | None:
   from src.api.books import models as book_models
-  
-  relations = db.query(book_models.Book).filter(
-    book_models.Book.genre_id == id
-  ).first()
-  
-  if relations:
-    return False
-  
-  item = (
-    db.query(models.Genre)
-    .filter(models.Genre.id_genre == id)
-    .first()
+
+  relations_result = await db.execute(
+    select(book_models.Book).where(book_models.Book.genre_id == id)
   )
-  
+  if relations_result.scalars().first():
+    return False
+
+  result = await db.execute(select(Genre).where(Genre.id_genre == id))
+  item = result.scalar_one_or_none()
+
   if not item:
     return None
-  
-  db.delete(item)
-  db.commit()
-  
+
+  await db.delete(item)
+  await db.commit()
   return True

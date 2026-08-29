@@ -1,9 +1,3 @@
-from pydantic import BaseModel, ConfigDict
+from src.schemas.dtos import NewsGalleryDTO
 
-class NewsGalleryDTO(BaseModel): 
-  id_news_gallery: int
-  alt: str
-  url: str
-  news_id: int
-
-  model_config = ConfigDict(from_attributes=True)
+__all__ = ["NewsGalleryDTO"]

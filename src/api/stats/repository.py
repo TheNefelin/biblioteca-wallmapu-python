@@ -1,13 +1,13 @@
 from sqlalchemy import text
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from uuid import UUID
 
 
 # -----------------------------------------------------------------
-# GET ADMIN STATS 
-def get_admin_stats(db: Session) -> dict:
-  result = db.execute(
+# GET ADMIN STATS
+async def get_admin_stats(db: AsyncSession) -> dict:
+  result = (await db.execute(
     text("""
       SELECT
         (SELECT COUNT(id_reservation) FROM wm_reservations WHERE reservation_status_id = 1) as reservations,
@@ -16,21 +16,21 @@ def get_admin_stats(db: Session) -> dict:
         (SELECT COUNT(id_user) FROM wm_users) as users,
         (SELECT COUNT(id_news) FROM wm_news) as news;
     """)
-  ).fetchone()
+  )).fetchone()
 
   return {
     "reservations": result[0],
     "loans": result[1],
     "books": result[2],
     "users": result[3],
-    "news": result[4],      
+    "news": result[4],
   }
-  
-  
+
+
 # -----------------------------------------------------------------
 # GET USER STATS
-def get_user_stats(db: Session, user_id: UUID) -> dict:
-  result = db.execute(
+async def get_user_stats(db: AsyncSession, user_id: UUID) -> dict:
+  result = (await db.execute(
     text("""
       SELECT
         (SELECT COUNT(id_loan) FROM wm_loans WHERE user_id = :uid) as total_borrowed,
@@ -38,11 +38,10 @@ def get_user_stats(db: Session, user_id: UUID) -> dict:
         (SELECT COUNT(id_loan) FROM wm_loans WHERE user_id = :uid AND loan_status_id = 3) as overdue_loans;
     """),
     {"uid": user_id}
-  ).fetchone()
+  )).fetchone()
 
   return {
     "total_borrowed": result[0],
     "active_loans": result[1],
     "overdue_loans": result[2],
   }
-  

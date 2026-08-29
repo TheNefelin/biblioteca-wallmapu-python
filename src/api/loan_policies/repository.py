@@ -1,29 +1,31 @@
-from sqlalchemy.orm import Session
-from . import models
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.models import models
 
 
 # -----------------------------------------------------------------
-# GET DEFAULT 
-def get_default_policy(db: Session) -> models.LoanPolicy | None:
-  return db.query(models.LoanPolicy).first()
+# GET DEFAULT
+async def get_default_policy(db: AsyncSession) -> models.LoanPolicy | None:
+  result = await db.execute(select(models.LoanPolicy))
+  return result.scalars().first()
 
 
 # -----------------------------------------------------------------
 # UPDATE
-def update_policy(db: Session, id: int, data: dict) -> models.LoanPolicy | None:
-  policy = (
-    db.query(models.LoanPolicy)
-    .filter(models.LoanPolicy.id_policy == id)
-    .first()
+async def update_policy(db: AsyncSession, id: int, data: dict) -> models.LoanPolicy | None:
+  result = await db.execute(
+    select(models.LoanPolicy).where(models.LoanPolicy.id_policy == id)
   )
-  
+  policy = result.scalar_one_or_none()
+
   if not policy:
     return None
-  
+
   for key, value in data.items():
     setattr(policy, key, value)
-  
-  db.commit()
-  db.refresh(policy)
-  
+
+  await db.commit()
+  await db.refresh(policy)
+
   return policy

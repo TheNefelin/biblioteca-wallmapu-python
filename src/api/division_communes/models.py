@@ -1,18 +1,3 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, func
-from sqlalchemy.orm import relationship
+from src.models.models import Commune
 
-from src.core.database import Base
-
-
-class Commune(Base):
-  __tablename__ = "wm_communes"
-
-  id_commune = Column(Integer, primary_key=True, autoincrement=True)
-  name = Column(String(45), nullable=False)
-  created_at = Column(DateTime, server_default=func.now())
-  updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
-
-  province_id = Column(Integer, ForeignKey('wm_provinces.id_province'))
-
-  province = relationship("Province", back_populates="communes")
-  users = relationship("User", back_populates="commune")
+__all__ = ["Commune"]

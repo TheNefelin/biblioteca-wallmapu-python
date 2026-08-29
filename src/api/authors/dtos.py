@@ -1,18 +1,7 @@
-from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from src.schemas.dtos import AuthorRequest, AuthorResponse
 
+CreateAuthorDTO = AuthorRequest
+UpdateAuthorDTO = AuthorRequest
+AuthorDTO = AuthorResponse
 
-class CreateAuthorDTO(BaseModel):
-  name: str
-
-
-class UpdateAuthorDTO(CreateAuthorDTO):
-  id_author: int
-
-
-class AuthorDTO(UpdateAuthorDTO):
-  created_at: datetime
-  updated_at: datetime
-
-  model_config = ConfigDict(from_attributes=True)
-
+__all__ = ["CreateAuthorDTO", "UpdateAuthorDTO", "AuthorDTO", "AuthorRequest", "AuthorResponse"]

@@ -1,35 +1,36 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
 from src.api.news import repository as news_repository
-from src.api.news_gallery.models import NewsGallery
+from src.models import models
+from src.schemas.dtos import NewsGalleryDTO
 from src.services import cloudinary_service
-from . import dtos, repository
+from . import repository
 
 PATH = "news"
 
 
-def get_by_news_id(db: Session, news_id: int) -> list[dtos.NewsGalleryDTO]:
-  items = repository.get_by_news_id(db, news_id)
-  return [dtos.NewsGalleryDTO.model_validate(item) for item in items]
+async def get_by_news_id(db: AsyncSession, news_id: int) -> list[NewsGalleryDTO]:
+  items = await repository.get_by_news_id(db, news_id)
+  return [NewsGalleryDTO.model_validate(item) for item in items]
 
 
-def create(db: Session, news_id: int, url: str, alt: str = "") -> dtos.NewsGalleryDTO:
-  news = news_repository.get_by_id(db, news_id)
+async def create(db: AsyncSession, news_id: int, url: str, alt: str = "") -> NewsGalleryDTO:
+  news = await news_repository.get_by_id(db, news_id)
   if not news:
     raise ValueError(f"La noticia con id {news_id} no existe")
 
-  item = repository.create(db, {"news_id": news_id, "url": url, "alt": alt})
-  return dtos.NewsGalleryDTO.model_validate(item)
+  item = await repository.create(db, {"news_id": news_id, "url": url, "alt": alt})
+  return NewsGalleryDTO.model_validate(item)
 
 
-def create_news_gallery_with_images(
-    db: Session,
+async def create_news_gallery_with_images(
+    db: AsyncSession,
     news_id: int,
     files: List,
     alts: List,
 ):
-  news = news_repository.get_by_id(db, news_id)
+  news = await news_repository.get_by_id(db, news_id)
   if not news:
     raise ValueError(f"La noticia con id {news_id} no existe")
 
@@ -38,12 +39,13 @@ def create_news_gallery_with_images(
 
   try:
     for file, alt in zip(files, alts):
+      file_bytes = await file.read()
       url, public_id = cloudinary_service.upload_image_16_9(
-        file_bytes=file.file.read(),
+        file_bytes=file_bytes,
         folder=f"{PATH}"
       )
 
-      gallery = NewsGallery(
+      gallery = models.NewsGallery(
         news_id=news_id,
         alt=alt,
         url=url
@@ -53,14 +55,14 @@ def create_news_gallery_with_images(
       uploaded_public_ids.append(public_id)
       created_items.append(gallery)
 
-    db.commit()
+    await db.commit()
 
     for item in created_items:
-      db.refresh(item)
+      await db.refresh(item)
 
     return created_items
   except Exception as e:
-    db.rollback()
+    await db.rollback()
 
     for public_id in uploaded_public_ids:
       try:
@@ -71,20 +73,20 @@ def create_news_gallery_with_images(
     raise e
 
 
-def delete_news_gallery_by_news_id(db: Session, news_id: int) -> int:
-  items = repository.get_by_news_id(db, news_id)
+async def delete_news_gallery_by_news_id(db: AsyncSession, news_id: int) -> int:
+  items = await repository.get_by_news_id(db, news_id)
 
   for item in items:
     public_id = cloudinary_service.extract_public_id(item.url)
     if public_id:
       cloudinary_service.delete_image(public_id)
 
-  repository.delete_by_news_id(db, news_id)
+  await repository.delete_by_news_id(db, news_id)
   return len(items)
 
 
-def delete_news_gallery(db: Session, id: int) -> bool:
-  item = repository.get_by_id(db, id)
+async def delete_news_gallery(db: AsyncSession, id: int) -> bool:
+  item = await repository.get_by_id(db, id)
 
   if not item:
     return False
@@ -93,5 +95,5 @@ def delete_news_gallery(db: Session, id: int) -> bool:
   if public_id:
     cloudinary_service.delete_image(public_id)
 
-  repository.delete(db, id)
+  await repository.delete(db, id)
   return True

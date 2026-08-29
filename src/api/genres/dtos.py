@@ -1,18 +1,3 @@
-from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from src.schemas.dtos import GenreResponse as GenreDTO
 
-
-class CreateGenreDTO(BaseModel):
-  name: str
-
-
-class UpdateGenreDTO(CreateGenreDTO):
-  id_genre: int
-
-
-class GenreDTO(UpdateGenreDTO):
-  created_at: datetime
-  updated_at: datetime
-
-  model_config = ConfigDict(from_attributes=True)
-
+__all__ = ["GenreDTO"]

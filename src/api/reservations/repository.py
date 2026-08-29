@@ -1,53 +1,52 @@
 from uuid import UUID
 from math import ceil
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import and_
+from datetime import datetime
+from sqlalchemy import and_, func, select, update as sa_update
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from src.api.editions import models as edition_models
-from src.api.copy import models as copy_models
+from src.models import models
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
-from . import models
+
+
+def _reservation_detail_options():
+  return (
+    selectinload(models.Reservation.user),
+    selectinload(models.Reservation.copy)
+      .selectinload(models.Copy.edition)
+      .selectinload(models.Edition.book),
+    selectinload(models.Reservation.status),
+  )
 
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
-def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
-  query = (
-    db.query(models.Reservation)
-    .options(
-      joinedload(models.Reservation.user),
-      joinedload(models.Reservation.copy)
-        .joinedload(copy_models.Copy.edition)
-        .joinedload(edition_models.Edition.book),
-      joinedload(models.Reservation.status)
-    )
-  )
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+  stmt = select(models.Reservation).options(*_reservation_detail_options())
 
   status_filter = pagination.filter.id_status if pagination.filter else None
   if status_filter and status_filter > 0:
-    query = query.filter(
-      models.Reservation.reservation_status_id == status_filter
-    )
+    stmt = stmt.where(models.Reservation.reservation_status_id == status_filter)
 
-  total_items = query.count()
+  total_items_result = await db.execute(select(func.count()).select_from(stmt.subquery()))
+  total_items = total_items_result.scalar_one()
   total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
 
   page = min(pagination.page, total_pages) if total_pages > 0 else 1
   offset = (page - 1) * pagination.limit
 
-  result = (
-    query
+  result = (await db.execute(
+    stmt
     .order_by(models.Reservation.reservation_date.desc())
     .offset(offset)
     .limit(pagination.limit)
-    .all()
-  )
+  )).scalars().all()
 
   return PaginationResponseDTO(
     page=page,
     pages=total_pages,
     items=total_items,
-    data=result,
+    data=list(result),
     next=None,
     prev=None
   )
@@ -55,44 +54,32 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
 
 # -----------------------------------------------------------------
 # GET USER PAGINATION
-def get_all_pagination_by_user(db: Session, user_id: UUID, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
-  query = (
-    db.query(models.Reservation)
-    .options(
-      joinedload(models.Reservation.user),
-      joinedload(models.Reservation.copy)
-        .joinedload(copy_models.Copy.edition)
-        .joinedload(edition_models.Edition.book),
-      joinedload(models.Reservation.status)
-    )
-    .filter(models.Reservation.user_id == user_id)
-  )
+async def get_all_pagination_by_user(db: AsyncSession, user_id: UUID, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+  stmt = select(models.Reservation).options(*_reservation_detail_options()).where(models.Reservation.user_id == user_id)
 
   status_filter = pagination.filter.id_status if pagination.filter else None
   if status_filter and status_filter > 0:
-    query = query.filter(
-      models.Reservation.reservation_status_id == status_filter
-    )
+    stmt = stmt.where(models.Reservation.reservation_status_id == status_filter)
 
-  total_items = query.count()
+  total_items_result = await db.execute(select(func.count()).select_from(stmt.subquery()))
+  total_items = total_items_result.scalar_one()
   total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
 
   page = min(pagination.page, total_pages) if total_pages > 0 else 1
   offset = (page - 1) * pagination.limit
 
-  result = (
-    query
+  result = (await db.execute(
+    stmt
     .order_by(models.Reservation.reservation_date.desc())
     .offset(offset)
     .limit(pagination.limit)
-    .all()
-  )
+  )).scalars().all()
 
   return PaginationResponseDTO(
     page=page,
     pages=total_pages,
     items=total_items,
-    data=result,
+    data=list(result),
     next=None,
     prev=None
   )
@@ -100,123 +87,116 @@ def get_all_pagination_by_user(db: Session, user_id: UUID, pagination: Paginatio
 
 # -----------------------------------------------------------------
 # GET BY ID
-def get_by_id(db: Session, id: int) -> models.Reservation:
-  return (
-    db.query(models.Reservation)
-    .options(
-      joinedload(models.Reservation.user),
-      joinedload(models.Reservation.copy)
-        .joinedload(copy_models.Copy.edition)
-        .joinedload(edition_models.Edition.book),
-      joinedload(models.Reservation.status)
-    )
-    .filter(models.Reservation.id_reservation == id)
-    .first()
+async def get_by_id(db: AsyncSession, id: int) -> models.Reservation:
+  result = await db.execute(
+    select(models.Reservation)
+    .options(*_reservation_detail_options())
+    .where(models.Reservation.id_reservation == id)
   )
+  return result.scalar_one_or_none()
 
 
 # -----------------------------------------------------------------
 # CREATE
-def create(db: Session, data: dict) -> models.Reservation:
+async def create(db: AsyncSession, data: dict) -> models.Reservation:
   item = models.Reservation(**data)
   db.add(item)
-  db.commit()
-  db.refresh(item)
+  await db.commit()
+  await db.refresh(item)
   return item
 
 
 # -----------------------------------------------------------------
 # UPDATE RESERVATION STATUS
-def update_status(db: Session, id: int, status_id: int) -> models.Reservation:
-  reservation = (
-    db.query(models.Reservation)
-    .filter(models.Reservation.id_reservation == id)
-    .first()
-  )
-  
+async def update_status(db: AsyncSession, id: int, status_id: int) -> models.Reservation:
+  reservation = (await db.execute(
+    select(models.Reservation).where(models.Reservation.id_reservation == id)
+  )).scalar_one_or_none()
+
   if reservation:
     reservation.reservation_status_id = status_id
-    db.commit()
-    db.refresh(reservation)
-  
+    await db.commit()
+    await db.refresh(reservation)
+
   return reservation
 
 
 # -----------------------------------------------------------------
 # UPDATE - BULK UPDATE STATUS BY CONDITION
-def bulk_update_status_by_expired(db: Session, old_status_id: int, new_status_id: int) -> int:
-  from datetime import datetime
-  result = (
-    db.query(models.Reservation)
-    .filter(
+async def bulk_update_status_by_expired(db: AsyncSession, old_status_id: int, new_status_id: int) -> int:
+  result = await db.execute(
+    sa_update(models.Reservation)
+    .where(
       and_(
         models.Reservation.reservation_status_id == old_status_id,
         models.Reservation.expiration_date < datetime.now()
       )
     )
-    .update({"reservation_status_id": new_status_id})
+    .values(reservation_status_id=new_status_id)
   )
-  db.commit()
-  return result
+  await db.commit()
+  return result.rowcount
 
 
 # -----------------------------------------------------------------
 # GET ACTIVE RESERVATIONS BY BOOK ID
-def get_active_by_book_id(db: Session, book_id: int) -> list[models.Reservation]:
-  return (
-    db.query(models.Reservation)
-    .join(copy_models.Copy, models.Reservation.copy_id == copy_models.Copy.id_copy)
-    .join(edition_models.Edition, copy_models.Copy.edition_id == edition_models.Edition.id_edition)
+async def get_active_by_book_id(db: AsyncSession, book_id: int) -> list[models.Reservation]:
+  result = await db.execute(
+    select(models.Reservation)
+    .join(models.Copy, models.Reservation.copy_id == models.Copy.id_copy)
+    .join(models.Edition, models.Copy.edition_id == models.Edition.id_edition)
     .options(
-      joinedload(models.Reservation.user),
-      joinedload(models.Reservation.copy),
-      joinedload(models.Reservation.status)
+      selectinload(models.Reservation.user),
+      selectinload(models.Reservation.copy),
+      selectinload(models.Reservation.status)
     )
-    .filter(
+    .where(
       and_(
-        edition_models.Edition.book_id == book_id,
+        models.Edition.book_id == book_id,
         models.Reservation.reservation_status_id == 1
       )
     )
     .order_by(models.Reservation.reservation_date.asc())
-    .all()
   )
+  return list(result.scalars().all())
 
 
 # -----------------------------------------------------------------
 # GET ACTIVE RESERVATIONS BY USER (returns tuples: id_reservation, id_copy, book_id)
-def get_active_by_user(db: Session, user_id: UUID) -> list[tuple]:
+async def get_active_by_user(db: AsyncSession, user_id: UUID) -> list[tuple]:
   """Retorna lista de (id_reservation, id_copy, book_id) activas del usuario"""
-  return (
-    db.query(
+  result = await db.execute(
+    select(
       models.Reservation.id_reservation,
       models.Reservation.copy_id,
-      edition_models.Edition.book_id
+      models.Edition.book_id
     )
-    .join(copy_models.Copy, models.Reservation.copy_id == copy_models.Copy.id_copy)
-    .join(edition_models.Edition, copy_models.Copy.edition_id == edition_models.Edition.id_edition)
-    .filter(
+    .join(models.Copy, models.Reservation.copy_id == models.Copy.id_copy)
+    .join(models.Edition, models.Copy.edition_id == models.Edition.id_edition)
+    .where(
       and_(
         models.Reservation.user_id == user_id,
         models.Reservation.reservation_status_id == 1
       )
     )
-    .all()
   )
+  return result.all()
 
 
 # -----------------------------------------------------------------
 # GET ALL PENDING (used by COPY service for availability checks)
-def get_all_pending(db: Session) -> list[models.Reservation]:
-    return (
-        db.query(models.Reservation)
-        .filter(models.Reservation.reservation_status_id == 1)
-        .all()
-    )
+async def get_all_pending(db: AsyncSession) -> list[models.Reservation]:
+  result = await db.execute(
+    select(models.Reservation).where(models.Reservation.reservation_status_id == 1)
+  )
+  return list(result.scalars().all())
 
 
 # -----------------------------------------------------------------
 # EXISTS BY COPY ID
 # Used by: copy/service.py - delete validation
-def exists_by_copy_id(db: Session, copy_id: int) -> bool:
-  return db.query(models.Reservation).filter(models.Reservation.copy_id == copy_id).first() is not None
+async def exists_by_copy_id(db: AsyncSession, copy_id: int) -> bool:
+  result = await db.execute(
+    select(models.Reservation).where(models.Reservation.copy_id == copy_id)
+  )
+  return result.first() is not None

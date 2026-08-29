@@ -1,37 +1,30 @@
 import unicodedata
 from math import ceil
-from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.models.models import Author
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
-from . import models
 
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
-def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
-  query = db.query(models.Author)
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+  search_norm = None
+  if pagination.search:
+    search_norm = unicodedata.normalize('NFKD', pagination.search).encode('ascii', 'ignore').decode('ascii')
 
-  search_filter = pagination.search if pagination.search else None
-  if search_filter:
-    search_norm = unicodedata.normalize('NFKD', search_filter).encode('ascii', 'ignore').decode('ascii')
-    query = query.filter(
-      func.unaccent(models.Author.name).ilike(f"%{search_norm}%")
-    )
+  query = select(Author).order_by(Author.name.asc())
 
-  total_items = query.count()
+  if search_norm:
+    query = query.where(func.unaccent(Author.name).ilike(f"%{search_norm}%"))
+
+  total_items = (await db.execute(select(func.count()).select_from(query.subquery()))).scalar_one()
   total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
-
   page = min(pagination.page, total_pages) if total_pages > 0 else 1
   offset = (page - 1) * pagination.limit
 
-  result = (
-    query
-    .order_by(models.Author.name.asc())
-    .offset(offset)
-    .limit(pagination.limit)
-    .all()
-  )
+  result = list((await db.execute(query.offset(offset).limit(pagination.limit))).scalars().all())
 
   return PaginationResponseDTO(
     page=page,
@@ -43,43 +36,33 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
 
 # -----------------------------------------------------------------
 # GET ALL
-def get_all(db: Session) -> list[models.Author]:
-  return (
-    db.query(models.Author)
-    .order_by(models.Author.name.asc())
-    .all()
-  )
+async def get_all(db: AsyncSession) -> list[Author]:
+  result = await db.execute(select(Author).order_by(Author.name.asc()))
+  return list(result.scalars().all())
 
 
 # -----------------------------------------------------------------
 # GET BY NAME
-def get_by_name(db: Session, name: str) -> models.Author | None:
-  return (
-    db.query(models.Author)
-    .filter(models.Author.name.ilike(name))
-    .first()
-  )
+async def get_by_name(db: AsyncSession, name: str) -> Author | None:
+  result = await db.execute(select(Author).where(Author.name.ilike(name)))
+  return result.scalar_one_or_none()
 
 
 # -----------------------------------------------------------------
 # CREATE
-def create(db: Session, data: dict) -> models.Author | None:
-  author = models.Author(**data)
+async def create(db: AsyncSession, data: dict) -> Author | None:
+  author = Author(**data)
   db.add(author)
-  db.commit()
-  db.refresh(author)
-
+  await db.commit()
+  await db.refresh(author)
   return author
 
 
 # -----------------------------------------------------------------
 # UPDATE
-def update(db: Session, id: int, data: dict) -> models.Author | None:
-  author = (
-    db.query(models.Author)
-    .filter(models.Author.id_author == id)
-    .first()
-  )
+async def update(db: AsyncSession, id: int, data: dict) -> Author | None:
+  result = await db.execute(select(Author).where(Author.id_author == id))
+  author = result.scalar_one_or_none()
 
   if not author:
     return None
@@ -87,36 +70,28 @@ def update(db: Session, id: int, data: dict) -> models.Author | None:
   for key, value in data.items():
     setattr(author, key, value)
 
-  db.commit()
-  db.refresh(author)
-
+  await db.commit()
+  await db.refresh(author)
   return author
 
 
 # -----------------------------------------------------------------
 # DELETE
-def delete(db: Session, id: int) -> bool | None:
-  # Lazy import para evitar circular import
+async def delete(db: AsyncSession, id: int) -> bool | None:
   from src.api.book_authors import models as book_author_models
 
-  # Verificar si el autor tiene relaciones con libros
-  relations = db.query(book_author_models.BookAuthor).filter(
-    book_author_models.BookAuthor.id_author == id
-  ).first()
-
-  if relations:
-    return False  # No se puede eliminar, tiene libros asociados
-
-  author = (
-    db.query(models.Author)
-    .filter(models.Author.id_author == id)
-    .first()
+  relations_result = await db.execute(
+    select(book_author_models.BookAuthor).where(book_author_models.BookAuthor.id_author == id)
   )
+  if relations_result.scalars().first():
+    return False
+
+  result = await db.execute(select(Author).where(Author.id_author == id))
+  author = result.scalar_one_or_none()
 
   if not author:
     return None
 
-  db.delete(author)
-  db.commit()
-
+  await db.delete(author)
+  await db.commit()
   return True

@@ -1,12 +1,11 @@
-from sqlalchemy.orm import Session
-from . import models
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.models.models import ReservationStatus
 
 
 # -----------------------------------------------------------------
 # GET ALL
-def get_all(db: Session) -> list[models.ReservationStatus]:
-  return (
-    db.query(models.ReservationStatus)
-    .order_by(models.ReservationStatus.id_status.asc())
-    .all()
-  )
+async def get_all(db: AsyncSession) -> list[ReservationStatus]:
+  result = await db.execute(select(ReservationStatus).order_by(ReservationStatus.id_status.asc()))
+  return list(result.scalars().all())

@@ -1,13 +1,11 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from . import models
+from src.models.models import UserRole
+
 
 # -----------------------------------------------------------------
-# GET ALL 
-def get_all(db: Session) -> list[models.UserRole]:
-  return (
-    db.query(models.UserRole)
-    .order_by(models.UserRole.id_user_role.asc())
-    .all()
-  )
-  
+# GET ALL
+async def get_all(db: AsyncSession) -> list[UserRole]:
+  result = await db.execute(select(UserRole).order_by(UserRole.id_user_role.asc()))
+  return list(result.scalars().all())

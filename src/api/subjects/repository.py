@@ -1,37 +1,30 @@
 import unicodedata
 from math import ceil
-from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.models.models import Subject
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
-from . import models
 
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
-def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
-  query = db.query(models.Subject)
-  
-  search_filter = pagination.search if pagination.search else None
-  if search_filter:
-    search_norm = unicodedata.normalize('NFKD', search_filter).encode('ascii', 'ignore').decode('ascii')
-    query = query.filter(
-      func.unaccent(models.Subject.name).ilike(f"%{search_norm}%")
-    )
-  
-  total_items = query.count()
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+  search_norm = None
+  if pagination.search:
+    search_norm = unicodedata.normalize('NFKD', pagination.search).encode('ascii', 'ignore').decode('ascii')
+
+  query = select(Subject).order_by(Subject.name.asc())
+
+  if search_norm:
+    query = query.where(func.unaccent(Subject.name).ilike(f"%{search_norm}%"))
+
+  total_items = (await db.execute(select(func.count()).select_from(query.subquery()))).scalar_one()
   total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
-  
   page = min(pagination.page, total_pages) if total_pages > 0 else 1
   offset = (page - 1) * pagination.limit
-  
-  result = (
-    query
-    .order_by(models.Subject.name.asc())
-    .offset(offset)
-    .limit(pagination.limit)
-    .all()
-  )
+
+  result = list((await db.execute(query.offset(offset).limit(pagination.limit))).scalars().all())
 
   return PaginationResponseDTO(
     page=page,
@@ -43,78 +36,62 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
 
 # -----------------------------------------------------------------
 # GET ALL
-def get_all(db: Session) -> list[models.Subject]:
-  return (
-    db.query(models.Subject)
-    .order_by(models.Subject.name.asc())
-    .all()
-  )
+async def get_all(db: AsyncSession) -> list[Subject]:
+  result = await db.execute(select(Subject).order_by(Subject.name.asc()))
+  return list(result.scalars().all())
 
 
 # -----------------------------------------------------------------
 # GET BY NAME
-def get_by_name(db: Session, name: str) -> models.Subject | None:
-  return (
-    db.query(models.Subject)
-    .filter(models.Subject.name.ilike(name))
-    .first()
-  )
+async def get_by_name(db: AsyncSession, name: str) -> Subject | None:
+  result = await db.execute(select(Subject).where(Subject.name.ilike(name)))
+  return result.scalar_one_or_none()
 
 
 # -----------------------------------------------------------------
 # CREATE
-def create(db: Session, data: dict) -> models.Subject | None:
-  item = models.Subject(**data)
+async def create(db: AsyncSession, data: dict) -> Subject | None:
+  item = Subject(**data)
   db.add(item)
-  db.commit()
-  db.refresh(item)
-  
+  await db.commit()
+  await db.refresh(item)
   return item
 
 
 # -----------------------------------------------------------------
 # UPDATE
-def update(db: Session, id: int, data: dict) -> models.Subject | None:
-  item = (
-    db.query(models.Subject)
-    .filter(models.Subject.id_subject == id)
-    .first()
-  )
-  
+async def update(db: AsyncSession, id: int, data: dict) -> Subject | None:
+  result = await db.execute(select(Subject).where(Subject.id_subject == id))
+  item = result.scalar_one_or_none()
+
   if not item:
     return None
-  
+
   for key, value in data.items():
     setattr(item, key, value)
-  
-  db.commit()
-  db.refresh(item)
-  
+
+  await db.commit()
+  await db.refresh(item)
   return item
 
 
 # -----------------------------------------------------------------
 # DELETE
-def delete(db: Session, id: int) -> bool | None:
+async def delete(db: AsyncSession, id: int) -> bool | None:
   from src.api.book_subjects import models as book_subject_models
-  
-  relations = db.query(book_subject_models.BookSubject).filter(
-    book_subject_models.BookSubject.id_subject == id
-  ).first()
-  
-  if relations:
-    return False
-  
-  item = (
-    db.query(models.Subject)
-    .filter(models.Subject.id_subject == id)
-    .first()
+
+  relations_result = await db.execute(
+    select(book_subject_models.BookSubject).where(book_subject_models.BookSubject.id_subject == id)
   )
-  
+  if relations_result.scalars().first():
+    return False
+
+  result = await db.execute(select(Subject).where(Subject.id_subject == id))
+  item = result.scalar_one_or_none()
+
   if not item:
     return None
-  
-  db.delete(item)
-  db.commit()
-  
+
+  await db.delete(item)
+  await db.commit()
   return True

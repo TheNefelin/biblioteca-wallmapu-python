@@ -1,14 +1,15 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from . import models
+from src.models import models
 
 
 # -----------------------------------------------------------------
 # UPDATE
-def update(db: Session, id_book: int, author_ids: list[int]) -> list[models.BookAuthor]:
-  db.query(models.BookAuthor).filter(
-    models.BookAuthor.id_book == id_book
-  ).delete(synchronize_session=False)
+async def update(db: AsyncSession, id_book: int, author_ids: list[int]) -> list[models.BookAuthor]:
+  await db.execute(
+    delete(models.BookAuthor).where(models.BookAuthor.id_book == id_book)
+  )
 
   relations = [
     models.BookAuthor(id_book=id_book, id_author=aid)
@@ -18,15 +19,15 @@ def update(db: Session, id_book: int, author_ids: list[int]) -> list[models.Book
   if relations:
     db.add_all(relations)
 
-  db.commit()
+  await db.commit()
 
   return relations
 
 
 # -----------------------------------------------------------------
 # DELETE
-def delete(db: Session, id_book: int, id_author: int) -> bool:
-  relation = db.get(
+async def delete(db: AsyncSession, id_book: int, id_author: int) -> bool:
+  relation = await db.get(
     models.BookAuthor,
     (id_book, id_author)
   )
@@ -34,31 +35,28 @@ def delete(db: Session, id_book: int, id_author: int) -> bool:
   if not relation:
     return False
 
-  db.delete(relation)
-  db.commit()
+  await db.delete(relation)
+  await db.commit()
 
   return True
 
 
 # -----------------------------------------------------------------
 # GET BY BOOK
-def get_by_book(db: Session, id_book: int) -> list[models.BookAuthor]:
-  return (
-    db.query(models.BookAuthor)
-    .filter(models.BookAuthor.id_book == id_book)
-    .all()
+async def get_by_book(db: AsyncSession, id_book: int) -> list[models.BookAuthor]:
+  result = await db.execute(
+    select(models.BookAuthor).where(models.BookAuthor.id_book == id_book)
   )
+  return list(result.scalars().all())
 
 
 # -----------------------------------------------------------------
 # DELETE BY ID BOOK
-def delete_by_book(db: Session, id_book: int) -> bool:
-  rows_deleted = (
-    db.query(models.BookAuthor)
-    .filter(models.BookAuthor.id_book == id_book)
-    .delete(synchronize_session=False)
+async def delete_by_book(db: AsyncSession, id_book: int) -> bool:
+  result = await db.execute(
+    delete(models.BookAuthor).where(models.BookAuthor.id_book == id_book)
   )
 
-  db.commit()
+  await db.commit()
 
-  return rows_deleted > 0
+  return result.rowcount > 0

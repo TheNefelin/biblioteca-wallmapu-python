@@ -1,30 +1,31 @@
 import unicodedata
 from datetime import datetime
 from math import ceil
-from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.models.models import Editorial
 from src.shared.dtos import PaginationRequestDTO, PaginationResponseDTO
-from . import models
 
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
-def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
-  query = db.query(models.Editorial)
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+  search_norm = None
+  if pagination.search and pagination.search.strip():
+    search_norm = unicodedata.normalize('NFKD', pagination.search).encode('ascii', 'ignore').decode('ascii')
 
-  search = pagination.search.strip() if pagination.search else ""
-  if search:
-    search_norm = unicodedata.normalize('NFKD', search).encode('ascii', 'ignore').decode('ascii')
-    query = query.filter(func.unaccent(models.Editorial.name).ilike(f"%{search_norm}%"))
+  query = select(Editorial).order_by(Editorial.name.asc())
 
-  total_items = query.count()
+  if search_norm:
+    query = query.where(func.unaccent(Editorial.name).ilike(f"%{search_norm}%"))
+
+  total_items = (await db.execute(select(func.count()).select_from(query.subquery()))).scalar_one()
   total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
-
   page = min(pagination.page, total_pages) if total_pages > 0 else 1
   offset = (page - 1) * pagination.limit
 
-  items = query.order_by(models.Editorial.name.asc()).offset(offset).limit(pagination.limit).all()
+  items = list((await db.execute(query.offset(offset).limit(pagination.limit))).scalars().all())
 
   return PaginationResponseDTO(
     page=page,
@@ -36,58 +37,58 @@ def get_all_pagination(db: Session, pagination: PaginationRequestDTO) -> Paginat
 
 # -----------------------------------------------------------------
 # GET ALL
-def get_all(db: Session) -> list[models.Editorial]:
-  return (
-    db.query(models.Editorial)
-    .order_by(models.Editorial.name.asc())
-    .all()
-  )
+async def get_all(db: AsyncSession) -> list[Editorial]:
+  result = await db.execute(select(Editorial).order_by(Editorial.name.asc()))
+  return list(result.scalars().all())
 
 
 # -----------------------------------------------------------------
 # GET BY ID
-def get_by_id(db: Session, id: int) -> models.Editorial | None:
-  return db.query(models.Editorial).filter(models.Editorial.id_editorial == id).first()
+async def get_by_id(db: AsyncSession, id: int) -> Editorial | None:
+  result = await db.execute(select(Editorial).where(Editorial.id_editorial == id))
+  return result.scalar_one_or_none()
 
 
 # -----------------------------------------------------------------
 # EXISTS BY NAME
-def exists_by_name(db: Session, name: str, exclude_id: int | None = None) -> bool:
-  query = db.query(models.Editorial).filter(models.Editorial.name.ilike(name))
+async def exists_by_name(db: AsyncSession, name: str, exclude_id: int | None = None) -> bool:
+  query = select(Editorial).where(Editorial.name.ilike(name))
   if exclude_id:
-    query = query.filter(models.Editorial.id_editorial != exclude_id)
-  return query.first() is not None
+    query = query.where(Editorial.id_editorial != exclude_id)
+  result = await db.execute(query)
+  return result.scalar_one_or_none() is not None
 
 
 # -----------------------------------------------------------------
 # CREATE
-def create(db: Session, data: dict) -> models.Editorial:
-  entity = models.Editorial(**data)
+async def create(db: AsyncSession, data: dict) -> Editorial:
+  entity = Editorial(**data)
   db.add(entity)
-  db.commit()
-  db.refresh(entity)
+  await db.commit()
+  await db.refresh(entity)
   return entity
 
 
 # -----------------------------------------------------------------
 # UPDATE
-def update(db: Session, entity: models.Editorial, update_data: dict) -> models.Editorial:
+async def update(db: AsyncSession, entity: Editorial, update_data: dict) -> Editorial:
   for key, value in update_data.items():
     setattr(entity, key, value)
   entity.updated_at = datetime.now()
-  db.commit()
-  db.refresh(entity)
+  await db.commit()
+  await db.refresh(entity)
   return entity
 
 
 # -----------------------------------------------------------------
 # DELETE
-def delete(db: Session, entity: models.Editorial) -> None:
-  db.delete(entity)
-  db.commit()
+async def delete(db: AsyncSession, entity: Editorial) -> None:
+  await db.delete(entity)
+  await db.commit()
 
 
 # -----------------------------------------------------------------
 # EXISTS BY ID
-def exists_by_id(db: Session, id: int) -> bool:
-  return db.query(models.Editorial).filter(models.Editorial.id_editorial == id).first() is not None
+async def exists_by_id(db: AsyncSession, id: int) -> bool:
+  result = await db.execute(select(Editorial).where(Editorial.id_editorial == id))
+  return result.scalar_one_or_none() is not None

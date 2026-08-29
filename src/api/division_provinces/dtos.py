@@ -1,13 +1,3 @@
-from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from src.schemas.dtos import ProvinceDTO
 
-
-class ProvinceDTO(BaseModel):
-  id_province: int
-  province: str
-  created_at: datetime
-  updated_at: datetime
-  region_id: int
-
-  model_config = ConfigDict(from_attributes=True)
-  
+__all__ = ["ProvinceDTO"]

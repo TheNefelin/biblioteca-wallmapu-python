@@ -1,23 +1,24 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_200_OK
 
 from src.shared.dtos import ApiResponse
-from src.core import database
-from . import dtos, service
+from src.schemas.dtos import AuthGoogleRequest, AuthGoogleResponse
+from src.core.database import get_db_async
+from . import service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-@router.post("/google", response_model=ApiResponse[dtos.AuthGoogleResponse], status_code=HTTP_200_OK,
+@router.post("/google", response_model=ApiResponse[AuthGoogleResponse], status_code=HTTP_200_OK,
   summary="Autenticar con Google",
   description="Valida token de Google, obtiene/crea usuario y devuelve JWT + datos de usuario")
-def auth_google(auth_data: dtos.AuthGoogleRequest, db: Session = Depends(database.get_db)):
+async def auth_google(auth_data: AuthGoogleRequest, db: AsyncSession = Depends(get_db_async)):
   try:
-    auth_google_response = service.auth_service(
+    auth_google_response = await service.auth_service(
       db,
       auth_data.googleToken,
     )
- 
+
     return ApiResponse.success(data=auth_google_response)
   except ValueError as e:
     return ApiResponse.unauthorized(message=str(e))

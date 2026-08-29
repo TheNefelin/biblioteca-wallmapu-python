@@ -2,7 +2,10 @@ from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
+  # Engine legacy (síncrono, psycopg2)
   DATABASE_URL: str
+  # Engine async (migración a asyncpg)
+  TEST_DATABASE_URL: Optional[str] = None
   SECRET_KEY: str
   GOOGLE_CLIENT_ID: str
   DEBUG: bool = False

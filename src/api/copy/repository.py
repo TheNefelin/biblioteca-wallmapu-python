@@ -1,19 +1,15 @@
-from sqlalchemy import func
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from src.api.copy_status import models as copy_status_models
-from src.api.editions.models import Edition
-from src.api.editorials.models import Editorial
-from src.api.loans import models as loan_models
-from . import models
-
+from src.models import models
 
 
 # -----------------------------------------------------------------
 # GET ALL DETAIL (una sola query, solo columnas del DTO)
-def _build_detail_query(db: Session):
+def _build_detail_query():
   return (
-    db.query(
+    select(
       models.Copy.id_copy,
       models.Copy.barcode,
       models.Copy.signature_topography,
@@ -21,117 +17,128 @@ def _build_detail_query(db: Session):
       models.Copy.created_at,
       models.Copy.updated_at,
       models.Copy.status_id,
-      copy_status_models.CopyStatus.name.label("status_name"),
+      models.CopyStatus.name.label("status_name"),
       models.Copy.edition_id,
-      Edition.edition.label("edition_name"),
-      Edition.isbn.label("edition_isbn"),
-      Edition.cover_image.label("edition_cover_image"),
-      func.coalesce(Editorial.id_editorial, 0).label("editorial_id"),
-      func.coalesce(Editorial.name, "Sin Editorial").label("editorial_name"),
+      models.Edition.edition.label("edition_name"),
+      models.Edition.isbn.label("edition_isbn"),
+      models.Edition.cover_image.label("edition_cover_image"),
+      func.coalesce(models.Editorial.id_editorial, 0).label("editorial_id"),
+      func.coalesce(models.Editorial.name, "Sin Editorial").label("editorial_name"),
     )
-    .join(copy_status_models.CopyStatus, models.Copy.status_id == copy_status_models.CopyStatus.id_status)
-    .join(Edition, models.Copy.edition_id == Edition.id_edition)
-    .outerjoin(Editorial, Edition.editorial_id == Editorial.id_editorial)
+    .join(models.CopyStatus, models.Copy.status_id == models.CopyStatus.id_status)
+    .join(models.Edition, models.Copy.edition_id == models.Edition.id_edition)
+    .outerjoin(models.Editorial, models.Edition.editorial_id == models.Editorial.id_editorial)
   )
 
 
-def get_all_detail_by_edition_id(db: Session, edition_id: int) -> list:
-  return (
-    _build_detail_query(db)
-    .filter(models.Copy.edition_id == edition_id)
+async def get_all_detail_by_edition_id(db: AsyncSession, edition_id: int) -> list:
+  result = await db.execute(
+    _build_detail_query()
+    .where(models.Copy.edition_id == edition_id)
     .order_by(models.Copy.id_copy.asc())
-    .all()
   )
+  return result.all()
 
 
-def get_all_detail_by_book_id(db: Session, book_id: int) -> list:
-  return (
-    _build_detail_query(db)
-    .filter(Edition.book_id == book_id)
+async def get_all_detail_by_book_id(db: AsyncSession, book_id: int) -> list:
+  result = await db.execute(
+    _build_detail_query()
+    .where(models.Edition.book_id == book_id)
     .order_by(models.Copy.id_copy.asc())
-    .all()
   )
+  return result.all()
 
 
 # -----------------------------------------------------------------
 # GET BY ID
-def get_by_id(db: Session, id: int) -> models.Copy | None:
-  return (
-    db.query(models.Copy)
-    .options(joinedload(models.Copy.status))
-    .filter(models.Copy.id_copy == id)
-    .first()
+async def get_by_id(db: AsyncSession, id: int) -> models.Copy | None:
+  result = await db.execute(
+    select(models.Copy)
+    .options(selectinload(models.Copy.status))
+    .where(models.Copy.id_copy == id)
   )
+  return result.scalar_one_or_none()
 
 
 # -----------------------------------------------------------------
 # CHECK IF SIGNATURE EXISTS
-def signature_exists(db: Session, signature: str, exclude_id: int = 0) -> bool:
-  query = db.query(models.Copy.signature_topography).filter(
+async def signature_exists(db: AsyncSession, signature: str, exclude_id: int = 0) -> bool:
+  stmt = select(models.Copy.signature_topography).where(
     models.Copy.signature_topography == signature
   )
   if exclude_id > 0:
-    query = query.filter(models.Copy.id_copy != exclude_id)
-  return query.first() is not None
+    stmt = stmt.where(models.Copy.id_copy != exclude_id)
+  result = await db.execute(stmt)
+  return result.first() is not None
 
 
 # -----------------------------------------------------------------
 # CHECK IF COPY NUMBER EXISTS FOR EDITION
-def copy_number_exists(db: Session, edition_id: int, copy_number: int, exclude_id: int = 0) -> bool:
-  query = db.query(models.Copy.copy_number).filter(
+async def copy_number_exists(db: AsyncSession, edition_id: int, copy_number: int, exclude_id: int = 0) -> bool:
+  stmt = select(models.Copy.copy_number).where(
     models.Copy.edition_id == edition_id,
     models.Copy.copy_number == copy_number
   )
   if exclude_id > 0:
-    query = query.filter(models.Copy.id_copy != exclude_id)
-  return query.first() is not None
+    stmt = stmt.where(models.Copy.id_copy != exclude_id)
+  result = await db.execute(stmt)
+  return result.first() is not None
 
 
 # -----------------------------------------------------------------
 # CREATE
-def create(db: Session, data: dict) -> models.Copy:
+async def create(db: AsyncSession, data: dict) -> models.Copy:
   item = models.Copy(**data)
   db.add(item)
-  db.commit()
-  db.refresh(item)
+  await db.commit()
+  await db.refresh(item)
   return item
 
 
 # -----------------------------------------------------------------
 # UPDATE
-def update(db: Session, item: models.Copy, data: dict) -> models.Copy:
+async def update(db: AsyncSession, item: models.Copy, data: dict) -> models.Copy:
   for key, value in data.items():
     setattr(item, key, value)
-  db.commit()
-  db.refresh(item)
+  await db.commit()
+  await db.refresh(item)
   return item
 
 
 # -----------------------------------------------------------------
 # DELETE
-def delete(db: Session, item: models.Copy) -> None:
-  db.delete(item)
-  db.commit()
+async def delete(db: AsyncSession, item: models.Copy) -> None:
+  await db.delete(item)
+  await db.commit()
 
 
 # -----------------------------------------------------------------
 # UPDATE STATUS (usado por loans service)
-def update_status(db: Session, copy_id: int, status_id: int) -> bool:
-  result = db.query(models.Copy).filter(models.Copy.id_copy == copy_id).update({"status_id": status_id})
-  db.commit()
-  return result > 0
+async def update_status(db: AsyncSession, copy_id: int, status_id: int) -> bool:
+  item = (await db.execute(
+    select(models.Copy).where(models.Copy.id_copy == copy_id)
+  )).scalar_one_or_none()
+  if not item:
+    return False
+  item.status_id = status_id
+  await db.commit()
+  return True
 
 
 # -----------------------------------------------------------------
 # UPDATE ALL OVERDUE STATUS (usado por loans service para actualizar copies de loans vencidos)
-def update_all_overdue_status(db: Session) -> int:
-  result = db.query(models.Copy).filter(
-    models.Copy.status_id == 1,
-    models.Copy.id_copy.in_(
-      db.query(models.Loan.copy_id).filter(
-        models.Loan.loan_status_id == 3
-      )
+async def update_all_overdue_status(db: AsyncSession) -> int:
+  loaned_subq = (
+    select(models.Loan.copy_id)
+    .where(models.Loan.loan_status_id == 3)
+  )
+  result = await db.execute(
+    models.Copy.__table__.update()
+    .where(
+      models.Copy.status_id == 1,
+      models.Copy.id_copy.in_(loaned_subq)
     )
-  ).update({"status_id": 2}, synchronize_session=False)
-  db.commit()
-  return result
+    .values(status_id=2)
+  )
+  await db.commit()
+  return result.rowcount

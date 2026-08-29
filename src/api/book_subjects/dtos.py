@@ -1,8 +1,3 @@
-from pydantic import BaseModel, ConfigDict
+from src.schemas.dtos import BookSubjectDTO
 
-
-class BookSubjectDTO(BaseModel):
-  id_book: int
-  id_subject: int
-
-  model_config = ConfigDict(from_attributes=True)
+__all__ = ["BookSubjectDTO"]

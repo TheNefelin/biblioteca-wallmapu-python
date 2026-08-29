@@ -1,13 +1,11 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from . import models
+from src.models.models import Region
+
 
 # -----------------------------------------------------------------
 # GET ALL
-def get_all(db: Session) -> list[models.Region]:
-  return (
-    db.query(models.Region)
-    .order_by(models.Region.region.asc())
-    .all()
-  )
-  
+async def get_all(db: AsyncSession) -> list[Region]:
+  result = await db.execute(select(Region).order_by(Region.region.asc()))
+  return list(result.scalars().all())

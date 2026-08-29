@@ -1,10 +1,9 @@
-from sqlalchemy.orm import Session
-from . import models
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.models.models import LoanStatus
 
 
-def get_all(db: Session) -> list[models.LoanStatus]:
-  return (
-    db.query(models.LoanStatus)
-    .order_by(models.LoanStatus.id_status.asc())
-    .all()
-  )
+async def get_all(db: AsyncSession) -> list[LoanStatus]:
+  result = await db.execute(select(LoanStatus).order_by(LoanStatus.id_status.asc()))
+  return list(result.scalars().all())

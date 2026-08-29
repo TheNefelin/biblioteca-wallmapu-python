@@ -1,7 +1,9 @@
-from sqlalchemy.orm import Session
-from . import dtos, repository
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.schemas.dtos import LoanStatusDTO
+from . import repository
 
 
-def get_all(db: Session) -> list[dtos.LoanStatusDTO]:
-  items = repository.get_all(db)
-  return [dtos.LoanStatusDTO.model_validate(item) for item in items]
+async def get_all(db: AsyncSession) -> list[LoanStatusDTO]:
+  items = await repository.get_all(db)
+  return [LoanStatusDTO.model_validate(item) for item in items]

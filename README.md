@@ -24,15 +24,34 @@ deactivate
 
 ### 2. Instalar dependencias
 ```sh
-pip install fastapi uvicorn[standard] sqlalchemy psycopg2-binary python-dotenv pydantic pydantic-settings
-pip install python-jose[cryptography]
+# Web framework y servidor
+pip install fastapi uvicorn[standard]
+# ORM y base de datos (async)
+pip install sqlalchemy asyncpg greenlet
+# Configuración y validación
+pip install python-dotenv pydantic pydantic-settings
 pip install pydantic[email]
-pip install pillow
+# Autenticación JWT
+pip install python-jose[cryptography]
+# Rate limiting
+pip install slowapi
+# HTTP client (consumo de APIs externas: Google, Brevo)
+pip install httpx
+# Parseo de formularios multipart (subida de archivos)
 pip install python-multipart
+# Almacenamiento de imágenes en Cloudinary
 pip install cloudinary
-pip install sqlalchemy[asyncio]
-pip install resend
+# Validación y procesamiento de imágenes
+pip install pillow
+# WebSocket (notificaciones en tiempo real)
 pip install websockets
+```
+> **Nota:** `psycopg2-binary` fue reemplazado por `asyncpg` (driver async). `resend` dejó de usarse y `requests` ya no es dependencia: el envío de correos se hace vía **Brevo** con `httpx` async.
+
+### 2.1 (Opcional) Dependencias de test
+> Se instalan al final del proceso de optimización cuando se habiliten los tests.
+```sh
+pip install pytest pytest-asyncio
 ```
 
 Guardar dependencias:
@@ -247,11 +266,14 @@ biblioteca-wallmapu-python/
 │   │
 │   ├── core/                       # Configuración central
 │   │   ├── config.py               # Settings (pydantic-settings)
-│   │   ├── database.py             # SQLAlchemy engine/session
-│   │   ├── jwt_service.py          # Autenticación JWT
+│   │   ├── database.py             # async_engine + AsyncSession (asyncpg)
+│   │   ├── security.py             # JWT + get_current_user (rol leído de la BD)
+│   │   ├── dependencies.py         # require_admin / require_user
+│   │   ├── limiter.py              # Rate limiting (slowapi)
+│   │   ├── logger.py               # Logging JSON + request_id
+│   │   ├── exceptions.py           # AppError y subclases
 │   │   ├── roles.py                # Roles de usuario
-│   │   ├── url_helper.py           # Helper para URLs
-│   │   └── connection_manager.py   # WebSocket manager
+│   │   └── url_helper.py           # Helper para URLs
 │   │
 │   ├── services/                   # Servicios externos
 │   │   ├── cloudinary_service.py   # Upload de imágenes
