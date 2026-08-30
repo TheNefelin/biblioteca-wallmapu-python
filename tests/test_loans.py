@@ -1,5 +1,7 @@
 """Tests de la feature loans: control de acceso y flujo de préstamo."""
 
+from sqlalchemy import text
+
 
 async def test_loan_pagination_requires_admin(client):
   resp = await client.get("/api/loans/pagination")
@@ -21,7 +23,11 @@ async def test_loan_create_requires_admin(client, make_policy):
   assert resp.json()["isSuccess"] is False
 
 
-async def test_loan_create_without_policy_fails(client, make_user):
+async def test_loan_create_without_policy_fails(client, db, make_user):
+  # El seed siembra una política (Lectores); se trunca para garantizar el
+  # escenario "sin política" (tabla de configuración aislada en db_testing).
+  await db.execute(text("TRUNCATE TABLE wm_loan_policies RESTART IDENTITY"))
+  await db.commit()
   admin, headers = await make_user("admin@ln2.cl", "Admin")
   lector, _ = await make_user("lector@ln2.cl", "Lector")
   payload = {"copy_id": 1, "user_id": str(lector.id_user)}

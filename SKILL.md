@@ -291,7 +291,8 @@ async def delete(db: AsyncSession, item: models.Product) -> None:
 ## 5. Modelos (SQLAlchemy 2.0 `Mapped`)
 
 - Un único `models.py` (evita imports circulares).
-- Tablas con prefijo del proyecto (`gg_` en un caso real; elegí un prefijo propio, p. ej. `app_` o `acme_`). El mismo prefijo se usa en los tests para dropear solo tus tablas.
+- Tablas con prefijo del proyecto (p. ej. `app_` o `acme_`). El mismo prefijo se usa en los tests para dropear solo tus tablas.
+- Identidades: si una PK/columna es `GENERATED ALWAYS AS IDENTITY`, **no insertar valores explícitos** para esa columna (Postgres lanza `ProgrammingError`). Para idempotencia en el seed: si la columna tiene UNIQUE (`ON CONFLICT (col)`), y si NO la tiene (`INSERT ... SELECT ... WHERE NOT EXISTS`).
 - `Mapped`/`mapped_column` con tipos de Python (`str | None`), no strings.
 - Relaciones con `back_populates` simétricos y `order_by` para listas ordenadas.
 - Timestamps: `server_default=func.now()` y `onupdate=func.now()` para `updated_at`.
@@ -342,6 +343,7 @@ class Product(Base):
 - **Validar las FKs**: en los `*Request`, los IDs de llaves foráneas llevan `Field(ge=1)` — un `0` o negativo jamás debe llegar a la BD.
 - `max_length` acotado en strings de entrada según el modelo; textos largos (`description`) con límite explícito.
 - Listas opcionales de IDs (relaciones many-to-many) con `Field(default_factory=list)`.
+- **Responses con `str` que pueden venir `None` desde la BD**: si el DTO de respuesta declara el campo como `str` (obligatorio) pero en la BD puede ser NULL, validar con `... if x else ""` (o el string por defecto) en el service antes de `model_validate`; si no, Pydantic lanza `ValidationError` en runtime. Alternativa: declarar el campo como `str | None`.
 
 ```python
 # src/schemas/dtos.py
@@ -1227,6 +1229,8 @@ Antes de dar una API por terminada:
 |-------------|------------------|
 | `HTTPException(status_code=404, detail=...)` dentro de rutas | Duplica lógica y rompe el formato RFC 9457 |
 | Un `crud.py` global | No escala: mezcla dominios y genera acoplamiento |
+| `from sqlalchemy import delete` + función local `async def delete` | Name shadowing: la función local opaca el import → `NameError`/`TypeError` al operar. Renombrar el import (`delete as sqla_delete`) |
+| DTO de respuesta sin `from_attributes=True` | `model_validate(orm_object)` falla (no lee atributos) → 500 en runtime. Los responses llevan `ConfigDict(from_attributes=True)` |
 | Lógica en la ruta (validaciones, queries) | Imposible de testear unitariamente y de reutilizar |
 | Un service que importa el repository de **otra** feature | Acopla la feature por implementación; romper esa tabla rompe todo. Ir siempre por el service (service→service) |
 | `db.commit()` en el service | El commit es responsabilidad de la capa de datos; en el service se pierde la atomicidad (varios commits sueltos) y se mezclan responsabilidades |

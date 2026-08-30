@@ -71,6 +71,13 @@ INSERT INTO wm_reservation_status (name) VALUES
 ('Vencida')
 ON CONFLICT (name) DO NOTHING;
 
+-- === POLÍTICAS DE PRÉSTAMO (desde DB.xlsx) ===
+-- id_policy es GENERATED ALWAYS (no acepta valor explícito) y name NO es
+-- UNIQUE; por eso se usa WHERE NOT EXISTS para idempotencia.
+INSERT INTO wm_loan_policies (name, max_books, max_days, reservation_days)
+SELECT 'Lectores', 3, 14, 3
+WHERE NOT EXISTS (SELECT 1 FROM wm_loan_policies WHERE name = 'Lectores');
+
 INSERT INTO wm_regions (region) VALUES
 ('Región de Arica y Parinacota'),
 ('Región de Tarapacá'),
@@ -994,7 +1001,7 @@ INSERT INTO wm_news_gallery(alt, url, news_id) VALUES
 ('Helldivers 2', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1771885339/news/aa7ceeyz5v6bkbcqjowt.webp', 9),
 ('Helldivers 2', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1771885341/news/i9co1om3cc7tcn09abrc.webp', 9),
 ('Helldivers 2', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1771885342/news/pxvfuhf6webhyidlgigm.webp', 9),
-('Kratos', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1771887680/news/gf83vsctlnzuupdsyrkt.webp', 10),
+('Kratos', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1771887680/news/i0zza4ye75cxpbmv8lad.webp', 10),
 ('Ragnarok', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1771887682/news/odoxyx9zpwkmaa66m7nk.webp', 10),
 ('God Of War', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1771951578/news/cijm92qqwa79xqqouwn9.webp', 10),
 ('Jedi Survivor', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1771888048/news/kpjxbetb7rze9j0jyu9m.webp', 11),
