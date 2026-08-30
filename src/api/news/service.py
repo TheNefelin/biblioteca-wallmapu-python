@@ -42,6 +42,6 @@ async def delete(db: AsyncSession, id: int) -> bool:
     return False
 
   if entity.images:
-    raise ValueError("No se puede eliminar la noticia porque tiene imÃ¡genes asociadas")
+    raise ValueError("No se puede eliminar la noticia porque tiene imágenes asociadas")
 
   return await repository.delete(db, id)

@@ -59,13 +59,12 @@ async def create_book(db: AsyncSession, data: CreateBookDTO) -> BookDTO:
   subject_ids = dump.pop("subject_ids", []) or []
 
   if dump.get("genre_id") == 0:
-    raise ValueError("El gÃ©nero es requerido")
+    raise ValueError("El género es requerido")
 
   book = await repository.create(db, dump)
   await book_author_service.update_authors(db, book.id_book, author_ids)
   await book_subject_service.update_subjects(db, book.id_book, subject_ids)
-  await db.refresh(book)
-  return _to_book_dto(book)
+  return _to_book_dto(await repository.get_by_id(db, book.id_book))
 
 
 # -----------------------------------------------------------------
@@ -84,13 +83,12 @@ async def update_book(db: AsyncSession, id: int, data: UpdateBookDTO) -> BookDTO
   dump.pop("id_book", None)
 
   if dump.get("genre_id") == 0:
-    raise ValueError("El gÃ©nero es requerido")
+    raise ValueError("El género es requerido")
 
   book = await repository.update(db, book, dump)
   await book_author_service.update_authors(db, book.id_book, author_ids)
   await book_subject_service.update_subjects(db, book.id_book, subject_ids)
-  await db.refresh(book)
-  return _to_book_dto(book)
+  return _to_book_dto(await repository.get_by_id(db, book.id_book))
 
 
 # -----------------------------------------------------------------
@@ -115,7 +113,7 @@ async def delete_book(db: AsyncSession, id: int) -> bool:
 
   active_loans = await loans_repository.get_active_by_book_id(db, id)
   if active_loans:
-    dependencies.append("prÃ©stamos activos")
+    dependencies.append("préstamos activos")
 
   if dependencies:
     raise ValueError(f"No se puede eliminar el libro. Dependencias: {', '.join(dependencies)}")

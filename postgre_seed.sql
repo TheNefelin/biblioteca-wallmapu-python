@@ -59,9 +59,9 @@ INSERT INTO wm_user_status (name) VALUES
 ('Bloqueado/a');
 
 INSERT INTO wm_loan_status (name) VALUES
+('En Préstamo'),
 ('Devuelto'),
-('Vencido'),
-('En Préstamo')
+('Vencido')
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO wm_reservation_status (name) VALUES

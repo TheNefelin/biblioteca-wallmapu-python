@@ -17,8 +17,8 @@ router = APIRouter(
   "/",
   response_model=ApiResponse[List[LoanStatusDTO]],
   status_code=HTTP_200_OK,
-  summary="Listar estados de prÃ©stamo",
-  description="Obtiene lista completa de estados de prÃ©stamo ordenada por ID",
+  summary="Listar estados de préstamo",
+  description="Obtiene lista completa de estados de préstamo ordenada por ID",
 )
 async def get_all_loan_status(db: AsyncSession = Depends(get_db_async)):
   try:

@@ -182,6 +182,8 @@ class LoanPolicyDTO(BaseModel):
   max_days: Optional[int] = Field(None, description="Número máximo de días de préstamo")
   reservation_days: Optional[int] = Field(3, description="Días que se mantiene una reserva activa")
 
+  model_config = ConfigDict(from_attributes=True)
+
 
 # EDITION FORMAT --------------------------------------------------
 class EditionFormatDTO(AppModel):
@@ -264,6 +266,8 @@ class LoanDTO(CreateLoanDTO):
   created_at: Optional[datetime] = Field(None, description="Fecha de creación del registro en base de datos")
   updated_at: Optional[datetime] = Field(None, description="Fecha de última actualización del registro")
 
+  model_config = ConfigDict(from_attributes=True)
+
 
 class LoanFilterDTO(BaseModel):
   """DTO de filtros para paginación de préstamos"""
@@ -299,6 +303,8 @@ class ReservationDTO(CreateReservationDTO):
   expiration_date: datetime
   user_id: UUID
   reservation_status_id: Optional[int] = None
+
+  model_config = ConfigDict(from_attributes=True)
 
 
 class ReservationDetailDTO(BaseModel):
@@ -405,6 +411,8 @@ class UpdateNotificationDTO(BaseModel):
 
 class NotificationDTO(CreateNotificationDTO, UpdateNotificationDTO):
   created_at: datetime = Field(..., description="Fecha de creación de la notificación")
+
+  model_config = ConfigDict(from_attributes=True)
 
 
 class NotificationDetailDTO(NotificationDTO):

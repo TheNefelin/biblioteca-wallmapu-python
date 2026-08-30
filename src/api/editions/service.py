@@ -12,7 +12,7 @@ from . import repository
 async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO[EditionFilterDTO]) -> PaginationResponseDTO[list[EditionDetailDTO]]:
   response = await repository.get_all_pagination(db, pagination)
   editions = response.data or []
-  data = [EditionDetailDTO.model_validate(item) for item in editions]
+  data = [EditionDetailDTO.model_validate(dict(item._mapping)) for item in editions]
 
   return PaginationResponseDTO[list[EditionDetailDTO]](
     page=response.page,
@@ -32,14 +32,14 @@ async def get_all_by_book_id_detail(db: AsyncSession, book_id: int) -> list[Edit
 
 
 # -----------------------------------------------------------------
-# GET BY BOOK ID (bÃ¡sico)
+# GET BY BOOK ID (básico)
 async def get_by_book_id(db: AsyncSession, book_id: int) -> list[EditionDTO]:
   editions = await repository.get_by_book_id(db, book_id)
   return [EditionDTO.model_validate(e) for e in editions]
 
 
 # -----------------------------------------------------------------
-# GET BY ID (bÃ¡sico)
+# GET BY ID (básico)
 async def get_edition_by_id(db: AsyncSession, id: int) -> EditionDTO | None:
   edition = await repository.get_by_id(db, id)
   if not edition:
@@ -57,9 +57,8 @@ async def create_edition(db: AsyncSession, data: CreateEditionDTO) -> EditionDTO
 
   if format_ids is not None:
     await edition_format_service.update_formats(db, created.id_edition, format_ids)
-    await db.refresh(created)
 
-  return EditionDTO.model_validate(created)
+  return EditionDTO.model_validate(await repository.get_by_id(db, created.id_edition))
 
 
 # -----------------------------------------------------------------
@@ -79,9 +78,8 @@ async def update_edition(db: AsyncSession, id: int, data: UpdateEditionDTO) -> E
 
   if format_ids is not None:
     await edition_format_service.update_formats(db, updated.id_edition, format_ids)
-    await db.refresh(updated)
 
-  return EditionDTO.model_validate(updated)
+  return EditionDTO.model_validate(await repository.get_by_id(db, updated.id_edition))
 
 
 # -----------------------------------------------------------------
@@ -92,7 +90,7 @@ async def delete_edition_with_image(db: AsyncSession, id: int) -> bool:
     return False
 
   if await repository.has_copies(db, edition.id_edition):
-    raise ValueError(f"La ediciÃ³n ({edition.edition}) tiene copias asociadas")
+    raise ValueError(f"La edición ({edition.edition}) tiene copias asociadas")
 
   url = await repository.delete(db, edition)
 

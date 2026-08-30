@@ -23,10 +23,10 @@ async def create_edition_image(file: UploadFile) -> str:
 async def delete_edition_image(id_edition: int, db: AsyncSession) -> bool:
   item = await edition_repository.get_entity_by_id(db, id_edition)
   if not item:
-    raise ValueError("La ediciÃ³n no existe")
+    raise ValueError("La edición no existe")
 
   if not item.cover_image or item.cover_image.strip() == "":
-    raise ValueError("La ediciÃ³n no tiene imagen")
+    raise ValueError("La edición no tiene imagen")
 
   public_id = cloudinary.extract_public_id(item.cover_image)
 

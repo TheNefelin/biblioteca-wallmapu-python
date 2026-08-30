@@ -56,7 +56,7 @@ app.add_middleware(
   allow_headers=["*"],
 )
 
-# Rate limiting (slowapi) â€” key por identidad (JWT) o por IP
+# Rate limiting (slowapi) — key por identidad (JWT) o por IP
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 
@@ -66,7 +66,7 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
   response = ApiResponse(
     isSuccess=False,
     statusCode=429,
-    message="Demasiadas solicitudes. IntÃ©ntelo mÃ¡s tarde.",
+    message="Demasiadas solicitudes. Inténtelo más tarde.",
     data=None,
   )
   return JSONResponse(status_code=429, content=response.model_dump())
@@ -83,7 +83,7 @@ async def app_error_handler(request: Request, exc: AppError):
   return JSONResponse(status_code=exc.status_code, content=response.model_dump())
 
 
-# Logging JSON por peticiÃ³n: asigna un request_id y registra cada request
+# Logging JSON por petición: asigna un request_id y registra cada request
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
   request_id = str(uuid.uuid4())
@@ -101,7 +101,7 @@ async def log_requests(request: Request, call_next):
   })
   return response
 
-BASE_DIR = os.getcwd()  # raÃ­z del proyecto
+BASE_DIR = os.getcwd()  # raíz del proyecto
 STATIC_PATH = os.path.join(BASE_DIR, "static") 
 
 app.mount("/static", StaticFiles(directory=STATIC_PATH), name="static")

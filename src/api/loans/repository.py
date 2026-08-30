@@ -256,7 +256,7 @@ async def bulk_update_copy_status(db: AsyncSession, copy_ids: list[int], status_
 
 
 # -----------------------------------------------------------------
-# RETURN (actualiza campos de devoluciÃ³n)
+# RETURN (actualiza campos de devolución)
 async def return_loan(db: AsyncSession, loan_id: int, return_date: date, status_id: int) -> models.Loan | None:
   loan = (await db.execute(
     select(models.Loan).where(models.Loan.id_loan == loan_id)

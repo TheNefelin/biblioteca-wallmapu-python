@@ -118,14 +118,14 @@ async def create(db: AsyncSession, dto: CreateNotificationByEmailDTO) -> Notific
 async def create_welcome_notification(db: AsyncSession, user_id: str, user_email: str, user_name: str):
   notification = CreateNotificationDTO(
     title="BIENVENIDO/A",
-    message=f"Â¡Bienvenido/a {user_name}! Tu cuenta ha sido creada exitosamente en Biblioteca Wallmapu.",
+    message=f"¡Bienvenido/a {user_name}! Tu cuenta ha sido creada exitosamente en Biblioteca Wallmapu.",
     is_priority=False,
     user_id=user_id
   )
   created = await repository.create(db, notification.model_dump(exclude_unset=True))
 
   if not created or not created.id_notification:
-    logger.warning(f"Error al crear notificaciÃ³n de bienvenida para user {user_id}")
+    logger.warning(f"Error al crear notificación de bienvenida para user {user_id}")
     return
 
   try:
@@ -194,8 +194,8 @@ async def notification_for_cancel_reservation_and_send_email(db: AsyncSession, r
   try:
     await email.send_reservation_cancelled_email(data=email_data)
   except Exception:
-    print(f"Error creando notificaciÃ³n para reserva cancelada {reservation_id}")
-    logger.error(f"Error creando notificaciÃ³n para reserva cancelada {reservation_id}", exc_info=True)
+    print(f"Error creando notificación para reserva cancelada {reservation_id}")
+    logger.error(f"Error creando notificación para reserva cancelada {reservation_id}", exc_info=True)
 
 
 # -----------------------------------------------------------------
@@ -212,8 +212,8 @@ async def notification_for_create_loan_and_send_email(db: AsyncSession, loan_id:
   )
 
   notification = CreateNotificationDTO(
-    title="PRÃ‰STAMO REALIZADO",
-    message=f"PrÃ©stamo #{email_data.id} registrado. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}. Vence: {email_data.expiration_date.strftime('%d-%m-%Y')}",
+    title="PRÉSTAMO REALIZADO",
+    message=f"Préstamo #{email_data.id} registrado. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}. Vence: {email_data.expiration_date.strftime('%d-%m-%Y')}",
     is_priority=False,
     user_id=loan.user_id
   )
@@ -243,8 +243,8 @@ async def notification_for_return_loan_and_send_email(db: AsyncSession, loan_id:
   )
 
   notification = CreateNotificationDTO(
-    title="PRÃ‰STAMO DEVUELTO",
-    message=f"PrÃ©stamo #{loan.id_loan} devuelto exitosamente.",
+    title="PRÉSTAMO DEVUELTO",
+    message=f"Préstamo #{loan.id_loan} devuelto exitosamente.",
     is_priority=False,
     user_id=loan.user_id
   )
@@ -268,7 +268,7 @@ async def mark_as_read(db: AsyncSession, id: int, user_id: str) -> bool:
   if not notification:
     return False
 
-  # Validar que la notificaciÃ³n pertenezca al usuario
+  # Validar que la notificación pertenezca al usuario
   if str(notification.user_id) != str(user_id):
     return False
 

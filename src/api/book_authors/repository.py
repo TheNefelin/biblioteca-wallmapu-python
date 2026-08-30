@@ -1,4 +1,4 @@
-from sqlalchemy import delete, select
+from sqlalchemy import delete as sqla_delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import models
@@ -8,7 +8,7 @@ from src.models import models
 # UPDATE
 async def update(db: AsyncSession, id_book: int, author_ids: list[int]) -> list[models.BookAuthor]:
   await db.execute(
-    delete(models.BookAuthor).where(models.BookAuthor.id_book == id_book)
+    sqla_delete(models.BookAuthor).where(models.BookAuthor.id_book == id_book)
   )
 
   relations = [
@@ -21,7 +21,7 @@ async def update(db: AsyncSession, id_book: int, author_ids: list[int]) -> list[
 
   await db.commit()
 
-  return relations
+  return await get_by_book(db, id_book)
 
 
 # -----------------------------------------------------------------
@@ -54,7 +54,7 @@ async def get_by_book(db: AsyncSession, id_book: int) -> list[models.BookAuthor]
 # DELETE BY ID BOOK
 async def delete_by_book(db: AsyncSession, id_book: int) -> bool:
   result = await db.execute(
-    delete(models.BookAuthor).where(models.BookAuthor.id_book == id_book)
+    sqla_delete(models.BookAuthor).where(models.BookAuthor.id_book == id_book)
   )
 
   await db.commit()

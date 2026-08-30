@@ -62,7 +62,7 @@ async def get_or_create_user(db: AsyncSession, dto: CreateUser) -> UserDetailDTO
         user_name=created.name,
       )
     except Exception:
-      logger.warning(f"Error al enviar notificaciÃ³n de bienvenida para user {created.id_user}")
+      logger.warning(f"Error al enviar notificación de bienvenida para user {created.id_user}")
 
     return _map_user_to_detail(created)
 

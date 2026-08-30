@@ -185,7 +185,7 @@ async def get_by_book_id_detail(db: AsyncSession, book_id: int) -> list:
 
 
 # -----------------------------------------------------------------
-# GET BY BOOK ID (bÃ¡sico, sin joins)
+# GET BY BOOK ID (básico, sin joins)
 async def get_by_book_id(db: AsyncSession, book_id: int) -> list[models.Edition]:
   result = await db.execute(
     select(models.Edition)
@@ -222,9 +222,10 @@ async def get_entity_by_id(db: AsyncSession, id: int) -> models.Edition | None:
 async def create(db: AsyncSession, data: dict) -> models.Edition:
   item = models.Edition(**data)
   db.add(item)
+  await db.flush()
+  item_id = item.id_edition
   await db.commit()
-  await db.refresh(item)
-  return item
+  return await get_by_id(db, item_id)
 
 
 # -----------------------------------------------------------------
@@ -233,8 +234,7 @@ async def update(db: AsyncSession, item: models.Edition, data: dict) -> models.E
   for key, value in data.items():
     setattr(item, key, value)
   await db.commit()
-  await db.refresh(item)
-  return item
+  return await get_by_id(db, item.id_edition)
 
 
 # -----------------------------------------------------------------

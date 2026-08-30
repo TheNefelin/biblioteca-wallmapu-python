@@ -54,7 +54,10 @@ async def get_all_detail_by_book_id(db: AsyncSession, book_id: int) -> list:
 async def get_by_id(db: AsyncSession, id: int) -> models.Copy | None:
   result = await db.execute(
     select(models.Copy)
-    .options(selectinload(models.Copy.status))
+    .options(
+      selectinload(models.Copy.status),
+      selectinload(models.Copy.edition).selectinload(models.Edition.book),
+    )
     .where(models.Copy.id_copy == id)
   )
   return result.scalar_one_or_none()

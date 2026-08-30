@@ -4,6 +4,7 @@ from uuid import UUID
 from starlette.status import HTTP_200_OK
 
 from src.schemas.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import UpdateUserDTO, UpdateUserByAdminDTO
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.core.database import get_db_async
@@ -75,7 +76,7 @@ async def get_by_id_detailed(id: UUID, db: AsyncSession = Depends(get_db_async))
   description="Actualiza los datos de su propio perfil. Solo el usuario autenticado puede modificar su perfil",
 )
 async def update_user(
-  id: UUID, update_dto,
+  id: UUID, update_dto: UpdateUserDTO,
   db: AsyncSession = Depends(get_db_async),
   current_user: dict = Depends(get_current_user(required_roles=[UserRole.LECTOR]))
 ):
@@ -105,7 +106,7 @@ async def update_user(
   description="Actualiza cualquier usuario incluyendo rol y estado. Solo administradores. Si el admin se modifica a sí mismo, no puede cambiar su propio rol ni estado.",
 )
 async def update_user_by_admin(
-  id: UUID, update_dto,
+  id: UUID, update_dto: UpdateUserByAdminDTO,
   db: AsyncSession = Depends(get_db_async),
   current_user: dict = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 ):

@@ -116,7 +116,7 @@ async def get_all_pagination(
     .order_by(models.Book.updated_at.desc(), models.Book.id_book.desc())
     .offset(offset)
     .limit(pagination.limit)
-  )).scalars().all()
+  )).all()
 
   return PaginationResponseDTO(
     page=page,
@@ -148,9 +148,10 @@ async def get_by_id(db: AsyncSession, id: int) -> models.Book | None:
 async def create(db: AsyncSession, data: dict) -> models.Book:
   book = models.Book(**data)
   db.add(book)
+  await db.flush()
+  book_id = book.id_book
   await db.commit()
-  await db.refresh(book)
-  return book
+  return await get_by_id(db, book_id)
 
 
 # -----------------------------------------------------------------
