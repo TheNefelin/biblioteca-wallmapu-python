@@ -5,6 +5,7 @@ from starlette.status import HTTP_200_OK
 from src.schemas.dtos import ApiResponse
 from src.schemas.dtos import AuthGoogleRequest, AuthGoogleResponse
 from src.core.database import get_db_async
+from src.core.logger import logger
 from . import service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -21,6 +22,8 @@ async def auth_google(auth_data: AuthGoogleRequest, db: AsyncSession = Depends(g
 
     return ApiResponse.success(data=auth_google_response)
   except ValueError as e:
+    logger.error("auth/google error (ValueError): %s", e)
     return ApiResponse.unauthorized(message=str(e))
   except Exception as e:
+    logger.error("auth/google error (Exception): %s", e)
     return ApiResponse.server_error(message=str(e))

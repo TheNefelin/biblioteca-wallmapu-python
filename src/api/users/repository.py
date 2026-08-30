@@ -1,6 +1,7 @@
 ﻿from math import ceil
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from sqlalchemy import UUID
 
 from src.models import models
@@ -13,9 +14,9 @@ async def get_all_detailed(db: AsyncSession, pagination: PaginationRequestDTO) -
   query = (
     select(models.User)
     .options(
-      models.User.commune,
-      models.User.user_role,
-      models.User.user_status,
+      selectinload(models.User.commune),
+      selectinload(models.User.user_role),
+      selectinload(models.User.user_status),
     )
   )
 
@@ -56,9 +57,9 @@ async def get_by_id_detailed(
   result = await db.execute(
     select(models.User)
     .options(
-      models.User.commune,
-      models.User.user_role,
-      models.User.user_status,
+      selectinload(models.User.commune),
+      selectinload(models.User.user_role),
+      selectinload(models.User.user_status),
     )
     .filter(models.User.id_user == id_user)
   )
@@ -71,9 +72,9 @@ async def get_by_email(db: AsyncSession, email: str) -> models.User | None:
   result = await db.execute(
     select(models.User)
     .options(
-      models.User.commune,
-      models.User.user_role,
-      models.User.user_status,
+      selectinload(models.User.commune),
+      selectinload(models.User.user_role),
+      selectinload(models.User.user_status),
     )
     .filter(models.User.email == email)
   )
@@ -86,7 +87,7 @@ async def create(db: AsyncSession, data: dict) -> models.User:
   user = models.User(**data)
   db.add(user)
   await db.commit()
-  await db.refresh(user)
+  await db.refresh(user, ["commune", "user_role", "user_status"])
   return user
 
 
@@ -96,8 +97,8 @@ async def get_by_id_with_role_status(db: AsyncSession, id_user: UUID) -> models.
   result = await db.execute(
     select(models.User)
     .options(
-      models.User.user_role,
-      models.User.user_status,
+      selectinload(models.User.user_role),
+      selectinload(models.User.user_status),
     )
     .filter(models.User.id_user == id_user)
   )

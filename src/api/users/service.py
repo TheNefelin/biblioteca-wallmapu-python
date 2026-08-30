@@ -53,17 +53,18 @@ async def get_or_create_user(db: AsyncSession, dto: CreateUser) -> UserDetailDTO
 
   if not entity:
     created = await repository.create(db, dto.model_dump(exclude_none=True))
-    entity = await repository.get_by_id_with_role_status(db, created.id_user)
 
     try:
       await notification_service.create_welcome_notification(
         db=db,
-        user_id=str(entity.id_user),
-        user_email=entity.email,
-        user_name=entity.name,
+        user_id=str(created.id_user),
+        user_email=created.email,
+        user_name=created.name,
       )
     except Exception:
-      logger.warning(f"Error al enviar notificaciÃ³n de bienvenida para user {entity.id_user}")
+      logger.warning(f"Error al enviar notificaciÃ³n de bienvenida para user {created.id_user}")
+
+    return _map_user_to_detail(created)
 
   return _map_user_to_detail(entity)
 

@@ -8,6 +8,9 @@ Backend del proyecto Biblioteca Wallmapu desarrollado con Python 3.12 + FastAPI 
 
 - Python 3.12+
 - PostgreSQL
+- [Brevo](https://www.brevo.com/es/)
+- [Google Console](https://console.cloud.google.com/)
+- [Cloudinary](https://console.cloudinary.com/)
 
 ---
 
@@ -49,7 +52,7 @@ pip install websockets
 > **Nota:** `psycopg2-binary` fue reemplazado por `asyncpg` (driver async). `resend` dejó de usarse y `requests` ya no es dependencia: el envío de correos se hace vía **Brevo** con `httpx` async.
 
 ### 2.1 (Opcional) Dependencias de test
-> Se instalan al final del proceso de optimización cuando se habiliten los tests.
+> Los tests ya están en uso (9 de catálogo en verde). Requieren una BD aislada conforme a `TEST_DATABASE_URL` (ver `.env_demo`).
 ```sh
 pip install pytest pytest-asyncio
 ```
@@ -98,6 +101,13 @@ uvicorn src.main:app --reload
 ```
 
 **Swagger:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+### Tests
+Los tests usan una BD aislada (`db_testing`) conforme a `TEST_DATABASE_URL` y restauran el esquema el patrón en cada corrida (solo tablas `wm_*`). Ejecutar con `run_test.py`:
+```sh
+.venv\Scripts\python.exe run_test.py
+```
+Definición: `tests/conftest.py` + `tests/test_catalog_read.py`. Base/seed: `postgre_base.sql` + `postgre_seed.sql`.
 
 ---
 

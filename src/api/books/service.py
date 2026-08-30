@@ -11,6 +11,20 @@ from src.api.loans import repository as loans_repository
 from . import repository
 
 
+def _to_book_dto(item) -> BookDTO:
+  """Convierte un objeto ORM Book a BookDTO, aplanando relaciones a strings."""
+  return BookDTO(
+    id_book=item.id_book,
+    title=item.title,
+    summary=item.summary,
+    created_at=item.created_at,
+    updated_at=item.updated_at,
+    genre=item.genre.name if item.genre else "",
+    authors=[ba.author.name for ba in item.book_authors],
+    subjects=[bs.subject.name for bs in item.book_subjects],
+  )
+
+
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
 async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[BookDetailDTO]]:
@@ -34,7 +48,7 @@ async def get_book_by_id(db: AsyncSession, id: int) -> BookDTO | None:
   item = await repository.get_by_id(db, id)
   if not item:
     return None
-  return BookDTO.model_validate(item)
+  return _to_book_dto(item)
 
 
 # -----------------------------------------------------------------
@@ -51,7 +65,7 @@ async def create_book(db: AsyncSession, data: CreateBookDTO) -> BookDTO:
   await book_author_service.update_authors(db, book.id_book, author_ids)
   await book_subject_service.update_subjects(db, book.id_book, subject_ids)
   await db.refresh(book)
-  return BookDTO.model_validate(book)
+  return _to_book_dto(book)
 
 
 # -----------------------------------------------------------------
@@ -76,7 +90,7 @@ async def update_book(db: AsyncSession, id: int, data: UpdateBookDTO) -> BookDTO
   await book_author_service.update_authors(db, book.id_book, author_ids)
   await book_subject_service.update_subjects(db, book.id_book, subject_ids)
   await db.refresh(book)
-  return BookDTO.model_validate(book)
+  return _to_book_dto(book)
 
 
 # -----------------------------------------------------------------
