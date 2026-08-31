@@ -3,7 +3,7 @@ from math import ceil
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.models import Author
+from src.models.models import Author, BookAuthor
 from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 
 
@@ -78,10 +78,8 @@ async def update(db: AsyncSession, id: int, data: dict) -> Author | None:
 # -----------------------------------------------------------------
 # DELETE
 async def delete(db: AsyncSession, id: int) -> bool | None:
-  from src.api.book_authors import models as book_author_models
-
   relations_result = await db.execute(
-    select(book_author_models.BookAuthor).where(book_author_models.BookAuthor.id_author == id)
+    select(BookAuthor).where(BookAuthor.id_author == id)
   )
   if relations_result.scalars().first():
     return False

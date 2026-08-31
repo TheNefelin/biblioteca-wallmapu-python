@@ -5,12 +5,13 @@ import logging
 
 from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.schemas.dtos import (
+    CreateLoanDTO,
     CreateReservationDTO,
     ReservationDTO,
     ReservationDetailDTO,
 )
 from src.api.loan_policies import repository as loan_policy_repository
-from src.api.loans import repository as loan_repository, service as loan_service, dtos as loan_dtos
+from src.api.loans import repository as loan_repository, service as loan_service
 from src.api.copy import repository as copy_repository
 from src.api.notifications import service as notification_service
 from src.api.users import repository as user_repository
@@ -179,7 +180,7 @@ async def mark_as_pickup(db: AsyncSession, id: int, copy_id: int) -> Reservation
   if int(copy.status_id) != 1:
     raise ValueError("El ejemplar no está disponible")
 
-  loan_dto = loan_dtos.CreateLoanDTO(
+  loan_dto = CreateLoanDTO(
     copy_id=copy.id_copy,
     user_id=reservation.user_id,
   )

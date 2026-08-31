@@ -3,7 +3,7 @@ from math import ceil
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.models import Format
+from src.models.models import EditionFormat, Format
 from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 
 
@@ -78,10 +78,8 @@ async def update(db: AsyncSession, id: int, data: dict) -> Format | None:
 # -----------------------------------------------------------------#
 # DELETE
 async def delete(db: AsyncSession, id: int) -> bool | None:
-  from src.api.edition_format import models as edition_format_models
-
   relations_result = await db.execute(
-    select(edition_format_models.EditionFormat).where(edition_format_models.EditionFormat.id_format == id)
+    select(EditionFormat).where(EditionFormat.id_format == id)
   )
   if relations_result.scalars().first():
     return False
