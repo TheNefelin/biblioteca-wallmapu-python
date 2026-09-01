@@ -1,5 +1,3 @@
-SET client_encoding = 'UTF8';
-
 DROP TABLE IF EXISTS wm_notifications CASCADE;
 DROP TABLE IF EXISTS wm_loans CASCADE;
 DROP TABLE IF EXISTS wm_reservations CASCADE;

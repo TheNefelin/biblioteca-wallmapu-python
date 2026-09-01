@@ -7,7 +7,6 @@ from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.schemas.dtos import CopyStatusDTO
-from src.schemas.dtos import ApiResponse
 from . import service
 
 
@@ -23,14 +22,11 @@ router = APIRouter(
 # -----------------------------------------------------------------
 @router.get(
   "/",
-  response_model=ApiResponse[List[CopyStatusDTO]],
+  response_model=List[CopyStatusDTO],
   status_code=HTTP_200_OK,
   summary="Listar estados de ejemplar",
   description="Retorna todos los estados de ejemplar para selects",
 )
 async def get_all_copy_status(db: AsyncSession = Depends(get_db_async)):
-  try:
-    res = await service.get_all(db)
-    return ApiResponse.success(data=res)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+  res = await service.get_all(db)
+  return res

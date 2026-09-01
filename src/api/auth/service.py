@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from rfc9457 import BadRequestProblem
 from src.schemas.dtos import AuthUser, AuthGoogleResponse, AuthGoogleRequest, CreateUser
 from src.api.users import service as user_service
 from src.core import security
@@ -15,7 +16,7 @@ async def auth_service(
 
   # 2. Valida que el correo este verificado en Google
   if not google_user_info.email_verified:
-    raise ValueError(f"Email no verificado en Google")
+    raise BadRequestProblem(detail=f"Email no verificado en Google")
 
   # 3. obtener o crear usuario
   user = CreateUser(
@@ -26,7 +27,7 @@ async def auth_service(
   user = await user_service.get_or_create_user(db, user)
 
   if not user.user_role_name:
-    raise ValueError("El usuario no tiene un rol asignado")
+    raise BadRequestProblem(detail="El usuario no tiene un rol asignado")
 
   # 4. generar JWT de tu backend
   token = security.create_access_token(

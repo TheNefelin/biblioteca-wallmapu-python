@@ -5,7 +5,10 @@ import uuid
 
 async def test_users_pagination_requires_admin(client):
   resp = await client.get("/api/users/pagination")
-  assert resp.json()["isSuccess"] is False
+  body = resp.json()
+  assert "isSuccess" not in body
+  assert body["status"] == resp.status_code == 401
+  assert "detail" in body
 
 
 async def test_users_pagination_admin(client, make_user):
@@ -14,20 +17,25 @@ async def test_users_pagination_admin(client, make_user):
   resp = await client.get("/api/users/pagination", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert len(body["data"]["data"]) > 0
+  assert isinstance(body["data"], list)
+  assert len(body["data"]) > 0
 
 
 async def test_users_pagination_forbidden_for_lector(client, make_user):
   lector, headers = await make_user("lector@us2.cl", "Lector")
   resp = await client.get("/api/users/pagination", headers=headers)
   body = resp.json()
-  assert body["isSuccess"] is False
+  assert "isSuccess" not in body
+  assert body["status"] == resp.status_code == 403
+  assert "detail" in body
 
 
 async def test_user_get_by_id_requires_auth(client):
   resp = await client.get(f"/api/users/{uuid.uuid4()}")
-  assert resp.json()["isSuccess"] is False
+  body = resp.json()
+  assert "isSuccess" not in body
+  assert body["status"] == resp.status_code == 401
+  assert "detail" in body
 
 
 async def test_user_get_by_id_admin(client, make_user):
@@ -36,8 +44,7 @@ async def test_user_get_by_id_admin(client, make_user):
   resp = await client.get(f"/api/users/{lector.id_user}", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert body["data"]["email"] == "lector@us3.cl"
+  assert body["email"] == "lector@us3.cl"
 
 
 async def test_user_update_own_profile(client, make_user):
@@ -51,8 +58,7 @@ async def test_user_update_own_profile(client, make_user):
   resp = await client.put(f"/api/users/{lector.id_user}", json=payload, headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert body["data"]["name"] == "Nuevo Nombre"
+  assert body["name"] == "Nuevo Nombre"
 
 
 async def test_user_update_not_allowed_other_user(client, make_user):
@@ -61,7 +67,9 @@ async def test_user_update_not_allowed_other_user(client, make_user):
   payload = {"name": "Intruso"}
   resp = await client.put(f"/api/users/{user_b.id_user}", json=payload, headers=headers_a)
   body = resp.json()
-  assert body["isSuccess"] is False
+  assert resp.status_code == 401
+  assert body["status"] == 401
+  assert "detail" in body
 
 
 async def test_user_update_by_admin(client, make_user):
@@ -71,8 +79,7 @@ async def test_user_update_by_admin(client, make_user):
   resp = await client.put(f"/api/users/admin/{lector.id_user}", json=payload, headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert body["data"]["user_role_id"] == 2
+  assert body["user_role_id"] == 2
 
 
 async def test_user_update_by_admin_forbidden_for_lector(client, make_user):
@@ -81,4 +88,6 @@ async def test_user_update_by_admin_forbidden_for_lector(client, make_user):
   payload = {"name": "X"}
   resp = await client.put(f"/api/users/admin/{admin.id_user}", json=payload, headers=headers)
   body = resp.json()
-  assert body["isSuccess"] is False
+  assert "isSuccess" not in body
+  assert body["status"] == resp.status_code == 403
+  assert "detail" in body

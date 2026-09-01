@@ -5,7 +5,7 @@ from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
-from src.schemas.dtos import ApiResponse
+from src.core.exceptions import AppError, NotFoundError
 from src.schemas.dtos import EditionFormatDTO
 from . import service
 
@@ -22,7 +22,7 @@ router = APIRouter(
 # UPDATE (reemplaza formatos de la edición; body vacío elimina todos)
 @router.put(
   "/{id_edition}",
-  response_model=ApiResponse[list[EditionFormatDTO]],
+  response_model=list[EditionFormatDTO],
   status_code=HTTP_201_CREATED,
   summary="Actualizar formatos de una edición",
   description="Reemplaza todos los formatos asociados a una edición. Si el body viene vacío, elimina todos",
@@ -34,18 +34,16 @@ async def update_edition_format(
 ):
   try:
     res = await service.update_formats(db, id_edition, format_ids)
-    return ApiResponse.success(data=res)
+    return res
   except ValueError as e:
-    return ApiResponse.bad_request(message=str(e))
-  except Exception as e:
-    return ApiResponse.server_error(message=str(e))
+    raise AppError(str(e))
 
 
 # -----------------------------------------------------------------
 # DELETE
 @router.delete(
   "/{id_edition}/{id_format}",
-  response_model=ApiResponse[bool],
+  response_model=bool,
   status_code=HTTP_200_OK,
   summary="Eliminar formato de una edición",
   description="Elimina una relación específica entre edición y formato",
@@ -58,19 +56,17 @@ async def delete_edition_format(
   try:
     res = await service.delete_format(db, id_edition, id_format)
     if not res:
-      return ApiResponse.not_found()
-    return ApiResponse.success(data=res)
+      raise NotFoundError()
+    return res
   except ValueError as e:
-    return ApiResponse.bad_request(message=str(e))
-  except Exception as e:
-    return ApiResponse.server_error(message=str(e))
+    raise AppError(str(e))
 
 
 # -----------------------------------------------------------------
 # DELETE BY ID EDITION
 @router.delete(
   "/edition/{id_edition}",
-  response_model=ApiResponse[bool],
+  response_model=bool,
   status_code=HTTP_200_OK,
   summary="Eliminar todos los formatos de una edición",
   description="Elimina todas las relaciones de formato de una edición específica",
@@ -82,9 +78,7 @@ async def delete_edition_format_by_edition(
   try:
     res = await service.delete_format_by_edition(db, id_edition)
     if not res:
-      return ApiResponse.not_found()
-    return ApiResponse.success(data=res)
+      raise NotFoundError()
+    return res
   except ValueError as e:
-    return ApiResponse.bad_request(message=str(e))
-  except Exception as e:
-    return ApiResponse.server_error(message=str(e))
+    raise AppError(str(e))

@@ -6,7 +6,8 @@ from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
-from src.schemas.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
+from src.core.exceptions import NotFoundError
+from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.schemas.dtos import (
   CreateNotificationByEmailDTO,
   NotificationDTO,
@@ -30,7 +31,7 @@ router = APIRouter(
 # ADMIN: GET ALL PAGINATED
 @router.get(
   "/pagination",
-  response_model=ApiResponse[PaginationResponseDTO[list[NotificationDetailDTO]]],
+  response_model=PaginationResponseDTO[list[NotificationDetailDTO]],
   status_code=HTTP_200_OK,
   summary="Listar todas las notificaciones con paginación",
   description="Retorna lista paginada de notificaciones. Admin ve todas. Filtros: search (título/mensaje)",
@@ -44,32 +45,29 @@ async def get_all_notifications_paginated(
   is_read: bool = Query(default=True, description="true=todos, false=solo no leídas"),
   db: AsyncSession = Depends(get_db_async)
 ):
-  try:
-    filter = NotificationFilterDTO(is_read=is_read)
+  filter = NotificationFilterDTO(is_read=is_read)
 
-    pagination_request = PaginationRequestDTO[NotificationFilterDTO](
-      page=page,
-      limit=limit,
-      search=search or "",
-      filter=filter,
-    )
+  pagination_request = PaginationRequestDTO[NotificationFilterDTO](
+    page=page,
+    limit=limit,
+    search=search or "",
+    filter=filter,
+  )
 
-    pagination_response = await service.get_all_pagination(db, pagination_request)
+  pagination_response = await service.get_all_pagination(db, pagination_request)
 
-    if pagination_response.pages > pagination_response.page:
-      pagination_response.next = str(request.url.include_query_params(page=pagination_response.page + 1, limit=limit))
-    if pagination_response.page > 1:
-      pagination_response.prev = str(request.url.include_query_params(page=pagination_response.page - 1, limit=limit))
+  if pagination_response.pages > pagination_response.page:
+    pagination_response.next = str(request.url.include_query_params(page=pagination_response.page + 1, limit=limit))
+  if pagination_response.page > 1:
+    pagination_response.prev = str(request.url.include_query_params(page=pagination_response.page - 1, limit=limit))
 
-    return ApiResponse.success(data=pagination_response)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+  return pagination_response
 
 # -----------------------------------------------------------------
 # USER: GET USER NOTIFICATIONS PAGINATED
 @router.get(
   "/user/pagination",
-  response_model=ApiResponse[PaginationResponseDTO[list[NotificationDetailDTO]]],
+  response_model=PaginationResponseDTO[list[NotificationDetailDTO]],
   status_code=HTTP_200_OK,
   summary="Mis notificaciones paginadas",
   description="Retorna notificaciones del usuario actual (extraído del token JWT). Filtros: search",
@@ -84,34 +82,31 @@ async def get_user_notifications(
   current_user: dict = Depends(get_current_user()),
   db: AsyncSession = Depends(get_db_async),
 ):
-  try:
-    user_id = UUID(current_user["sub"])
+  user_id = UUID(current_user["sub"])
 
-    filter = NotificationFilterDTO(is_read=is_read)
+  filter = NotificationFilterDTO(is_read=is_read)
 
-    pagination_request = PaginationRequestDTO[NotificationFilterDTO](
-      page=page,
-      limit=limit,
-      search=search or "",
-      filter=filter,
-    )
+  pagination_request = PaginationRequestDTO[NotificationFilterDTO](
+    page=page,
+    limit=limit,
+    search=search or "",
+    filter=filter,
+  )
 
-    pagination_response = await service.get_by_user_paginated(db, user_id, pagination_request)
+  pagination_response = await service.get_by_user_paginated(db, user_id, pagination_request)
 
-    if pagination_response.pages > pagination_response.page:
-      pagination_response.next = str(request.url.include_query_params(page=pagination_response.page + 1, limit=limit))
-    if pagination_response.page > 1:
-      pagination_response.prev = str(request.url.include_query_params(page=pagination_response.page - 1, limit=limit))
+  if pagination_response.pages > pagination_response.page:
+    pagination_response.next = str(request.url.include_query_params(page=pagination_response.page + 1, limit=limit))
+  if pagination_response.page > 1:
+    pagination_response.prev = str(request.url.include_query_params(page=pagination_response.page - 1, limit=limit))
 
-    return ApiResponse.success(data=pagination_response)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+  return pagination_response
 
 # -----------------------------------------------------------------
 # USER: GET UNREAD COUNT (For badge)
 @router.get(
   "/user/unread-count",
-  response_model=ApiResponse[int],
+  response_model=int,
   status_code=HTTP_200_OK,
   summary="Contar notificaciones no leídas",
   description="Retorna la cantidad de notificaciones no leídas del usuario (para badge en header)",
@@ -121,19 +116,16 @@ async def get_unread_count(
   current_user: dict = Depends(get_current_user()),
   db: AsyncSession = Depends(get_db_async)
 ):
-  try:
-    user_id = UUID(current_user["sub"])
+  user_id = UUID(current_user["sub"])
 
-    count = await service.count_unread_by_user_id(db, user_id)
-    return ApiResponse.success(data=count)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+  count = await service.count_unread_by_user_id(db, user_id)
+  return count
 
 # -----------------------------------------------------------------
 # GET BY ID
 @router.get(
   "/{id}",
-  response_model=ApiResponse[NotificationDTO],
+  response_model=NotificationDTO,
   status_code=HTTP_200_OK,
   summary="Obtener notificación por ID",
   description="Retorna una notificación específica por su ID",
@@ -143,19 +135,16 @@ async def get_notification_by_id(
   id: int,
   db: AsyncSession = Depends(get_db_async)
 ):
-  try:
-    res = await service.get_by_id(db, id)
-    if not res:
-      return ApiResponse.not_found(message="Notificación no encontrada")
-    return ApiResponse.success(data=res)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+  res = await service.get_by_id(db, id)
+  if not res:
+    raise NotFoundError(entity="Notificación")
+  return res
 
 # -----------------------------------------------------------------
 # ADMIN: CREATE NOTIFICATION
 @router.post(
   "",
-  response_model=ApiResponse[NotificationDTO],
+  response_model=NotificationDTO,
   status_code=HTTP_201_CREATED,
   summary="Crear notificación",
   description="Crea una nueva notificación para un usuario específico. Usado para anuncios generales de la biblioteca",
@@ -165,17 +154,14 @@ async def create_notification(
   dto: CreateNotificationByEmailDTO,
   db: AsyncSession = Depends(get_db_async)
 ):
-  try:
-    res = await service.create(db, dto)
-    return ApiResponse.created(data=res, message="Notificación enviada correctamente")
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+  res = await service.create(db, dto)
+  return res
 
 # -----------------------------------------------------------------
 # USER: MARK AS READ
 @router.put(
   "/user/{id}/read",
-  response_model=ApiResponse[bool],
+  response_model=bool,
   status_code=HTTP_200_OK,
   summary="Marcar notificación como leída",
   description="Marca una notificación específica como leída. Verifica que pertenezca al usuario del token",
@@ -186,23 +172,20 @@ async def mark_notification_as_read(
   current_user: dict = Depends(get_current_user()),
   db: AsyncSession = Depends(get_db_async)
 ):
-  try:
-    user_id = UUID(current_user["sub"])
+  user_id = UUID(current_user["sub"])
 
-    success = await service.mark_as_read(db, id, str(user_id))
+  success = await service.mark_as_read(db, id, str(user_id))
 
-    if not success:
-      return ApiResponse.not_found(message="Notificación no encontrada o no pertenece al usuario")
+  if not success:
+    raise NotFoundError(entity="Notificación")
 
-    return ApiResponse.success(data=True, message="Notificación marcada como leída")
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+  return True
 
 # -----------------------------------------------------------------
 # USER: MARK ALL AS READ
 @router.put(
   "/user/read-all",
-  response_model=ApiResponse[bool],
+  response_model=bool,
   status_code=HTTP_200_OK,
   summary="Marcar todas como leídas",
   description="Marca todas las notificaciones del usuario actual como leídas",
@@ -212,14 +195,11 @@ async def mark_all_notifications_as_read(
   current_user: dict = Depends(get_current_user()),
   db: AsyncSession = Depends(get_db_async)
 ):
-  try:
-    user_id = UUID(current_user["sub"])
+  user_id = UUID(current_user["sub"])
 
-    success = await service.mark_all_as_read(db, str(user_id))
+  success = await service.mark_all_as_read(db, str(user_id))
 
-    return ApiResponse.success(data=success, message="Notificaciones marcadas como leídas")
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+  return success
 
 # -----------------------------------------------------------------
 # WEBSOCKET: Tiempo real para notificaciones

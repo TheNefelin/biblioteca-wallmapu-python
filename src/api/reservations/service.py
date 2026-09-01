@@ -15,6 +15,8 @@ from src.api.loans import repository as loan_repository, service as loan_service
 from src.api.copy import repository as copy_repository
 from src.api.notifications import service as notification_service
 from src.api.users import repository as user_repository
+from rfc9457 import BadRequestProblem
+from src.core.exceptions import NotFoundError
 from src.models import models
 from . import repository
 
@@ -90,16 +92,16 @@ async def create(db: AsyncSession, user_id: UUID, dto: CreateReservationDTO) -> 
   copy = await copy_repository.get_by_id(db, dto.copy_id)
 
   if not copy:
-    raise ValueError("Ejemplar no encontrado")
+    raise NotFoundError(entity="Ejemplar")
 
   book_id = copy.edition.book_id
 
   if int(copy.status_id) != 1:
-    raise ValueError("El ejemplar no está disponible")
+    raise BadRequestProblem(detail="El ejemplar no está disponible")
 
   user_entity = await user_repository.get_by_id_detailed(db, user_id)
   if not user_entity or int(user_entity.user_status_id) != 1:
-    raise ValueError("No puedes realizar reservas si tu cuenta no está activa")
+    raise BadRequestProblem(detail="No puedes realizar reservas si tu cuenta no está activa")
 
   loan_policy = await loan_policy_repository.get_default_policy(db)
   reservation_days = int(loan_policy.reservation_days)
@@ -113,14 +115,14 @@ async def create(db: AsyncSession, user_id: UUID, dto: CreateReservationDTO) -> 
   total = len(active_reservations) + len(active_loans)
 
   if total >= loan_policy.max_books:
-    raise ValueError("Has alcanzado el límite máximo de reservas y/o préstamos de libros")
+    raise BadRequestProblem(detail="Has alcanzado el límite máximo de reservas y/o préstamos de libros")
 
   # 2. Validar que el libro NO esté ya en reservas o préstamos activos
   book_in_reservations = any(r[2] == book_id for r in active_reservations)
   book_in_loans = any(l[2] == book_id for l in active_loans)
 
   if book_in_reservations or book_in_loans:
-    raise ValueError("Ya tienes este libro reservado o prestado")
+    raise BadRequestProblem(detail="Ya tienes este libro reservado o prestado")
 
   reservation_dto = ReservationDTO(
     user_id=user_id,
@@ -132,7 +134,7 @@ async def create(db: AsyncSession, user_id: UUID, dto: CreateReservationDTO) -> 
   created = await repository.create(db, reservation_dto.model_dump(exclude_none=True))
 
   if not created or not created.id_reservation:
-    raise ValueError("Error al crear la reserva")
+    raise BadRequestProblem(detail="Error al crear la reserva")
 
   # Disparar notificación (efecto secundario resiliente)
   await notification_service.notification_for_create_reservation_and_send_email(db, created.id_reservation)
@@ -149,7 +151,7 @@ async def mark_as_cancelled(db: AsyncSession, id: int) -> ReservationDTO:
     return None
 
   if int(reservation.reservation_status_id) != 1:
-    raise ValueError("Solo se puede cancelar una reserva pendiente")
+    raise BadRequestProblem(detail="Solo se puede cancelar una reserva pendiente")
 
   # Actualiza Reserva
   updated = await repository.update_status(db, id, 3)
@@ -168,17 +170,17 @@ async def mark_as_pickup(db: AsyncSession, id: int, copy_id: int) -> Reservation
     return None
 
   if int(reservation.reservation_status_id) != 1:
-    raise ValueError("Solo se puede marcar como retirada una reserva pendiente")
+    raise BadRequestProblem(detail="Solo se puede marcar como retirada una reserva pendiente")
 
   if reservation.expiration_date < datetime.now():
-    raise ValueError("No se puede entregar una reserva vencida. Debe generar una nueva.")
+    raise BadRequestProblem(detail="No se puede entregar una reserva vencida. Debe generar una nueva.")
 
   copy = await copy_repository.get_by_id(db, copy_id)
   if not copy:
-    raise ValueError("Ejemplar no encontrado")
+    raise NotFoundError(entity="Ejemplar")
 
   if int(copy.status_id) != 1:
-    raise ValueError("El ejemplar no está disponible")
+    raise BadRequestProblem(detail="El ejemplar no está disponible")
 
   loan_dto = CreateLoanDTO(
     copy_id=copy.id_copy,
@@ -199,7 +201,7 @@ async def mark_as_expired(db: AsyncSession, id: int) -> ReservationDTO:
     return None
 
   if int(reservation.reservation_status_id) != 1:
-    raise ValueError("Solo se puede marcar como vencida una reserva pendiente")
+    raise BadRequestProblem(detail="Solo se puede marcar como vencida una reserva pendiente")
 
   updated = await repository.update_status(db, id, 4)
 

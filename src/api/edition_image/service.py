@@ -1,8 +1,10 @@
 ﻿from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from rfc9457 import BadRequestProblem
 from src.api.editions import repository as edition_repository
 from src.core import cloudinary
+from src.core.exceptions import NotFoundError
 
 PATH = "edition"
 
@@ -23,10 +25,10 @@ async def create_edition_image(file: UploadFile) -> str:
 async def delete_edition_image(id_edition: int, db: AsyncSession) -> bool:
   item = await edition_repository.get_entity_by_id(db, id_edition)
   if not item:
-    raise ValueError("La edición no existe")
+    raise NotFoundError(entity="Edición")
 
   if not item.cover_image or item.cover_image.strip() == "":
-    raise ValueError("La edición no tiene imagen")
+    raise BadRequestProblem(detail="La edición no tiene imagen")
 
   public_id = cloudinary.extract_public_id(item.cover_image)
 

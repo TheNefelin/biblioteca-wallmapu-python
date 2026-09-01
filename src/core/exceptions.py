@@ -1,46 +1,50 @@
 from fastapi import status
+from rfc9457 import BadRequestProblem, ForbiddenProblem, NotFoundProblem, Problem, UnauthorisedProblem
 
 
-class AppError(Exception):
-  """Error de aplicación con código HTTP asociado.
+class AppError(Problem):
+  """Error de negocio base (RFC 9457/Problem Details).
 
-  Se captura en las routes para devolver la respuesta en el formato
-  `ApiResponse`, manteniendo el contrato del frontend.
+  Se serializa como `{type, title, status, detail}` y el handler global de
+  `main.py` (fastapi-problem) lo convierte a una respuesta problem+json.
   """
 
   def __init__(self, message: str, status_code: int = status.HTTP_400_BAD_REQUEST):
     self.message = message
-    self.status_code = status_code
-    super().__init__(message)
+    super().__init__(title=message, detail=message, status=status_code, type_="app-error")
 
 
-class NotFoundError(AppError):
+class NotFoundError(NotFoundProblem):
+  type_ = "not-found"
+  title = "Resource not found."
+
   def __init__(self, entity: str = "Recurso"):
-    super().__init__(
-      message=f"{entity} no encontrado",
-      status_code=status.HTTP_404_NOT_FOUND,
-    )
+    super().__init__(detail=f"{entity} no encontrado")
+    self.message = self.detail
 
 
-class DuplicateNameError(AppError):
+class DuplicateNameError(BadRequestProblem):
+  type_ = "duplicate-name"
+  title = "Duplicate resource."
+
   def __init__(self, name: str):
-    super().__init__(
-      message=f"Ya existe un registro con el nombre '{name}'",
-      status_code=status.HTTP_400_BAD_REQUEST,
-    )
+    super().__init__(detail=f"Ya existe un registro con el nombre '{name}'")
+    self.message = self.detail
 
 
-class UnauthorizedError(AppError):
+class UnauthorizedError(UnauthorisedProblem):
+  type_ = "unauthorized"
+  title = "Unauthorized."
+
   def __init__(self, message: str = "Token inválido o expirado"):
-    super().__init__(
-      message=message,
-      status_code=status.HTTP_401_UNAUTHORIZED,
-    )
+    super().__init__(detail=message)
+    self.message = message
 
 
-class ForbiddenError(AppError):
+class ForbiddenError(ForbiddenProblem):
+  type_ = "forbidden"
+  title = "Forbidden."
+
   def __init__(self, message: str = "No tienes permisos para realizar esta acción"):
-    super().__init__(
-      message=message,
-      status_code=status.HTTP_403_FORBIDDEN,
-    )
+    super().__init__(detail=message)
+    self.message = message

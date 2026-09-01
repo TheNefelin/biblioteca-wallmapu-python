@@ -8,6 +8,9 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from starlette.responses import FileResponse, JSONResponse
 
+from fastapi_problem.handler import add_exception_handler, new_exception_handler
+from rfc9457 import BadRequestProblem, Problem, ServerProblem, UnprocessableProblem
+
 from src.api.stats.routes import router as stats_router
 from src.api.auth.routes import router as auth_router
 from src.api.division_regions.routes import router as regions_router
@@ -41,8 +44,6 @@ from src.api.notifications.routes import router as notifications_router
 from src.core.config import settings
 from src.core.limiter import limiter
 from src.core.logger import logger, set_request_id
-from src.core.exceptions import AppError
-from src.schemas.dtos import ApiResponse
 
 start_time = time.time()
 
@@ -56,31 +57,63 @@ app.add_middleware(
   allow_headers=["*"],
 )
 
-# Rate limiting (slowapi) — key por identidad (JWT) o por IP
+# Rate limiting (slowapi) - key por identidad (JWT) o por IP
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 
 
-@app.exception_handler(RateLimitExceeded)
-async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
-  response = ApiResponse(
-    isSuccess=False,
-    statusCode=429,
-    message="Demasiadas solicitudes. Inténtelo más tarde.",
-    data=None,
-  )
-  return JSONResponse(status_code=429, content=response.model_dump())
+# PROBLEM HANDLERS (respuestas RFC 9457 / Problem Details) --------------
+class RequestValidationProblem(UnprocessableProblem):
+  type_ = "request-validation-failed"
+  title = "Request validation error."
+
+  def __init__(self, errors=None, **kwargs):
+    super().__init__(errors=errors, **kwargs)
+    self.detail = "; ".join(str(e.get("msg", "")) for e in errors) if errors else self.title
 
 
-@app.exception_handler(AppError)
-async def app_error_handler(request: Request, exc: AppError):
-  response = ApiResponse(
-    isSuccess=False,
-    statusCode=exc.status_code,
-    message=exc.message,
-    data=None,
-  )
-  return JSONResponse(status_code=exc.status_code, content=response.model_dump())
+class InternalServerErrorProblem(ServerProblem):
+  type_ = "internal-server-error"
+  title = "Internal server error."
+
+  def __init__(self, detail=None, **kwargs):
+    super().__init__(detail="Internal server error", **kwargs)
+
+
+class RateLimitProblem(BadRequestProblem):
+  type_ = "rate-limit-exceeded"
+  title = "Rate limit exceeded."
+  status = 429
+
+
+def rate_limit_handler(eh, request: Request, exc: RateLimitExceeded):
+  headers = None
+  if hasattr(request.state, "view_rate_limit"):
+    response = request.app.state.limiter._inject_headers(
+      JSONResponse({}), request.state.view_rate_limit
+    )
+    headers = dict(response.headers)
+  return RateLimitProblem(detail=f"Rate limit exceeded: {exc.detail}", headers=headers)
+
+
+def log_problem(request: Request, exc: Exception):
+  if isinstance(exc, Problem) and exc.status < 500:
+    logger.warning("%s: %s", exc.title, exc.detail, extra={
+      "props": {"status_code": exc.status}
+    })
+
+
+eh = new_exception_handler(
+  logger=logger,
+  unhandled_wrappers={
+    "422": RequestValidationProblem,
+    "500": InternalServerErrorProblem,
+  },
+  handlers={RateLimitExceeded: rate_limit_handler},
+  pre_hooks=[log_problem],
+)
+add_exception_handler(app, eh)
+app.add_exception_handler(RateLimitExceeded, eh)
 
 
 # Logging JSON por petición: asigna un request_id y registra cada request
@@ -149,4 +182,3 @@ app.include_router(loans_router, prefix="/api")
 app.include_router(loan_status_router, prefix="/api")
 app.include_router(loan_policies_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api")
-

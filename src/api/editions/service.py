@@ -1,5 +1,6 @@
 ﻿from sqlalchemy.ext.asyncio import AsyncSession
 
+from rfc9457 import BadRequestProblem
 from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.schemas.dtos import EditionDTO, EditionDetailDTO, EditionFilterDTO, CreateEditionDTO, UpdateEditionDTO
 from src.core import cloudinary
@@ -65,7 +66,7 @@ async def create_edition(db: AsyncSession, data: CreateEditionDTO) -> EditionDTO
 # UPDATE
 async def update_edition(db: AsyncSession, id: int, data: UpdateEditionDTO) -> EditionDTO | None:
   if data.id_edition != id:
-    raise ValueError("El ID no coincide")
+    raise BadRequestProblem(detail="El ID no coincide")
 
   edition = await repository.get_entity_by_id(db, id)
   if not edition:
@@ -90,7 +91,7 @@ async def delete_edition_with_image(db: AsyncSession, id: int) -> bool:
     return False
 
   if await repository.has_copies(db, edition.id_edition):
-    raise ValueError(f"La edición ({edition.edition}) tiene copias asociadas")
+    raise BadRequestProblem(detail=f"La edición ({edition.edition}) tiene copias asociadas")
 
   url = await repository.delete(db, edition)
 

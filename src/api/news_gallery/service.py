@@ -2,6 +2,7 @@
 from typing import List
 
 from src.api.news import repository as news_repository
+from src.core.exceptions import NotFoundError
 from src.models import models
 from src.schemas.dtos import NewsGalleryDTO
 from src.core import cloudinary
@@ -18,7 +19,7 @@ async def get_by_news_id(db: AsyncSession, news_id: int) -> list[NewsGalleryDTO]
 async def create(db: AsyncSession, news_id: int, url: str, alt: str = "") -> NewsGalleryDTO:
   news = await news_repository.get_by_id(db, news_id)
   if not news:
-    raise ValueError(f"La noticia con id {news_id} no existe")
+    raise NotFoundError(entity="Noticia")
 
   item = await repository.create(db, {"news_id": news_id, "url": url, "alt": alt})
   return NewsGalleryDTO.model_validate(item)
@@ -32,7 +33,7 @@ async def create_news_gallery_with_images(
 ):
   news = await news_repository.get_by_id(db, news_id)
   if not news:
-    raise ValueError(f"La noticia con id {news_id} no existe")
+    raise NotFoundError(entity="Noticia")
 
   uploaded_public_ids = []
   created_items = []

@@ -6,7 +6,9 @@ from src.models import models
 async def test_notifications_pagination_requires_admin(client):
   resp = await client.get("/api/notifications/pagination")
   body = resp.json()
-  assert body["isSuccess"] is False
+  assert "isSuccess" not in body
+  assert body["status"] == resp.status_code == 401
+  assert "detail" in body
 
 
 async def test_notifications_pagination_admin(client, make_user, db):
@@ -16,7 +18,7 @@ async def test_notifications_pagination_admin(client, make_user, db):
   resp = await client.get("/api/notifications/pagination", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
+  assert isinstance(body["data"], list)
 
 
 async def test_notifications_user_pagination(client, make_user, db):
@@ -26,8 +28,8 @@ async def test_notifications_user_pagination(client, make_user, db):
   resp = await client.get("/api/notifications/user/pagination", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert len(body["data"]["data"]) == 1
+  assert isinstance(body["data"], list)
+  assert len(body["data"]) == 1
 
 
 async def test_notifications_unread_count(client, make_user, db):
@@ -37,8 +39,7 @@ async def test_notifications_unread_count(client, make_user, db):
   resp = await client.get("/api/notifications/user/unread-count", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert body["data"] == 1
+  assert body == 1
 
 
 async def test_notifications_mark_as_read(client, make_user, db):
@@ -50,9 +51,9 @@ async def test_notifications_mark_as_read(client, make_user, db):
   resp = await client.put(f"/api/notifications/user/{notif.id_notification}/read", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
+  assert body is True
   resp = await client.get("/api/notifications/user/unread-count", headers=headers)
-  assert resp.json()["data"] == 0
+  assert resp.json() == 0
 
 
 async def test_notifications_mark_as_read_not_owner(client, make_user, db):
@@ -63,8 +64,10 @@ async def test_notifications_mark_as_read_not_owner(client, make_user, db):
   await db.commit()
   await db.refresh(notif)
   resp = await client.put(f"/api/notifications/user/{notif.id_notification}/read", headers=other_headers)
+  assert resp.status_code == 404
   body = resp.json()
-  assert body["isSuccess"] is False
+  assert body["status"] == 404
+  assert "detail" in body
 
 
 async def test_notifications_create_admin(client, make_user):
@@ -74,7 +77,7 @@ async def test_notifications_create_admin(client, make_user):
   resp = await client.post("/api/notifications", json=payload, headers=headers)
   assert resp.status_code == 201
   body = resp.json()
-  assert body["isSuccess"] is True
+  assert body is not None
 
 
 async def test_notifications_get_by_id(client, make_user, db):
@@ -86,5 +89,4 @@ async def test_notifications_get_by_id(client, make_user, db):
   resp = await client.get(f"/api/notifications/{notif.id_notification}", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert body["data"]["title"] == "Detalle"
+  assert body["title"] == "Detalle"

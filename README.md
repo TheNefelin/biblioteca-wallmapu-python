@@ -38,6 +38,8 @@ pip install pydantic[email]
 pip install python-jose[cryptography]
 # Rate limiting
 pip install slowapi
+# Errores RFC 9457 / Problem Details
+pip install rfc9457 fastapi-problem
 # HTTP client (consumo de APIs externas: Google, Brevo)
 pip install httpx
 # Parseo de formularios multipart (subida de archivos)

@@ -13,9 +13,8 @@ async def test_loan_status_public(client):
   resp = await client.get("/api/loan-status/")
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert isinstance(body["data"], list)
-  assert len(body["data"]) > 0
+  assert isinstance(body, list)
+  assert len(body) > 0
 
 
 async def test_copy_status_public(client, make_user):
@@ -23,9 +22,8 @@ async def test_copy_status_public(client, make_user):
   resp = await client.get("/api/copy-status/", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert isinstance(body["data"], list)
-  assert len(body["data"]) > 0
+  assert isinstance(body, list)
+  assert len(body) > 0
 
 
 async def test_reservation_status_public(client, make_user):
@@ -33,8 +31,8 @@ async def test_reservation_status_public(client, make_user):
   resp = await client.get("/api/reservation-status/", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert len(body["data"]) > 0
+  assert isinstance(body, list)
+  assert len(body) > 0
 
 
 async def test_division_region_public(client, make_user):
@@ -42,8 +40,8 @@ async def test_division_region_public(client, make_user):
   resp = await client.get("/api/division-region/", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert len(body["data"]) > 0
+  assert isinstance(body, list)
+  assert len(body) > 0
 
 
 async def test_division_province_public(client, make_user):
@@ -51,8 +49,8 @@ async def test_division_province_public(client, make_user):
   resp = await client.get("/api/division-province/", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert len(body["data"]) > 0
+  assert isinstance(body, list)
+  assert len(body) > 0
 
 
 async def test_division_commune_public(client, make_user):
@@ -60,8 +58,8 @@ async def test_division_commune_public(client, make_user):
   resp = await client.get("/api/division-commune/", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert len(body["data"]) > 0
+  assert isinstance(body, list)
+  assert len(body) > 0
 
 
 async def test_user_status_public(client, make_user):
@@ -69,8 +67,8 @@ async def test_user_status_public(client, make_user):
   resp = await client.get("/api/user-status/", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert len(body["data"]) > 0
+  assert isinstance(body, list)
+  assert len(body) > 0
 
 
 async def test_user_role_public(client, make_user):
@@ -78,7 +76,7 @@ async def test_user_role_public(client, make_user):
   resp = await client.get("/api/user-role/", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert len(body["data"]) > 0
+  assert isinstance(body, list)
+  assert len(body) > 0
 
 

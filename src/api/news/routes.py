@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_200_OK, HTTP_202_ACCEPTED
 
-from src.schemas.dtos import ApiResponse, PaginationRequestDTO, PaginationResponseDTO
+from src.core.exceptions import AppError, NotFoundError
+from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.core.database import get_db_async
@@ -18,7 +19,7 @@ router = APIRouter(prefix="/news", tags=["news"])
 # GET ALL Pagination
 @router.get(
   "/",
-  response_model=ApiResponse[PaginationResponseDTO[List[NewsWithGalleryDTO]]],
+  response_model=PaginationResponseDTO[List[NewsWithGalleryDTO]],
   status_code=HTTP_200_OK,
   summary="Listar noticias",
   description="Retorna lista paginada de noticias con sus imágenes"
@@ -28,30 +29,27 @@ async def get_all_pagination(
   pagination_request: PaginationRequestDTO = Depends(),
   db: AsyncSession = Depends(get_db_async)
 ):
-  try:
-    pagination_response = await service.get_all_pagination(db, pagination_request)
+  pagination_response = await service.get_all_pagination(db, pagination_request)
 
-    if pagination_response.pages > pagination_response.page:
-      params = {"page": pagination_response.page + 1, "limit": pagination_request.limit}
-      if pagination_request.search:
-        params["search"] = pagination_request.search
-      pagination_response.next = str(request.url.include_query_params(**params))
+  if pagination_response.pages > pagination_response.page:
+    params = {"page": pagination_response.page + 1, "limit": pagination_request.limit}
+    if pagination_request.search:
+      params["search"] = pagination_request.search
+    pagination_response.next = str(request.url.include_query_params(**params))
 
-    if pagination_response.page > 1:
-      params = {"page": pagination_response.page - 1, "limit": pagination_request.limit}
-      if pagination_request.search:
-        params["search"] = pagination_request.search
-      pagination_response.prev = str(request.url.include_query_params(**params))
+  if pagination_response.page > 1:
+    params = {"page": pagination_response.page - 1, "limit": pagination_request.limit}
+    if pagination_request.search:
+      params["search"] = pagination_request.search
+    pagination_response.prev = str(request.url.include_query_params(**params))
 
-    return ApiResponse.success(pagination_response)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+  return pagination_response
 
 # -----------------------------------------------------------------
 # GET BY ID
 @router.get(
   "/{id}",
-  response_model=ApiResponse[NewsWithGalleryDTO],
+  response_model=NewsWithGalleryDTO,
   status_code=HTTP_200_OK,
   summary="Obtener noticia por ID",
   description="Retorna una noticia específica con sus imágenes"
@@ -61,21 +59,18 @@ async def get_by_id(
   id: int,
   db: AsyncSession = Depends(get_db_async)
 ):
-  try:
-    result = await service.get_by_id(db, id)
+  result = await service.get_by_id(db, id)
 
-    if not result:
-      return ApiResponse.not_found()
+  if not result:
+    raise NotFoundError()
 
-    return ApiResponse.success(result)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+  return result
 
 # -----------------------------------------------------------------
 # CREATE
 @router.post(
   "/",
-  response_model=ApiResponse[NewsDTO],
+  response_model=NewsDTO,
   status_code=status.HTTP_201_CREATED,
   summary="Crear noticia",
   description="Crea una nueva noticia (solo admin)",
@@ -88,17 +83,15 @@ async def create(
   try:
     created = await service.create(db, news)
 
-    return ApiResponse.created(created)
+    return created
   except ValueError as e:
-    return ApiResponse.bad_request(message=str(e))
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+    raise AppError(str(e))
 
 # -----------------------------------------------------------------
 # UPDATE
 @router.put(
   "/{id}",
-  response_model=ApiResponse[NewsDTO],
+  response_model=NewsDTO,
   status_code=HTTP_202_ACCEPTED,
   summary="Actualizar noticia",
   description="Actualiza una noticia existente (solo admin)",
@@ -111,24 +104,22 @@ async def update(
 ):
   try:
     if (id != news.id_news):
-      return ApiResponse.bad_request(message=f"El id: {id} no coincide")
+      raise AppError(f"El id: {id} no coincide")
 
     updated = await service.update(db, id, news)
 
     if not updated:
-      return ApiResponse.not_found(message=f"El id: {id} no se encontró")
+      raise NotFoundError(f"El id: {id}")
 
-    return ApiResponse.updated(updated)
+    return updated
   except ValueError as e:
-    return ApiResponse.bad_request(message=str(e))
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+    raise AppError(str(e))
 
 # -----------------------------------------------------------------
 # DELETE
 @router.delete(
   "/{id}",
-  response_model=ApiResponse[object],
+  response_model=object,
   status_code=HTTP_202_ACCEPTED,
   summary="Eliminar noticia",
   description="Elimina una noticia (solo admin)",
@@ -139,10 +130,8 @@ async def delete(
   db: AsyncSession = Depends(get_db_async)
 ):
   try:
-    await service.delete(db, id)
+    res = await service.delete(db, id)
 
-    return ApiResponse.deleted()
+    return res
   except ValueError as e:
-    return ApiResponse.bad_request(message=str(e))
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+    raise AppError(str(e))

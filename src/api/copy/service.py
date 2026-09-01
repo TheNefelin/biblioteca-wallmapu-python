@@ -1,5 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from rfc9457 import BadRequestProblem
+from src.core.exceptions import NotFoundError
 from src.models import models
 from src.api.loans import repository as loan_repository
 from src.api.reservations import repository as reservation_repository
@@ -51,13 +53,13 @@ async def get_all_detail_by_book_id(db: AsyncSession, book_id: int) -> list[Copy
 async def create(db: AsyncSession, data: CreateCopyDTO) -> CopyDTO:
   edition = await db.get(models.Edition, data.edition_id)
   if not edition:
-    raise ValueError("No se encontró la edición")
+    raise NotFoundError(entity="Edición")
 
   if await repository.signature_exists(db, data.signature_topography):
-    raise ValueError("La Firma Topográfica ya existe")
+    raise BadRequestProblem(detail="La Firma Topográfica ya existe")
 
   if await repository.copy_number_exists(db, data.edition_id, data.copy_number):
-    raise ValueError(f"El número de ejemplar {data.copy_number} ya existe para esta edición")
+    raise BadRequestProblem(detail=f"El número de ejemplar {data.copy_number} ya existe para esta edición")
 
   entity_data = data.model_dump()
   entity_data["barcode"] = data.signature_topography
@@ -71,14 +73,14 @@ async def create(db: AsyncSession, data: CreateCopyDTO) -> CopyDTO:
 # UPDATE COPY
 async def update(db: AsyncSession, id: int, data: UpdateCopyDTO) -> CopyDTO | None:
   if data.id_copy != id:
-    raise ValueError("El ID no coincide")
+    raise BadRequestProblem(detail="El ID no coincide")
 
   edition = await db.get(models.Edition, data.edition_id)
   if not edition:
-    raise ValueError("No se encontró la edición")
+    raise NotFoundError(entity="Edición")
   status = await db.get(models.CopyStatus, data.status_id)
   if not status:
-    raise ValueError("No se encontró el estado")
+    raise NotFoundError(entity="Estado")
 
   current = await repository.get_by_id(db, id)
   if not current:
@@ -90,14 +92,14 @@ async def update(db: AsyncSession, id: int, data: UpdateCopyDTO) -> CopyDTO | No
     new_signature = update_data["signature_topography"]
     if new_signature != current.signature_topography:
       if await repository.signature_exists(db, new_signature, exclude_id=id):
-        raise ValueError("La signatura topográfica ya está en uso por otro ejemplar")
+        raise BadRequestProblem(detail="La signatura topográfica ya está en uso por otro ejemplar")
       update_data["barcode"] = new_signature
 
   if "copy_number" in update_data and update_data["copy_number"] is not None:
     new_copy_number = update_data["copy_number"]
     if new_copy_number != current.copy_number:
       if await repository.copy_number_exists(db, data.edition_id, new_copy_number, exclude_id=id):
-        raise ValueError(f"El número de ejemplar {new_copy_number} ya existe para esta edición")
+        raise BadRequestProblem(detail=f"El número de ejemplar {new_copy_number} ya existe para esta edición")
 
   entity = await repository.update(db, current, update_data)
   return CopyDTO.model_validate(entity)
@@ -111,10 +113,10 @@ async def delete(db: AsyncSession, id: int) -> bool:
     return False
 
   if await loan_repository.exists_by_copy_id(db, id):
-    raise ValueError("No se puede eliminar el ejemplar porque tiene préstamos asociados")
+    raise BadRequestProblem(detail="No se puede eliminar el ejemplar porque tiene préstamos asociados")
 
   if await reservation_repository.exists_by_copy_id(db, id):
-    raise ValueError("No se puede eliminar el ejemplar porque tiene reservas asociadas")
+    raise BadRequestProblem(detail="No se puede eliminar el ejemplar porque tiene reservas asociadas")
 
   await repository.delete(db, item)
   return True

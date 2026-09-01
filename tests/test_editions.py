@@ -12,11 +12,10 @@ async def test_edition_pagination_public(client):
   resp = await client.get("/api/edition/pagination")
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  data = body["data"]
-  assert "data" in data
-  assert len(data["data"]) > 0
-  first = data["data"][0]
+  assert body["page"] is not None
+  assert isinstance(body["data"], list)
+  assert len(body["data"]) > 0
+  first = body["data"][0]
   assert "id_edition" in first
   assert "editorial_name" in first
   assert "book_title" in first
@@ -26,8 +25,7 @@ async def test_edition_by_book_public(client):
   resp = await client.get("/api/edition/book/1")
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert isinstance(body["data"], list)
+  assert isinstance(body, list)
 
 
 async def test_edition_by_book_detail_requires_admin(client):
@@ -41,8 +39,7 @@ async def test_edition_by_book_detail_admin(client, make_user):
   resp = await client.get("/api/edition/book/1/detail", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert isinstance(body["data"], list)
+  assert isinstance(body, list)
 
 
 async def test_edition_pagination_requires_admin(client):
@@ -65,9 +62,8 @@ async def test_edition_create_admin(client, make_user):
   resp = await client.post("/api/edition/", json=payload, headers=headers)
   assert resp.status_code == 201
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert body["data"] is not None
-  assert body["data"]["edition"] == "Edición de prueba"
+  assert body is not None
+  assert body["edition"] == "Edición de prueba"
 
 
 async def test_edition_create_requires_admin(client):
@@ -88,11 +84,16 @@ async def test_edition_by_id_admin(client, make_user):
   resp = await client.get("/api/edition/1", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert body["data"] is not None
+  assert body is not None
 
 
 def body_status_error(resp):
-  """True si la API responde con isSuccess false (error de auth o servidor)."""
+  """True si la API responde con un error RFC 9457 (auth/forbidden/servidor global)."""
   body = resp.json()
-  return body["isSuccess"] is False
+  return (
+    not resp.is_success
+    and "isSuccess" not in body
+    and body.get("status") == resp.status_code
+    and "detail" in body
+    and "title" in body
+  )

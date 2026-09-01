@@ -1,5 +1,6 @@
 ﻿from sqlalchemy.ext.asyncio import AsyncSession
 
+from rfc9457 import BadRequestProblem
 from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.schemas.dtos import CreateBookDTO, BookDTO, BookDetailDTO, UpdateBookDTO
 from src.api.book_authors import repository as book_authors_repository
@@ -59,7 +60,7 @@ async def create_book(db: AsyncSession, data: CreateBookDTO) -> BookDTO:
   subject_ids = dump.pop("subject_ids", []) or []
 
   if dump.get("genre_id") == 0:
-    raise ValueError("El género es requerido")
+    raise BadRequestProblem(detail="El género es requerido")
 
   book = await repository.create(db, dump)
   await book_author_service.update_authors(db, book.id_book, author_ids)
@@ -71,7 +72,7 @@ async def create_book(db: AsyncSession, data: CreateBookDTO) -> BookDTO:
 # UPDATE
 async def update_book(db: AsyncSession, id: int, data: UpdateBookDTO) -> BookDTO | None:
   if data.id_book != id:
-    raise ValueError("El ID no coincide")
+    raise BadRequestProblem(detail="El ID no coincide")
 
   book = await repository.get_entity_by_id(db, data.id_book)
   if not book:
@@ -83,7 +84,7 @@ async def update_book(db: AsyncSession, id: int, data: UpdateBookDTO) -> BookDTO
   dump.pop("id_book", None)
 
   if dump.get("genre_id") == 0:
-    raise ValueError("El género es requerido")
+    raise BadRequestProblem(detail="El género es requerido")
 
   book = await repository.update(db, book, dump)
   await book_author_service.update_authors(db, book.id_book, author_ids)
@@ -99,11 +100,11 @@ async def delete_book(db: AsyncSession, id: int) -> bool:
     return False
 
   if await repository.has_authors(db, id):
-    raise ValueError("El libro tiene autores asociados")
+    raise BadRequestProblem(detail="El libro tiene autores asociados")
   if await repository.has_subjects(db, id):
-    raise ValueError("El libro tiene descriptores asociados")
+    raise BadRequestProblem(detail="El libro tiene descriptores asociados")
   if await repository.has_editions(db, id):
-    raise ValueError("El libro tiene ediciones/ejemplares asociados")
+    raise BadRequestProblem(detail="El libro tiene ediciones/ejemplares asociados")
 
   dependencies = []
 
@@ -116,7 +117,7 @@ async def delete_book(db: AsyncSession, id: int) -> bool:
     dependencies.append("préstamos activos")
 
   if dependencies:
-    raise ValueError(f"No se puede eliminar el libro. Dependencias: {', '.join(dependencies)}")
+    raise BadRequestProblem(detail=f"No se puede eliminar el libro. Dependencias: {', '.join(dependencies)}")
 
   await book_authors_repository.delete_by_book(db, id)
   await book_subjects_repository.delete_by_book(db, id)

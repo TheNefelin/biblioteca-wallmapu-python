@@ -8,10 +8,12 @@ from src.schemas.dtos import (
   NotificationDTO,
   NotificationDetailDTO,
 )
+from rfc9457 import BadRequestProblem
 from src.api.reservations import repository as reservation_repository
 from src.api.loans import repository as loan_repository
 from src.api.users import repository as user_repository
 from src.core import email
+from src.core.exceptions import NotFoundError
 from . import repository
 
 logger = logging.getLogger(__name__)
@@ -80,7 +82,7 @@ async def create(db: AsyncSession, dto: CreateNotificationByEmailDTO) -> Notific
   user = await user_repository.get_by_email(db, dto.email)
 
   if not user:
-    raise ValueError("El Usuario no Existe en la Base de Datos")
+    raise NotFoundError(entity="Usuario")
 
   email_data = email.AdminEmailData(
     title=dto.title,
@@ -99,7 +101,7 @@ async def create(db: AsyncSession, dto: CreateNotificationByEmailDTO) -> Notific
   created = await repository.create(db, notification.model_dump(exclude_unset=True))
 
   if not created or not created.id_notification:
-    raise ValueError("Error al crear la Notificacion")
+    raise BadRequestProblem(detail="Error al crear la Notificacion")
 
   try:
     response = await email.send_admin_email(data=email_data)
@@ -158,7 +160,7 @@ async def notification_for_create_reservation_and_send_email(db: AsyncSession, r
   created = await repository.create(db, notification.model_dump(exclude_unset=True))
 
   if not created or not created.id_notification:
-    raise ValueError("Error al crear la Notificacion")
+    raise BadRequestProblem(detail="Error al crear la Notificacion")
 
   try:
     await email.send_reservation_created_email(data=email_data)
@@ -189,7 +191,7 @@ async def notification_for_cancel_reservation_and_send_email(db: AsyncSession, r
   created = await repository.create(db, notification.model_dump(exclude_unset=True))
 
   if not created or not created.id_notification:
-    raise ValueError("Error al crear la Notificacion")
+    raise BadRequestProblem(detail="Error al crear la Notificacion")
 
   try:
     await email.send_reservation_cancelled_email(data=email_data)
@@ -221,7 +223,7 @@ async def notification_for_create_loan_and_send_email(db: AsyncSession, loan_id:
   created = await repository.create(db, notification.model_dump(exclude_unset=True))
 
   if not created or not created.id_notification:
-    raise ValueError("Error al crear la Notificacion")
+    raise BadRequestProblem(detail="Error al crear la Notificacion")
 
   try:
     await email.send_loan_created_email(data=email_data)
@@ -252,7 +254,7 @@ async def notification_for_return_loan_and_send_email(db: AsyncSession, loan_id:
   created = await repository.create(db, notification.model_dump(exclude_unset=True))
 
   if not created or not created.id_notification:
-    raise ValueError("Error al crear la Notificacion")
+    raise BadRequestProblem(detail="Error al crear la Notificacion")
 
   try:
     await email.send_loan_returned_email(data=email_data)

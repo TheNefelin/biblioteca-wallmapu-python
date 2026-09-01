@@ -5,7 +5,7 @@ from starlette.status import HTTP_200_OK
 from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
-from src.schemas.dtos import ApiResponse
+from src.core.exceptions import NotFoundError
 from src.schemas.dtos import LoanPolicyDTO
 from . import service
 
@@ -21,26 +21,23 @@ router = APIRouter(
 # GET DEFAULT
 @router.get(
   "/default",
-  response_model=ApiResponse[LoanPolicyDTO],
+  response_model=LoanPolicyDTO,
   status_code=HTTP_200_OK,
   summary="Obtener política por defecto",
   description="Retorna la política de préstamo predeterminada"
 )
 async def get_default_policy(db: AsyncSession = Depends(get_db_async)):
-  try:
-    res = await service.get_default_policy(db)
-    if not res:
-      return ApiResponse.not_found(message="No hay política por defecto configurada")
-    return ApiResponse.success(data=res)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+  res = await service.get_default_policy(db)
+  if not res:
+    raise NotFoundError("Política por defecto configurada")
+  return res
 
 
 # -----------------------------------------------------------------
 # UPDATE
 @router.put(
   "/{id}",
-  response_model=ApiResponse[LoanPolicyDTO],
+  response_model=LoanPolicyDTO,
   status_code=HTTP_200_OK,
   summary="Actualizar política de préstamo",
   description="Actualiza los campos de la política (máximo libros, días, etc.)",
@@ -51,8 +48,5 @@ async def update_loan_policy(
   dto: LoanPolicyDTO,
   db: AsyncSession = Depends(get_db_async)
 ):
-  try:
-    item = await service.update(db, id, dto)
-    return ApiResponse.success(data=item)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+  item = await service.update(db, id, dto)
+  return item

@@ -2,6 +2,7 @@
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from rfc9457 import BadRequestProblem
 from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.schemas.dtos import CreateLoanDTO, LoanDTO, LoanDetailDTO
 from src.api.loan_policies import repository as loan_policies_repository
@@ -77,6 +78,9 @@ async def get_overdue(db: AsyncSession) -> list[LoanDetailDTO]:
 # CREATE
 async def create(db: AsyncSession, dto: CreateLoanDTO) -> LoanDTO:
   policy = await loan_policies_repository.get_default_policy(db)
+  if policy is None:
+    raise BadRequestProblem(detail="No existe una política de préstamo configurada")
+
   max_days = int(policy.max_days)
 
   due_date = date.today() + timedelta(days=max_days)
@@ -90,7 +94,7 @@ async def create(db: AsyncSession, dto: CreateLoanDTO) -> LoanDTO:
   created = await repository.create(db, loan_dto.model_dump(exclude_none=True))
 
   if not created or not created.id_loan:
-    raise ValueError("Error al crear el préstamo")
+    raise BadRequestProblem(detail="Error al crear el préstamo")
 
   await notification_service.notification_for_create_loan_and_send_email(db, created.id_loan)
 
@@ -103,10 +107,10 @@ async def return_loan_by_copy_id(db: AsyncSession, copy_id: int) -> LoanDTO | No
   loan = await repository.get_active_loan_by_copy_id(db, copy_id)
 
   if not loan:
-    raise ValueError("No hay préstamo activo para este ejemplar")
+    raise BadRequestProblem(detail="No hay préstamo activo para este ejemplar")
 
   if int(loan.loan_status_id) == 2:
-    raise ValueError("Este préstamo ya fue devuelto")
+    raise BadRequestProblem(detail="Este préstamo ya fue devuelto")
 
   returned = await repository.return_loan(db, loan.id_loan, date.today(), 2)
 

@@ -8,7 +8,6 @@ from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.core.database import get_db_async
 from src.schemas.dtos import AdminStatsDTO, UserStatsDTO
-from src.schemas.dtos import ApiResponse
 from . import service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
@@ -24,25 +23,22 @@ router = APIRouter(
 # GET ADMIN STATS
 @router.get(
   "/admin-stats",
-  response_model=ApiResponse[AdminStatsDTO],
+  response_model=AdminStatsDTO,
   status_code=HTTP_200_OK,
   summary="Estadísticas del panel de administración",
   description="Retorna conteos de reservas, préstamos, libros, usuarios y noticias",
   dependencies=[admin_required],
 )
 async def get_admin_stats_endpoint(db: AsyncSession = Depends(get_db_async)):
-  try:
-    res = await service.get_admin_stats(db)
-    return ApiResponse.success(data=res)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+  res = await service.get_admin_stats(db)
+  return res
 
 
 # -----------------------------------------------------------------
 # GET USER STATS
 @router.get(
   "/user-stats",
-  response_model=ApiResponse[UserStatsDTO],
+  response_model=UserStatsDTO,
   status_code=HTTP_200_OK,
   summary="Estadísticas del usuario autenticado",
   description="Retorna estadísticas de préstamos del usuario actual",
@@ -52,9 +48,6 @@ async def get_user_stats_endpoint(
   current_user: dict = Depends(get_current_user()),
   db: AsyncSession = Depends(get_db_async),
 ):
-  try:
-    user_id = UUID(current_user["sub"])
-    res = await service.get_user_stats(db, user_id)
-    return ApiResponse.success(data=res)
-  except Exception as e:
-    return ApiResponse.server_error(str(e))
+  user_id = UUID(current_user["sub"])
+  res = await service.get_user_stats(db, user_id)
+  return res

@@ -6,21 +6,27 @@ from sqlalchemy import text
 async def test_loan_pagination_requires_admin(client):
   resp = await client.get("/api/loans/pagination")
   body = resp.json()
-  assert body["isSuccess"] is False
+  assert "isSuccess" not in body
+  assert body["status"] == resp.status_code == 401
+  assert "detail" in body
 
 
 async def test_loan_pagination_admin(client, make_user):
   admin, headers = await make_user("admin@ln.cl", "Admin")
   resp = await client.get("/api/loans/pagination", headers=headers)
   assert resp.status_code == 200
-  assert resp.json()["isSuccess"] is True
+  body = resp.json()
+  assert isinstance(body["data"], list)
 
 
 async def test_loan_create_requires_admin(client, make_policy):
   await make_policy()
   payload = {"copy_id": 1, "user_id": "00000000-0000-0000-0000-000000000000"}
   resp = await client.post("/api/loans/", json=payload)
-  assert resp.json()["isSuccess"] is False
+  body = resp.json()
+  assert "isSuccess" not in body
+  assert body["status"] == resp.status_code == 401
+  assert "detail" in body
 
 
 async def test_loan_create_without_policy_fails(client, db, make_user):
@@ -32,8 +38,10 @@ async def test_loan_create_without_policy_fails(client, db, make_user):
   lector, _ = await make_user("lector@ln2.cl", "Lector")
   payload = {"copy_id": 1, "user_id": str(lector.id_user)}
   resp = await client.post("/api/loans/", json=payload, headers=headers)
+  assert resp.status_code == 400
   body = resp.json()
-  assert body["isSuccess"] is False
+  assert body["status"] == 400
+  assert "detail" in body
 
 
 async def test_loan_create_and_return_admin(client, make_user, make_policy):
@@ -45,12 +53,10 @@ async def test_loan_create_and_return_admin(client, make_user, make_policy):
   resp = await client.post("/api/loans/", json=payload, headers=headers)
   assert resp.status_code == 201
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert body["data"]["copy_id"] == 1
+  assert body["copy_id"] == 1
 
-  loan_id = body["data"]["id_loan"]
+  loan_id = body["id_loan"]
   resp = await client.put("/api/loans/copy/1/return", headers=headers)
   assert resp.status_code == 200
   body = resp.json()
-  assert body["isSuccess"] is True
-  assert body["data"]["loan_status_id"] == 2
+  assert body["loan_status_id"] == 2

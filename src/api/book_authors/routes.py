@@ -5,7 +5,7 @@ from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
-from src.schemas.dtos import ApiResponse
+from src.core.exceptions import AppError, NotFoundError
 from src.schemas.dtos import BookAuthorDTO
 from . import service
 
@@ -22,7 +22,7 @@ router = APIRouter(
 # UPDATE (reemplaza autores del libro; body vacío elimina todos)
 @router.put(
   "/{id_book}",
-  response_model=ApiResponse[list[BookAuthorDTO]],
+  response_model=list[BookAuthorDTO],
   status_code=HTTP_201_CREATED,
   summary="Reemplazar autores de un libro",
   description="Elimina todos los autores actuales y asigna la nueva lista. Body vacío elimina todos.",
@@ -34,18 +34,16 @@ async def update_book_author(
 ):
   try:
     res = await service.update_authors(db, id_book, author_ids)
-    return ApiResponse.success(data=res)
+    return res
   except ValueError as e:
-    return ApiResponse.bad_request(message=str(e))
-  except Exception as e:
-    return ApiResponse.server_error(message=str(e))
+    raise AppError(str(e))
 
 
 # -----------------------------------------------------------------
 # DELETE
 @router.delete(
   "/{id_book}/{id_author}",
-  response_model=ApiResponse[bool],
+  response_model=bool,
   status_code=HTTP_200_OK,
   summary="Eliminar un autor de un libro",
   description="Elimina la relación autor-libro específica",
@@ -58,19 +56,17 @@ async def delete_book_author(
   try:
     res = await service.delete_author(db, id_book, id_author)
     if not res:
-      return ApiResponse.not_found()
-    return ApiResponse.success(data=res)
+      raise NotFoundError()
+    return res
   except ValueError as e:
-    return ApiResponse.bad_request(message=str(e))
-  except Exception as e:
-    return ApiResponse.server_error(message=str(e))
+    raise AppError(str(e))
 
 
 # -----------------------------------------------------------------
 # DELETE BY ID BOOK
 @router.delete(
   "/book/{id_book}",
-  response_model=ApiResponse[bool],
+  response_model=bool,
   status_code=HTTP_200_OK,
   summary="Eliminar todos los autores de un libro",
   description="Elimina todas las relaciones de autor para un libro específico",
@@ -82,9 +78,7 @@ async def delete_book_author_by_book(
   try:
     res = await service.delete_author_by_book(db, id_book)
     if not res:
-      return ApiResponse.not_found()
-    return ApiResponse.success(data=res)
+      raise NotFoundError()
+    return res
   except ValueError as e:
-    return ApiResponse.bad_request(message=str(e))
-  except Exception as e:
-    return ApiResponse.server_error(message=str(e))
+    raise AppError(str(e))
