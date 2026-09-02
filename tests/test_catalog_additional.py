@@ -83,9 +83,9 @@ async def test_copy_detail_by_book_public(client):
 
 @pytest.mark.asyncio
 async def test_copy_detail_by_edition_admin(client, make_admin):
-    """Listar ejemplares con detalle por edición (admin)."""
+    """Listar ejemplares por edición (admin)."""
     _, headers = await make_admin()
-    resp = await client.get("/api/copy/detail/edition/1", headers=headers)
+    resp = await client.get("/api/copy/edition/1", headers=headers)
     assert resp.status_code in [200, 404]
 
 
@@ -95,7 +95,7 @@ async def test_copy_create_admin(client, make_admin):
     _, headers = await make_admin()
     resp = await client.post(
         "/api/copy/",
-        json={"signature_topography": "TEST", "copy_number": 1, "edition_id": 1},
+        json={"signature_topography": "TEST", "copy_number": 1, "edition_id": 1, "status_id": 1},
         headers=headers,
     )
     assert resp.status_code in [201, 400, 404]

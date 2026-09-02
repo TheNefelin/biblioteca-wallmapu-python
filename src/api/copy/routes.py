@@ -7,26 +7,12 @@ from src.core.database import get_db_async
 from src.core.exceptions import AppError, NotFoundError
 from src.core.security import get_current_user
 from src.core.roles import UserRole
-from src.schemas.dtos import CopyDTO, CopyDetailDTO, CreateCopyDTO, UpdateCopyDTO
+from src.schemas.dtos import CopyDTO, CopyDetailDTO, SaveCopyDTO
 from . import service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 
 router = APIRouter(prefix="/copy", tags=["copy"])
-
-
-# -----------------------------------------------------------------
-@router.get(
-  "/detail/edition/{id_edition}",
-  response_model=List[CopyDetailDTO],
-  status_code=HTTP_200_OK,
-  summary="Listar ejemplares con detalle completo por edición",
-  description="Retorna todos los ejemplares de una edición con datos de estado, libro, género y autor",
-  dependencies=[admin_required],
-)
-async def get_all_copy_detail_by_edition(id_edition: int, db: AsyncSession = Depends(get_db_async)):
-  res = await service.get_all_detail_by_edition_id(db, id_edition)
-  return res
 
 
 # -----------------------------------------------------------------
@@ -65,7 +51,7 @@ async def get_all_copy_by_edition(id_edition: int, db: AsyncSession = Depends(ge
   description="Crea un nuevo ejemplar asociado a una edición",
   dependencies=[admin_required],
 )
-async def create_copy(copy: CreateCopyDTO, db: AsyncSession = Depends(get_db_async)):
+async def create_copy(copy: SaveCopyDTO, db: AsyncSession = Depends(get_db_async)):
   try:
     res = await service.create(db, copy)
     return res
@@ -82,7 +68,7 @@ async def create_copy(copy: CreateCopyDTO, db: AsyncSession = Depends(get_db_asy
   description="Actualiza un ejemplar existente por ID",
   dependencies=[admin_required],
 )
-async def update_copy(id: int, copy: UpdateCopyDTO, db: AsyncSession = Depends(get_db_async)):
+async def update_copy(id: int, copy: SaveCopyDTO, db: AsyncSession = Depends(get_db_async)):
   try:
     res = await service.update(db, id, copy)
     if not res:

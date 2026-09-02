@@ -472,24 +472,22 @@ class BookDetailDTO(BaseModel):
 
 
 # COPY ------------------------------------------------------------
-class CreateCopyDTO(BaseModel):
+class SaveCopyDTO(BaseModel):
   signature_topography: str
   edition_id: int
   copy_number: int
-
-
-class UpdateCopyDTO(CreateCopyDTO):
-  id_copy: int
   status_id: int
 
 
-class CopyDTO(UpdateCopyDTO):
+class CopyDTO(AppModel, SaveCopyDTO):
+  status_name: str
+  id_copy: int
   barcode: str
   created_at: datetime
   updated_at: datetime
 
 
-class CopyDetailDTO(BaseModel):
+class CopyDetailDTO(AppModel):
   id_copy: int
   barcode: str
   signature_topography: str

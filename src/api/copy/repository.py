@@ -31,15 +31,6 @@ def _build_detail_query():
   )
 
 
-async def get_all_detail_by_edition_id(db: AsyncSession, edition_id: int) -> list:
-  result = await db.execute(
-    _build_detail_query()
-    .where(models.Copy.edition_id == edition_id)
-    .order_by(models.Copy.id_copy.asc())
-  )
-  return result.all()
-
-
 async def get_all_detail_by_book_id(db: AsyncSession, book_id: int) -> list:
   result = await db.execute(
     _build_detail_query()
@@ -53,11 +44,22 @@ async def get_all_detail_by_book_id(db: AsyncSession, book_id: int) -> list:
 # GET ALL BY EDITION ID (sin anidados)
 async def get_all_by_edition_id(db: AsyncSession, edition_id: int) -> list:
   result = await db.execute(
-    select(models.Copy)
+    select(
+      models.Copy.id_copy,
+      models.Copy.barcode,
+      models.Copy.signature_topography,
+      models.Copy.copy_number,
+      models.Copy.created_at,
+      models.Copy.updated_at,
+      models.Copy.status_id,
+      models.CopyStatus.name.label("status_name"),
+      models.Copy.edition_id,
+    )
+    .join(models.CopyStatus, models.Copy.status_id == models.CopyStatus.id_status)
     .where(models.Copy.edition_id == edition_id)
     .order_by(models.Copy.id_copy.asc())
   )
-  return list(result.scalars().all())
+  return result.all()
 
 
 # -----------------------------------------------------------------

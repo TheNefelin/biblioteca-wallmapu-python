@@ -5,7 +5,7 @@ from src.core.exceptions import NotFoundError
 from src.models import models
 from src.api.loans import repository as loan_repository
 from src.api.reservations import repository as reservation_repository
-from src.schemas.dtos import CopyDTO, CopyDetailDTO, CreateCopyDTO, UpdateCopyDTO
+from src.schemas.dtos import CopyDTO, CopyDetailDTO, SaveCopyDTO
 from . import repository
 
 
@@ -30,15 +30,6 @@ def _map_to_detail(row, loaned_ids: set, reserved_ids: set) -> CopyDetailDTO:
 
 
 # -----------------------------------------------------------------
-# GET ALL DETAIL BY EDITION ID
-async def get_all_detail_by_edition_id(db: AsyncSession, edition_id: int) -> list[CopyDetailDTO]:
-  rows = await repository.get_all_detail_by_edition_id(db, edition_id)
-  loaned_ids = {l.copy_id for l in await loan_repository.get_all_active(db)}
-  reserved_ids = {r.copy_id for r in await reservation_repository.get_all_pending(db)}
-  return [_map_to_detail(r, loaned_ids, reserved_ids) for r in rows]
-
-
-# -----------------------------------------------------------------
 # GET ALL DETAIL BY BOOK ID
 async def get_all_detail_by_book_id(db: AsyncSession, book_id: int) -> list[CopyDetailDTO]:
   rows = await repository.get_all_detail_by_book_id(db, book_id)
@@ -52,12 +43,12 @@ async def get_all_detail_by_book_id(db: AsyncSession, book_id: int) -> list[Copy
 # GET ALL BY EDITION ID (sin anidados)
 async def get_all_by_edition_id(db: AsyncSession, edition_id: int) -> list[CopyDTO]:
   rows = await repository.get_all_by_edition_id(db, edition_id)
-  return [CopyDTO.model_validate(r) for r in rows]
+  return [CopyDTO.model_validate(dict(r._mapping)) for r in rows]
 
 
 # -----------------------------------------------------------------
 # CREATE COPY
-async def create(db: AsyncSession, data: CreateCopyDTO) -> CopyDTO:
+async def create(db: AsyncSession, data: SaveCopyDTO) -> CopyDTO:
   edition = await db.get(models.Edition, data.edition_id)
   if not edition:
     raise NotFoundError(entity="Edición")
@@ -70,7 +61,6 @@ async def create(db: AsyncSession, data: CreateCopyDTO) -> CopyDTO:
 
   entity_data = data.model_dump()
   entity_data["barcode"] = data.signature_topography
-  entity_data["status_id"] = 1
 
   entity = await repository.create(db, entity_data)
   return CopyDTO.model_validate(entity)
@@ -78,10 +68,7 @@ async def create(db: AsyncSession, data: CreateCopyDTO) -> CopyDTO:
 
 # -----------------------------------------------------------------
 # UPDATE COPY
-async def update(db: AsyncSession, id: int, data: UpdateCopyDTO) -> CopyDTO | None:
-  if data.id_copy != id:
-    raise BadRequestProblem(detail="El ID no coincide")
-
+async def update(db: AsyncSession, id: int, data: SaveCopyDTO) -> CopyDTO | None:
   edition = await db.get(models.Edition, data.edition_id)
   if not edition:
     raise NotFoundError(entity="Edición")
