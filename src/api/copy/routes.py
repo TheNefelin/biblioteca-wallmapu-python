@@ -43,6 +43,20 @@ async def get_all_copy_detail_by_book(id_book: int, db: AsyncSession = Depends(g
 
 
 # -----------------------------------------------------------------
+@router.get(
+  "/edition/{id_edition}",
+  response_model=List[CopyDTO],
+  status_code=HTTP_200_OK,
+  summary="Listar ejemplares por edición (sin anidados)",
+  description="Retorna todos los ejemplares de una edición sin datos anidados",
+  dependencies=[admin_required],
+)
+async def get_all_copy_by_edition(id_edition: int, db: AsyncSession = Depends(get_db_async)):
+  res = await service.get_all_by_edition_id(db, id_edition)
+  return res
+
+
+# -----------------------------------------------------------------
 @router.post(
   "/",
   response_model=CopyDTO,

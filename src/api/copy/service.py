@@ -49,6 +49,13 @@ async def get_all_detail_by_book_id(db: AsyncSession, book_id: int) -> list[Copy
 
 
 # -----------------------------------------------------------------
+# GET ALL BY EDITION ID (sin anidados)
+async def get_all_by_edition_id(db: AsyncSession, edition_id: int) -> list[CopyDTO]:
+  rows = await repository.get_all_by_edition_id(db, edition_id)
+  return [CopyDTO.model_validate(r) for r in rows]
+
+
+# -----------------------------------------------------------------
 # CREATE COPY
 async def create(db: AsyncSession, data: CreateCopyDTO) -> CopyDTO:
   edition = await db.get(models.Edition, data.edition_id)

@@ -50,6 +50,17 @@ async def get_all_detail_by_book_id(db: AsyncSession, book_id: int) -> list:
 
 
 # -----------------------------------------------------------------
+# GET ALL BY EDITION ID (sin anidados)
+async def get_all_by_edition_id(db: AsyncSession, edition_id: int) -> list:
+  result = await db.execute(
+    select(models.Copy)
+    .where(models.Copy.edition_id == edition_id)
+    .order_by(models.Copy.id_copy.asc())
+  )
+  return list(result.scalars().all())
+
+
+# -----------------------------------------------------------------
 # GET BY ID
 async def get_by_id(db: AsyncSession, id: int) -> models.Copy | None:
   result = await db.execute(
