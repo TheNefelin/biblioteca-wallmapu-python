@@ -4,7 +4,7 @@ from math import ceil
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.models import Editorial
+from src.models.models import Edition, Editorial
 from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 
 
@@ -82,9 +82,22 @@ async def update(db: AsyncSession, entity: Editorial, update_data: dict) -> Edit
 
 # -----------------------------------------------------------------
 # DELETE
-async def delete(db: AsyncSession, entity: Editorial) -> None:
-  await db.delete(entity)
+async def delete(db: AsyncSession, id: int) -> bool | None:
+  relations_result = await db.execute(
+    select(Edition).where(Edition.editorial_id == id)
+  )
+  if relations_result.scalars().first():
+    return False
+
+  result = await db.execute(select(Editorial).where(Editorial.id_editorial == id))
+  item = result.scalar_one_or_none()
+
+  if not item:
+    return None
+
+  await db.delete(item)
   await db.commit()
+  return True
 
 
 # -----------------------------------------------------------------

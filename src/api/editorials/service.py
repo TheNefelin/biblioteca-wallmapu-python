@@ -1,6 +1,6 @@
 ﻿from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.exceptions import DuplicateNameError, NotFoundError
+from src.core.exceptions import AppError, DuplicateNameError, NotFoundError
 from src.schemas.dtos import EditorialResponse
 from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from . import repository
@@ -69,9 +69,12 @@ async def update(db: AsyncSession, id: int, dto) -> EditorialResponse:
 # -----------------------------------------------------------------
 # DELETE
 async def delete(db: AsyncSession, id: int) -> bool:
-  if not await repository.exists_by_id(db, id):
+  result = await repository.delete(db, id)
+
+  if result is None:
     raise NotFoundError("Editorial")
 
-  current = await repository.get_by_id(db, id)
-  await repository.delete(db, current)
-  return True
+  if result is False:
+    raise AppError("No se puede eliminar: la editorial tiene ediciones asociadas")
+
+  return result
