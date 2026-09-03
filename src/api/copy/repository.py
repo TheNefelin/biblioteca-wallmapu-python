@@ -63,7 +63,7 @@ async def get_all_by_edition_id(db: AsyncSession, edition_id: int) -> list:
 
 
 # -----------------------------------------------------------------
-# GET BY ID
+# GET BY ID (entity)
 async def get_by_id(db: AsyncSession, id: int) -> models.Copy | None:
   result = await db.execute(
     select(models.Copy)
@@ -74,6 +74,27 @@ async def get_by_id(db: AsyncSession, id: int) -> models.Copy | None:
     .where(models.Copy.id_copy == id)
   )
   return result.scalar_one_or_none()
+
+
+# -----------------------------------------------------------------
+# GET BY ID with status_name (flat row, para CopyDTO)
+async def get_by_id_with_status(db: AsyncSession, id: int):
+  result = await db.execute(
+    select(
+      models.Copy.id_copy,
+      models.Copy.barcode,
+      models.Copy.signature_topography,
+      models.Copy.copy_number,
+      models.Copy.created_at,
+      models.Copy.updated_at,
+      models.Copy.status_id,
+      models.CopyStatus.name.label("status_name"),
+      models.Copy.edition_id,
+    )
+    .join(models.CopyStatus, models.Copy.status_id == models.CopyStatus.id_status)
+    .where(models.Copy.id_copy == id)
+  )
+  return result.first()
 
 
 # -----------------------------------------------------------------

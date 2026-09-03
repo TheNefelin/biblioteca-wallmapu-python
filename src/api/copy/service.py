@@ -63,7 +63,8 @@ async def create(db: AsyncSession, data: SaveCopyDTO) -> CopyDTO:
   entity_data["barcode"] = data.signature_topography
 
   entity = await repository.create(db, entity_data)
-  return CopyDTO.model_validate(entity)
+  row = await repository.get_by_id_with_status(db, entity.id_copy)
+  return CopyDTO.model_validate(dict(row._mapping))
 
 
 # -----------------------------------------------------------------
@@ -96,7 +97,8 @@ async def update(db: AsyncSession, id: int, data: SaveCopyDTO) -> CopyDTO | None
         raise BadRequestProblem(detail=f"El número de ejemplar {new_copy_number} ya existe para esta edición")
 
   entity = await repository.update(db, current, update_data)
-  return CopyDTO.model_validate(entity)
+  row = await repository.get_by_id_with_status(db, entity.id_copy)
+  return CopyDTO.model_validate(dict(row._mapping))
 
 
 # -----------------------------------------------------------------

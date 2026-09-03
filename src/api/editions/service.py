@@ -2,7 +2,7 @@
 
 from rfc9457 import BadRequestProblem
 from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
-from src.schemas.dtos import EditionDTO, EditionDetailDTO, EditionFilterDTO, CreateEditionDTO, UpdateEditionDTO
+from src.schemas.dtos import EditionDTO, EditionDetailDTO, EditionFilterDTO, SaveEditionDTO
 from src.core import cloudinary
 from src.api.edition_format import service as edition_format_service
 from . import repository
@@ -50,7 +50,7 @@ async def get_edition_by_id(db: AsyncSession, id: int) -> EditionDTO | None:
 
 # -----------------------------------------------------------------
 # CREATE
-async def create_edition(db: AsyncSession, data: CreateEditionDTO) -> EditionDTO:
+async def create_edition(db: AsyncSession, data: SaveEditionDTO) -> EditionDTO:
   dump = data.model_dump()
   format_ids = dump.pop("format_ids", None)
 
@@ -64,10 +64,7 @@ async def create_edition(db: AsyncSession, data: CreateEditionDTO) -> EditionDTO
 
 # -----------------------------------------------------------------
 # UPDATE
-async def update_edition(db: AsyncSession, id: int, data: UpdateEditionDTO) -> EditionDTO | None:
-  if data.id_edition != id:
-    raise BadRequestProblem(detail="El ID no coincide")
-
+async def update_edition(db: AsyncSession, id: int, data: SaveEditionDTO) -> EditionDTO | None:
   edition = await repository.get_entity_by_id(db, id)
   if not edition:
     return None

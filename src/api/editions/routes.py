@@ -9,11 +9,10 @@ from src.core.roles import UserRole
 from src.core.exceptions import NotFoundError, AppError
 from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
 from src.schemas.dtos import (
-    CreateEditionDTO,
     EditionDTO,
     EditionDetailDTO,
     EditionFilterDTO,
-    UpdateEditionDTO,
+    SaveEditionDTO,
 )
 from . import service
 
@@ -119,7 +118,7 @@ async def get_edition_by_id(id: int, db: AsyncSession = Depends(get_db_async)):
   description="Crea una nueva edición asociada a un libro",
   dependencies=[admin_required],
 )
-async def create_edition(item: CreateEditionDTO, db: AsyncSession = Depends(get_db_async)):
+async def create_edition(item: SaveEditionDTO, db: AsyncSession = Depends(get_db_async)):
   res = await service.create_edition(db, item)
   return res
 
@@ -133,7 +132,7 @@ async def create_edition(item: CreateEditionDTO, db: AsyncSession = Depends(get_
   description="Actualiza una edición existente por ID",
   dependencies=[admin_required],
 )
-async def update_edition(id: int, item: UpdateEditionDTO, db: AsyncSession = Depends(get_db_async)):
+async def update_edition(id: int, item: SaveEditionDTO, db: AsyncSession = Depends(get_db_async)):
   result = await service.update_edition(db, id, item)
   if not result:
     raise NotFoundError(entity="Edición")
