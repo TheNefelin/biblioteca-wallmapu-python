@@ -256,9 +256,11 @@ async def has_copies(db: AsyncSession, edition_id: int) -> bool:
 
 
 # -----------------------------------------------------------------
-# HAS EDITION FORMATS
-async def has_edition_formats(db: AsyncSession, edition_id: int) -> bool:
+# DELETE FORMATS BY EDITION
+async def delete_formats_by_edition(db: AsyncSession, edition_id: int) -> None:
   result = await db.execute(
     select(models.EditionFormat).where(models.EditionFormat.id_edition == edition_id)
   )
-  return result.first() is not None
+  for ef in result.scalars().all():
+    await db.delete(ef)
+  await db.flush()
