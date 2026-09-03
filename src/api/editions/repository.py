@@ -253,3 +253,12 @@ async def has_copies(db: AsyncSession, edition_id: int) -> bool:
     select(models.Copy).where(models.Copy.edition_id == edition_id)
   )
   return result.first() is not None
+
+
+# -----------------------------------------------------------------
+# HAS EDITION FORMATS
+async def has_edition_formats(db: AsyncSession, edition_id: int) -> bool:
+  result = await db.execute(
+    select(models.EditionFormat).where(models.EditionFormat.id_edition == edition_id)
+  )
+  return result.first() is not None

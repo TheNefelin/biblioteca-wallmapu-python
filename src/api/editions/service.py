@@ -90,6 +90,9 @@ async def delete_edition_with_image(db: AsyncSession, id: int) -> bool:
   if await repository.has_copies(db, edition.id_edition):
     raise BadRequestProblem(detail=f"La edición ({edition.edition}) tiene copias asociadas")
 
+  if await repository.has_edition_formats(db, edition.id_edition):
+    raise BadRequestProblem(detail=f"La edición ({edition.edition}) tiene formatos asociados")
+
   url = await repository.delete(db, edition)
 
   if url:

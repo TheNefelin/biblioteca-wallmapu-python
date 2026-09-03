@@ -87,6 +87,47 @@ async def test_edition_by_id_admin(client, make_user):
   assert body is not None
 
 
+async def test_edition_delete_blocked_by_formats(client, make_user):
+  """Sin cascades: no se elimina una edición con formatos asociados (dependencia)."""
+  admin, headers = await make_user("admin@ed4.cl", "Admin")
+  payload = {
+    "edition": "Edición con formato",
+    "isbn": "9780000000002",
+    "publication_year": 2024,
+    "pages": 100,
+    "editorial_id": 1,
+    "book_id": 1,
+    "format_ids": [1],
+  }
+  resp = await client.post("/api/edition/", json=payload, headers=headers)
+  assert resp.status_code == 201
+  edition_id = resp.json()["id_edition"]
+
+  resp_del = await client.delete(f"/api/edition/{edition_id}", headers=headers)
+  assert resp_del.status_code == 400
+  assert "formatos asociados" in resp_del.json().get("detail", "")
+
+
+async def test_edition_delete_ok_without_dependencies(client, make_user):
+  """Se elimina una edición sin dependencias (sin copias ni formatos)."""
+  admin, headers = await make_user("admin@ed5.cl", "Admin")
+  payload = {
+    "edition": "Edición sin dependencias",
+    "isbn": "9780000000003",
+    "publication_year": 2024,
+    "pages": 90,
+    "editorial_id": 1,
+    "book_id": 1,
+  }
+  resp = await client.post("/api/edition/", json=payload, headers=headers)
+  assert resp.status_code == 201
+  edition_id = resp.json()["id_edition"]
+
+  resp_del = await client.delete(f"/api/edition/{edition_id}", headers=headers)
+  assert resp_del.status_code == 200
+  assert resp_del.json() is True
+
+
 def body_status_error(resp):
   """True si la API responde con un error RFC 9457 (auth/forbidden/servidor global)."""
   body = resp.json()

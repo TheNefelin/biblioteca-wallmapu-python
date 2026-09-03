@@ -295,6 +295,7 @@ async def delete(db: AsyncSession, item: models.Product) -> None:
 - Identidades: si una PK/columna es `GENERATED ALWAYS AS IDENTITY`, **no insertar valores explícitos** para esa columna (Postgres lanza `ProgrammingError`). Para idempotencia en el seed: si la columna tiene UNIQUE (`ON CONFLICT (col)`), y si NO la tiene (`INSERT ... SELECT ... WHERE NOT EXISTS`).
 - `Mapped`/`mapped_column` con tipos de Python (`str | None`), no strings.
 - Relaciones con `back_populates` simétricos y `order_by` para listas ordenadas.
+- **Prohibido el borrado en cascada**: no usar `cascade="all, delete-orphan"` en `relationship` ni `ondelete="CASCADE"` en `ForeignKey`. La integridad referencial se protege **bloqueando** el borrado del padre si tiene hijos. Toda eliminación debe **validar explícitamente las dependencias con otras tablas** en el service (patrón `has_copies`/`has_edition_formats` de `editions`, o `exists_by_copy_id`/`exists_by_*` en copy/book) y lanzar `BadRequestProblem` con mensaje claro si existen. Las tablas de relación (puente) también cuentan como dependencia: no des-asociar "en cascada" un padre eliminado; bloquearlo.
 - Timestamps: `server_default=func.now()` y `onupdate=func.now()` para `updated_at`.
 - FK de tablas de progreso/relaciones usuario–recurso: PK compuestas con `primary_key=True` en ambas columnas (no `id` sintético inventado).
 - Monedas/precios en enteros (centavos), nunca `float`.
@@ -1209,6 +1210,7 @@ Antes de dar una API por terminada:
 - [ ] Errores RFC 9457 (`fastapi-problem`), nunca `HTTPException` en rutas
 - [ ] Auth: el rol se lee de la BD por request; `require_admin`/`require_user` declarativos; refresh rotation; API Key global; `user_id` extraído del token, nunca del body
 - [ ] Cross-feature solo service→service (sin imports a repository de otra feature); `commit` solo en repositories
+- [ ] Borrado sin cascades: todo `delete` valida sus dependencias con otras tablas y bloquea con `BadRequestProblem` si hay hijos (sin `cascade`/`ondelete="CASCADE"`)
 - [ ] Uploads: borra la imagen anterior antes de subir, `delete()` limpia el storage, `extract_public_id` salta transformaciones
 - [ ] Rate limiting por identidad (JWT→`user:{id}`, si no→IP) + límite por endpoint si es formulario público
 - [ ] Logging JSON con `request_id` por petición
@@ -1234,6 +1236,7 @@ Antes de dar una API por terminada:
 | Lógica en la ruta (validaciones, queries) | Imposible de testear unitariamente y de reutilizar |
 | Un service que importa el repository de **otra** feature | Acopla la feature por implementación; romper esa tabla rompe todo. Ir siempre por el service (service→service) |
 | `db.commit()` en el service | El commit es responsabilidad de la capa de datos; en el service se pierde la atomicidad (varios commits sueltos) y se mezclan responsabilidades |
+| **Borrado en cascada** (`cascade="all, delete-orphan"` o `ondelete="CASCADE"`) | Borra datos dependientes sin validación y sin aviso; rompe la integridad referencial. Con PK compuestas en tablas puente lanza `AssertionError` en SQLAlchemy. Todo borrado debe validar dependencias y bloquearte (`BadRequestProblem`) si existen |
 | **Confiar en el rol del token JWT** (sin leerlo de la BD) | Un admin destituido sigue con acceso hasta que expire el token (2h); un usuario eliminado sigue activo. Leer el rol real en cada request |
 | `Annotated[Model, Query()]` para paginación + otros query params | Rompe con 422 en FastAPI 0.139+ |
 | `model_validate` con `str` en fechas | Pydantic v2 falla silenciosamente/estricto |
