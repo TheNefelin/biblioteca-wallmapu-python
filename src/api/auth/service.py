@@ -1,7 +1,7 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+﻿from sqlalchemy.ext.asyncio import AsyncSession
 
 from rfc9457 import BadRequestProblem
-from src.schemas.dtos import AuthUser, AuthGoogleResponse, AuthGoogleRequest, CreateUser
+from src.schemas.dtos import AuthUserResponse, AuthGoogleResponse, AuthGoogleRequest, UserRequest
 from src.api.users import service as user_service
 from src.core import security
 from . import google_service
@@ -19,7 +19,7 @@ async def auth_service(
     raise BadRequestProblem(detail=f"Email no verificado en Google")
 
   # 3. obtener o crear usuario
-  user = CreateUser(
+  user = UserRequest(
     email=google_user_info.email,
     name=google_user_info.name,
   )
@@ -35,7 +35,7 @@ async def auth_service(
     user.user_role_name
   )
 
-  # 5. verificar si el perfil está completo
+  # 5. verificar si el perfil estÃ¡ completo
   profile_complete = bool(
     user.name and
     user.lastname and
@@ -43,7 +43,7 @@ async def auth_service(
   )
 
   # 6. prepara usuario
-  auth_user = AuthUser(
+  auth_user = AuthUserResponse(
     id_user=user.id_user,
     email=user.email,
     name=user.name,

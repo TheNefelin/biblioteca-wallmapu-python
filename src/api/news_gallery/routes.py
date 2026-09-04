@@ -6,7 +6,7 @@ from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.core.database import get_db_async
 from src.core.exceptions import AppError
-from src.schemas.dtos import NewsGalleryDTO
+from src.schemas.dtos import NewsGalleryResponse
 from . import service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/news-gallery", tags=["news-gallery"])
 # GET ALL
 @router.get(
   "/news/{news_id}",
-  response_model=list[NewsGalleryDTO],
+  response_model=list[NewsGalleryResponse],
   status_code=HTTP_200_OK,
   summary="Obtener imágenes de una noticia",
   description="Retorna todas las imágenes asociadas a una noticia por su ID"
@@ -34,7 +34,7 @@ async def get_by_news_id(
 # CREATE
 @router.post(
   "/news/{news_id}",
-  response_model=list[NewsGalleryDTO],
+  response_model=list[NewsGalleryResponse],
   status_code=status.HTTP_201_CREATED,
   summary="Subir imágenes a noticia",
   description="Sube hasta 3 imágenes a una noticia existente (solo admin)",

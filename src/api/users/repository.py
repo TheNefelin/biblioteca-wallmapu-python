@@ -5,12 +5,12 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy import UUID
 
 from src.models import models
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
 
 
 # -----------------------------------------------------------------
 # GET ALL DETAILED
-async def get_all_detailed(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+async def get_all_detailed(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse:
   query = (
     select(models.User)
     .options(
@@ -40,7 +40,7 @@ async def get_all_detailed(db: AsyncSession, pagination: PaginationRequestDTO) -
     query.order_by(models.User.updated_at.desc()).offset(skip).limit(pagination.limit)
   )).scalars().all()
 
-  return PaginationResponseDTO(
+  return PaginationResponse(
     page=page,
     pages=pages,
     items=items,

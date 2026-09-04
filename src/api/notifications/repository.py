@@ -4,12 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models import models
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
 
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATED (Admin)
-async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse:
   stmt = select(models.Notification).options(
     selectinload(models.Notification.user)
   )
@@ -41,7 +41,7 @@ async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO)
     .limit(pagination.limit)
   )).scalars().all()
 
-  return PaginationResponseDTO(
+  return PaginationResponse(
     page=page,
     pages=total_pages,
     items=total_items,
@@ -53,7 +53,7 @@ async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO)
 
 # -----------------------------------------------------------------
 # GET BY USER PAGINATED
-async def get_by_user_paginated(db: AsyncSession, user_id: str, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+async def get_by_user_paginated(db: AsyncSession, user_id: str, pagination: PaginationRequest) -> PaginationResponse:
   stmt = select(models.Notification).options(
     selectinload(models.Notification.user)
   ).where(models.Notification.user_id == user_id)
@@ -85,7 +85,7 @@ async def get_by_user_paginated(db: AsyncSession, user_id: str, pagination: Pagi
     .limit(pagination.limit)
   )).scalars().all()
 
-  return PaginationResponseDTO(
+  return PaginationResponse(
     page=page,
     pages=total_pages,
     items=total_items,

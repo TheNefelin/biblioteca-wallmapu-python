@@ -7,8 +7,8 @@ from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.core.exceptions import NotFoundError, AppError
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
-from src.schemas.dtos import BookDTO, BookDetailDTO, CreateBookDTO, UpdateBookDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
+from src.schemas.dtos import BookResponse, BookDetailResponse, BookRequest
 from . import service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/books", tags=["books"])
 # -----------------------------------------------------------------
 @router.get(
   "/pagination",
-  response_model=PaginationResponseDTO[List[BookDetailDTO]],
+  response_model=PaginationResponse[List[BookDetailResponse]],
   status_code=HTTP_200_OK,
   summary="Listar libros con paginación (DTO plano)",
   description="Retorna lista paginada con DTO plano (autor, género, portada, conteos)",
@@ -27,7 +27,7 @@ router = APIRouter(prefix="/books", tags=["books"])
 )
 async def get_all_pagination(
   request: Request,
-  pagination_request: PaginationRequestDTO = Depends(),
+  pagination_request: PaginationRequest = Depends(),
   db: AsyncSession = Depends(get_db_async)
 ):
   pagination_response = await service.get_all_pagination(db, pagination_request)
@@ -43,7 +43,7 @@ async def get_all_pagination(
 # -----------------------------------------------------------------
 @router.get(
   "/{id}",
-  response_model=BookDTO,
+  response_model=BookResponse,
   status_code=HTTP_200_OK,
   summary="Obtener libro por ID",
   description="Retorna un libro con género, autores y descriptores",
@@ -63,14 +63,14 @@ async def get_book_by_id(
 # -----------------------------------------------------------------
 @router.post(
   "/",
-  response_model=BookDTO,
+  response_model=BookResponse,
   status_code=HTTP_201_CREATED,
   summary="Crear nuevo libro",
   description="Crea un libro con autores y descriptores asociados",
   dependencies=[admin_required],
 )
 async def create_book(
-  book: CreateBookDTO,
+  book: BookRequest,
   db: AsyncSession = Depends(get_db_async)
 ):
   result = await service.create_book(db, book)
@@ -80,7 +80,7 @@ async def create_book(
 # -----------------------------------------------------------------
 @router.put(
   "/{id}",
-  response_model=BookDTO,
+  response_model=BookResponse,
   status_code=HTTP_200_OK,
   summary="Actualizar libro",
   description="Actualiza un libro existente con autores y descriptores",
@@ -88,7 +88,7 @@ async def create_book(
 )
 async def update_book(
   id: int,
-  book: UpdateBookDTO,
+  book: BookRequest,
   db: AsyncSession = Depends(get_db_async)
 ):
   result = await service.update_book(db, id, book)

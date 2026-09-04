@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models import models
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
 
 
 def _reservation_detail_options():
@@ -21,7 +21,7 @@ def _reservation_detail_options():
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
-async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse:
   stmt = select(models.Reservation).options(*_reservation_detail_options())
 
   status_filter = pagination.filter.id_status if pagination.filter else None
@@ -42,7 +42,7 @@ async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO)
     .limit(pagination.limit)
   )).scalars().all()
 
-  return PaginationResponseDTO(
+  return PaginationResponse(
     page=page,
     pages=total_pages,
     items=total_items,
@@ -54,7 +54,7 @@ async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO)
 
 # -----------------------------------------------------------------
 # GET USER PAGINATION
-async def get_all_pagination_by_user(db: AsyncSession, user_id: UUID, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+async def get_all_pagination_by_user(db: AsyncSession, user_id: UUID, pagination: PaginationRequest) -> PaginationResponse:
   stmt = select(models.Reservation).options(*_reservation_detail_options()).where(models.Reservation.user_id == user_id)
 
   status_filter = pagination.filter.id_status if pagination.filter else None
@@ -75,7 +75,7 @@ async def get_all_pagination_by_user(db: AsyncSession, user_id: UUID, pagination
     .limit(pagination.limit)
   )).scalars().all()
 
-  return PaginationResponseDTO(
+  return PaginationResponse(
     page=page,
     pages=total_pages,
     items=total_items,

@@ -6,7 +6,7 @@ from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.core.exceptions import AppError, NotFoundError
-from src.schemas.dtos import BookSubjectDTO
+from src.schemas.dtos import BookSubjectResponse
 from . import service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
@@ -21,7 +21,7 @@ router = APIRouter(
 # UPDATE (reemplaza descriptores del libro; body vacío elimina todos)
 @router.put(
   "/{id_book}",
-  response_model=list[BookSubjectDTO],
+  response_model=list[BookSubjectResponse],
   status_code=HTTP_200_OK,
   summary="Reemplazar descriptores de un libro",
   description="Elimina todos los descriptores actuales y asigna la nueva lista. Body vacío elimina todos.",

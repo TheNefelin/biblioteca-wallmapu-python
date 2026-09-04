@@ -1,8 +1,8 @@
 ﻿from sqlalchemy.ext.asyncio import AsyncSession
 
 from rfc9457 import BadRequestProblem
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
-from src.schemas.dtos import CreateBookDTO, BookDTO, BookDetailDTO, UpdateBookDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
+from src.schemas.dtos import BookRequest, BookResponse, BookDetailResponse
 from src.api.book_authors import repository as book_authors_repository
 from src.api.book_authors import service as book_author_service
 from src.api.book_subjects import repository as book_subjects_repository
@@ -12,9 +12,9 @@ from src.api.loans import repository as loans_repository
 from . import repository
 
 
-def _to_book_dto(item) -> BookDTO:
-  """Convierte un objeto ORM Book a BookDTO, aplanando relaciones a strings."""
-  return BookDTO(
+def _to_book_dto(item) -> BookResponse:
+  """Convierte un objeto ORM Book a BookResponse, aplanando relaciones a strings."""
+  return BookResponse(
     id_book=item.id_book,
     title=item.title,
     summary=item.summary,
@@ -28,12 +28,12 @@ def _to_book_dto(item) -> BookDTO:
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
-async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[BookDetailDTO]]:
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse[list[BookDetailResponse]]:
   response = await repository.get_all_pagination(db, pagination)
   books = response.data or []
-  data = [BookDetailDTO.model_validate(dict(row._mapping)) for row in books]
+  data = [BookDetailResponse.model_validate(dict(row._mapping)) for row in books]
 
-  return PaginationResponseDTO[list[BookDetailDTO]](
+  return PaginationResponse[list[BookDetailResponse]](
     page=response.page,
     pages=response.pages,
     items=response.items,
@@ -45,7 +45,7 @@ async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO)
 
 # -----------------------------------------------------------------
 # GET BY ID
-async def get_book_by_id(db: AsyncSession, id: int) -> BookDTO | None:
+async def get_book_by_id(db: AsyncSession, id: int) -> BookResponse | None:
   item = await repository.get_by_id(db, id)
   if not item:
     return None
@@ -54,7 +54,7 @@ async def get_book_by_id(db: AsyncSession, id: int) -> BookDTO | None:
 
 # -----------------------------------------------------------------
 # CREATE
-async def create_book(db: AsyncSession, data: CreateBookDTO) -> BookDTO:
+async def create_book(db: AsyncSession, data: BookRequest) -> BookResponse:
   dump = data.model_dump(exclude_unset=True)
   author_ids = dump.pop("author_ids", []) or []
   subject_ids = dump.pop("subject_ids", []) or []
@@ -70,7 +70,7 @@ async def create_book(db: AsyncSession, data: CreateBookDTO) -> BookDTO:
 
 # -----------------------------------------------------------------
 # UPDATE
-async def update_book(db: AsyncSession, id: int, data: UpdateBookDTO) -> BookDTO | None:
+async def update_book(db: AsyncSession, id: int, data: BookRequest) -> BookResponse | None:
   if data.id_book != id:
     raise BadRequestProblem(detail="El ID no coincide")
 

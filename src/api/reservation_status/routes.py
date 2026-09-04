@@ -6,7 +6,7 @@ from starlette.status import HTTP_200_OK
 from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
-from src.schemas.dtos import ReservationStatusDTO
+from src.schemas.dtos import ReservationStatusResponse
 from . import service
 
 user_or_admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN, UserRole.LECTOR]))
@@ -21,7 +21,7 @@ router = APIRouter(
 # GET ALL
 @router.get(
   "/",
-  response_model=List[ReservationStatusDTO],
+  response_model=List[ReservationStatusResponse],
   status_code=HTTP_200_OK
 )
 async def get_all_reservation_status(db: AsyncSession = Depends(get_db_async)):

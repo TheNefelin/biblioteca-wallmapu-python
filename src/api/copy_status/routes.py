@@ -6,7 +6,7 @@ from starlette.status import HTTP_200_OK
 from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
-from src.schemas.dtos import CopyStatusDTO
+from src.schemas.dtos import CopyStatusResponse
 from . import service
 
 
@@ -22,7 +22,7 @@ router = APIRouter(
 # -----------------------------------------------------------------
 @router.get(
   "/",
-  response_model=List[CopyStatusDTO],
+  response_model=List[CopyStatusResponse],
   status_code=HTTP_200_OK,
   summary="Listar estados de ejemplar",
   description="Retorna todos los estados de ejemplar para selects",

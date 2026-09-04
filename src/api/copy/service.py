@@ -1,11 +1,11 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+﻿from sqlalchemy.ext.asyncio import AsyncSession
 
 from rfc9457 import BadRequestProblem
 from src.core.exceptions import NotFoundError
 from src.models import models
 from src.api.loans import repository as loan_repository
 from src.api.reservations import repository as reservation_repository
-from src.schemas.dtos import CopyDTO, CopyDetailDTO, SaveCopyDTO
+from src.schemas.dtos import CopyResponse, CopyDetailResponse, CopyRequest
 from . import repository
 
 
@@ -17,21 +17,21 @@ def _compute_availability(row, loaned_ids: set, reserved_ids: set) -> tuple[bool
   if row.id_copy in reserved_ids:
     return False, "Pendiente de Retiro"
   if row.id_copy in loaned_ids:
-    return False, "En Préstamo"
+    return False, "En PrÃ©stamo"
   return True, "Disponible"
 
 
-def _map_to_detail(row, loaned_ids: set, reserved_ids: set) -> CopyDetailDTO:
+def _map_to_detail(row, loaned_ids: set, reserved_ids: set) -> CopyDetailResponse:
   available, status = _compute_availability(row, loaned_ids, reserved_ids)
   data = dict(row._mapping)
   data["is_availability"] = available
   data["availability_status"] = status
-  return CopyDetailDTO.model_validate(data)
+  return CopyDetailResponse.model_validate(data)
 
 
 # -----------------------------------------------------------------
 # GET ALL DETAIL BY BOOK ID
-async def get_all_detail_by_book_id(db: AsyncSession, book_id: int) -> list[CopyDetailDTO]:
+async def get_all_detail_by_book_id(db: AsyncSession, book_id: int) -> list[CopyDetailResponse]:
   rows = await repository.get_all_detail_by_book_id(db, book_id)
   rows = [r for r in rows if r.status_id == 1]
   loaned_ids = {l.copy_id for l in await loan_repository.get_all_active(db)}
@@ -41,38 +41,38 @@ async def get_all_detail_by_book_id(db: AsyncSession, book_id: int) -> list[Copy
 
 # -----------------------------------------------------------------
 # GET ALL BY EDITION ID (sin anidados)
-async def get_all_by_edition_id(db: AsyncSession, edition_id: int) -> list[CopyDTO]:
+async def get_all_by_edition_id(db: AsyncSession, edition_id: int) -> list[CopyResponse]:
   rows = await repository.get_all_by_edition_id(db, edition_id)
-  return [CopyDTO.model_validate(dict(r._mapping)) for r in rows]
+  return [CopyResponse.model_validate(dict(r._mapping)) for r in rows]
 
 
 # -----------------------------------------------------------------
 # CREATE COPY
-async def create(db: AsyncSession, data: SaveCopyDTO) -> CopyDTO:
+async def create(db: AsyncSession, data: CopyRequest) -> CopyResponse:
   edition = await db.get(models.Edition, data.edition_id)
   if not edition:
-    raise NotFoundError(entity="Edición")
+    raise NotFoundError(entity="EdiciÃ³n")
 
   if await repository.signature_exists(db, data.signature_topography):
-    raise BadRequestProblem(detail="La Firma Topográfica ya existe")
+    raise BadRequestProblem(detail="La Firma TopogrÃ¡fica ya existe")
 
   if await repository.copy_number_exists(db, data.edition_id, data.copy_number):
-    raise BadRequestProblem(detail=f"El número de ejemplar {data.copy_number} ya existe para esta edición")
+    raise BadRequestProblem(detail=f"El nÃºmero de ejemplar {data.copy_number} ya existe para esta ediciÃ³n")
 
   entity_data = data.model_dump()
   entity_data["barcode"] = data.signature_topography
 
   entity = await repository.create(db, entity_data)
   row = await repository.get_by_id_with_status(db, entity.id_copy)
-  return CopyDTO.model_validate(dict(row._mapping))
+  return CopyResponse.model_validate(dict(row._mapping))
 
 
 # -----------------------------------------------------------------
 # UPDATE COPY
-async def update(db: AsyncSession, id: int, data: SaveCopyDTO) -> CopyDTO | None:
+async def update(db: AsyncSession, id: int, data: CopyRequest) -> CopyResponse | None:
   edition = await db.get(models.Edition, data.edition_id)
   if not edition:
-    raise NotFoundError(entity="Edición")
+    raise NotFoundError(entity="EdiciÃ³n")
   status = await db.get(models.CopyStatus, data.status_id)
   if not status:
     raise NotFoundError(entity="Estado")
@@ -87,18 +87,18 @@ async def update(db: AsyncSession, id: int, data: SaveCopyDTO) -> CopyDTO | None
     new_signature = update_data["signature_topography"]
     if new_signature != current.signature_topography:
       if await repository.signature_exists(db, new_signature, exclude_id=id):
-        raise BadRequestProblem(detail="La signatura topográfica ya está en uso por otro ejemplar")
+        raise BadRequestProblem(detail="La signatura topogrÃ¡fica ya estÃ¡ en uso por otro ejemplar")
       update_data["barcode"] = new_signature
 
   if "copy_number" in update_data and update_data["copy_number"] is not None:
     new_copy_number = update_data["copy_number"]
     if new_copy_number != current.copy_number:
       if await repository.copy_number_exists(db, data.edition_id, new_copy_number, exclude_id=id):
-        raise BadRequestProblem(detail=f"El número de ejemplar {new_copy_number} ya existe para esta edición")
+        raise BadRequestProblem(detail=f"El nÃºmero de ejemplar {new_copy_number} ya existe para esta ediciÃ³n")
 
   entity = await repository.update(db, current, update_data)
   row = await repository.get_by_id_with_status(db, entity.id_copy)
-  return CopyDTO.model_validate(dict(row._mapping))
+  return CopyResponse.model_validate(dict(row._mapping))
 
 
 # -----------------------------------------------------------------
@@ -109,7 +109,7 @@ async def delete(db: AsyncSession, id: int) -> bool:
     return False
 
   if await loan_repository.exists_by_copy_id(db, id):
-    raise BadRequestProblem(detail="No se puede eliminar el ejemplar porque tiene préstamos asociados")
+    raise BadRequestProblem(detail="No se puede eliminar el ejemplar porque tiene prÃ©stamos asociados")
 
   if await reservation_repository.exists_by_copy_id(db, id):
     raise BadRequestProblem(detail="No se puede eliminar el ejemplar porque tiene reservas asociadas")

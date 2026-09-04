@@ -4,11 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_200_OK, HTTP_202_ACCEPTED
 
 from src.core.exceptions import AppError, NotFoundError
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.core.database import get_db_async
-from src.schemas.dtos import CreateNewsDTO, NewsDTO, NewsWithGalleryDTO, UpdateNewsDTO
+from src.schemas.dtos import NewsRequest, NewsResponse, NewsWithGalleryResponse, NewsRequest
 from . import service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
@@ -19,14 +19,14 @@ router = APIRouter(prefix="/news", tags=["news"])
 # GET ALL Pagination
 @router.get(
   "/",
-  response_model=PaginationResponseDTO[List[NewsWithGalleryDTO]],
+  response_model=PaginationResponse[List[NewsWithGalleryResponse]],
   status_code=HTTP_200_OK,
   summary="Listar noticias",
   description="Retorna lista paginada de noticias con sus imágenes"
 )
 async def get_all_pagination(
   request: Request,
-  pagination_request: PaginationRequestDTO = Depends(),
+  pagination_request: PaginationRequest = Depends(),
   db: AsyncSession = Depends(get_db_async)
 ):
   pagination_response = await service.get_all_pagination(db, pagination_request)
@@ -49,7 +49,7 @@ async def get_all_pagination(
 # GET BY ID
 @router.get(
   "/{id}",
-  response_model=NewsWithGalleryDTO,
+  response_model=NewsWithGalleryResponse,
   status_code=HTTP_200_OK,
   summary="Obtener noticia por ID",
   description="Retorna una noticia específica con sus imágenes"
@@ -70,14 +70,14 @@ async def get_by_id(
 # CREATE
 @router.post(
   "/",
-  response_model=NewsDTO,
+  response_model=NewsResponse,
   status_code=status.HTTP_201_CREATED,
   summary="Crear noticia",
   description="Crea una nueva noticia (solo admin)",
   dependencies=[admin_required],
 )
 async def create(
-  news: CreateNewsDTO,
+  news: NewsRequest,
   db: AsyncSession = Depends(get_db_async)
 ):
   try:
@@ -91,7 +91,7 @@ async def create(
 # UPDATE
 @router.put(
   "/{id}",
-  response_model=NewsDTO,
+  response_model=NewsResponse,
   status_code=HTTP_202_ACCEPTED,
   summary="Actualizar noticia",
   description="Actualiza una noticia existente (solo admin)",
@@ -99,7 +99,7 @@ async def create(
 )
 async def update(
   id: int,
-  news: UpdateNewsDTO,
+  news: NewsRequest,
   db: AsyncSession = Depends(get_db_async)
 ):
   try:

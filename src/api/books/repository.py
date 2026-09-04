@@ -4,15 +4,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models import models
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
 
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
 async def get_all_pagination(
   db: AsyncSession,
-  pagination: PaginationRequestDTO
-) -> PaginationResponseDTO:
+  pagination: PaginationRequest
+) -> PaginationResponse:
   first_author_subq = (
     select(
       models.BookAuthor.id_book,
@@ -118,7 +118,7 @@ async def get_all_pagination(
     .limit(pagination.limit)
   )).all()
 
-  return PaginationResponseDTO(
+  return PaginationResponse(
     page=page,
     pages=total_pages,
     items=total_items,

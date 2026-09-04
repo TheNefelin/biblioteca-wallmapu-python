@@ -1,12 +1,12 @@
 ﻿from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
 from src.schemas.dtos import (
-  CreateNotificationByEmailDTO,
-  CreateNotificationDTO,
-  NotificationDTO,
-  NotificationDetailDTO,
+  NotificationByEmailRequest,
+  NotificationRequest,
+  NotificationResponse,
+  NotificationDetailResponse,
 )
 from rfc9457 import BadRequestProblem
 from src.api.reservations import repository as reservation_repository
@@ -21,16 +21,16 @@ logger = logging.getLogger(__name__)
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATED (Admin)
-async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[NotificationDetailDTO]]:
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse[list[NotificationDetailResponse]]:
   pagination_response = await repository.get_all_pagination(db, pagination)
   items = pagination_response.data or []
 
-  data = [NotificationDetailDTO(
-    **NotificationDTO.model_validate(item).model_dump(),
+  data = [NotificationDetailResponse(
+    **NotificationResponse.model_validate(item).model_dump(),
     email=item.user.email if item.user else ""
   ) for item in items]
 
-  return PaginationResponseDTO[list[NotificationDetailDTO]](
+  return PaginationResponse[list[NotificationDetailResponse]](
     page=pagination_response.page,
     pages=pagination_response.pages,
     items=pagination_response.items,
@@ -42,16 +42,16 @@ async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO)
 
 # -----------------------------------------------------------------
 # GET BY USER PAGINATED
-async def get_by_user_paginated(db: AsyncSession, user_id: str, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[NotificationDetailDTO]]:
+async def get_by_user_paginated(db: AsyncSession, user_id: str, pagination: PaginationRequest) -> PaginationResponse[list[NotificationDetailResponse]]:
   pagination_response = await repository.get_by_user_paginated(db, user_id, pagination)
   items = pagination_response.data or []
 
-  data = [NotificationDetailDTO(
-    **NotificationDTO.model_validate(item).model_dump(),
+  data = [NotificationDetailResponse(
+    **NotificationResponse.model_validate(item).model_dump(),
     email=item.user.email if item.user else ""
   ) for item in items]
 
-  return PaginationResponseDTO[list[NotificationDetailDTO]](
+  return PaginationResponse[list[NotificationDetailResponse]](
     page=pagination_response.page,
     pages=pagination_response.pages,
     items=pagination_response.items,
@@ -69,16 +69,16 @@ async def count_unread_by_user_id(db: AsyncSession, user_id: str) -> int:
 
 # -----------------------------------------------------------------
 # GET BY ID
-async def get_by_id(db: AsyncSession, id: int) -> NotificationDTO | None:
+async def get_by_id(db: AsyncSession, id: int) -> NotificationResponse | None:
   notification = await repository.get_by_id(db, id)
   if not notification:
     return None
-  return NotificationDTO.model_validate(notification)
+  return NotificationResponse.model_validate(notification)
 
 
 # -----------------------------------------------------------------
 # CREATE
-async def create(db: AsyncSession, dto: CreateNotificationByEmailDTO) -> NotificationDTO | None:
+async def create(db: AsyncSession, dto: NotificationByEmailRequest) -> NotificationResponse | None:
   user = await user_repository.get_by_email(db, dto.email)
 
   if not user:
@@ -91,7 +91,7 @@ async def create(db: AsyncSession, dto: CreateNotificationByEmailDTO) -> Notific
     user_email=dto.email,
   )
 
-  notification = CreateNotificationDTO(
+  notification = NotificationRequest(
     title=dto.title,
     message=dto.message,
     is_priority=dto.is_priority,
@@ -112,13 +112,13 @@ async def create(db: AsyncSession, dto: CreateNotificationByEmailDTO) -> Notific
     print(f"Error al enviar el email: {created.id_notification}")
     logger.error(f"Error al enviar el email: {created.id_notification}", exc_info=True)
 
-  return NotificationDTO.model_validate(created)
+  return NotificationResponse.model_validate(created)
 
 
 # -----------------------------------------------------------------
 # CREATE WELCOME NOTIFICATION
 async def create_welcome_notification(db: AsyncSession, user_id: str, user_email: str, user_name: str):
-  notification = CreateNotificationDTO(
+  notification = NotificationRequest(
     title="BIENVENIDO/A",
     message=f"¡Bienvenido/a {user_name}! Tu cuenta ha sido creada exitosamente en Biblioteca Wallmapu.",
     is_priority=False,
@@ -150,7 +150,7 @@ async def notification_for_create_reservation_and_send_email(db: AsyncSession, r
     expiration_date=reservation.expiration_date
   )
 
-  notification = CreateNotificationDTO(
+  notification = NotificationRequest(
     title="RESERVA CREADA",
     message=f"Reserva #{email_data.id} registrada. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}. Vence: {email_data.expiration_date.strftime('%d-%m-%Y')}",
     is_priority=False,
@@ -181,7 +181,7 @@ async def notification_for_cancel_reservation_and_send_email(db: AsyncSession, r
     user_email=reservation.user.email,
   )
 
-  notification = CreateNotificationDTO(
+  notification = NotificationRequest(
     title="RESERVA CANCELADA",
     message=f"Reserva #{email_data.id} cancelada. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}.",
     is_priority=False,
@@ -213,7 +213,7 @@ async def notification_for_create_loan_and_send_email(db: AsyncSession, loan_id:
     expiration_date=loan.due_date,
   )
 
-  notification = CreateNotificationDTO(
+  notification = NotificationRequest(
     title="PRÉSTAMO REALIZADO",
     message=f"Préstamo #{email_data.id} registrado. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}. Vence: {email_data.expiration_date.strftime('%d-%m-%Y')}",
     is_priority=False,
@@ -244,7 +244,7 @@ async def notification_for_return_loan_and_send_email(db: AsyncSession, loan_id:
     user_email=loan.user.email,
   )
 
-  notification = CreateNotificationDTO(
+  notification = NotificationRequest(
     title="PRÉSTAMO DEVUELTO",
     message=f"Préstamo #{loan.id_loan} devuelto exitosamente.",
     is_priority=False,

@@ -4,8 +4,8 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
-from src.schemas.dtos import EditionFilterDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
+from src.schemas.dtos import EditionFilterRequest
 from src.models import models
 
 
@@ -40,8 +40,8 @@ def _build_copy_count_subq():
 # GET ALL PAGINATION REAL (flat DTO, column-based query)
 async def get_all_pagination(
     db: AsyncSession,
-    pagination: PaginationRequestDTO[EditionFilterDTO]
-) -> PaginationResponseDTO:
+    pagination: PaginationRequest[EditionFilterRequest]
+) -> PaginationResponse:
   first_author_subq = _build_first_author_subq()
   copy_count_subq = _build_copy_count_subq()
 
@@ -128,7 +128,7 @@ async def get_all_pagination(
     .limit(pagination.limit)
   )).all()
 
-  return PaginationResponseDTO(
+  return PaginationResponse(
     page=page,
     pages=total_pages,
     items=total_items,

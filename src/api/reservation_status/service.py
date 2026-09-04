@@ -1,9 +1,9 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+﻿from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.schemas.dtos import ReservationStatusDTO
+from src.schemas.dtos import ReservationStatusResponse
 from . import repository
 
 
-async def get_all(db: AsyncSession) -> list[ReservationStatusDTO]:
+async def get_all(db: AsyncSession) -> list[ReservationStatusResponse]:
   items = await repository.get_all(db)
-  return [ReservationStatusDTO.model_validate(item) for item in items]
+  return [ReservationStatusResponse.model_validate(item) for item in items]

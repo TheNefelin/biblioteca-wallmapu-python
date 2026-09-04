@@ -7,12 +7,12 @@ from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.core.exceptions import NotFoundError
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
 from src.schemas.dtos import (
-  CreateNotificationByEmailDTO,
-  NotificationDTO,
-  NotificationDetailDTO,
-  NotificationFilterDTO,
+  NotificationByEmailRequest,
+  NotificationResponse,
+  NotificationDetailResponse,
+  NotificationFilterRequest,
 )
 from . import service
 from .connection_manager import manager
@@ -31,7 +31,7 @@ router = APIRouter(
 # ADMIN: GET ALL PAGINATED
 @router.get(
   "/pagination",
-  response_model=PaginationResponseDTO[list[NotificationDetailDTO]],
+  response_model=PaginationResponse[list[NotificationDetailResponse]],
   status_code=HTTP_200_OK,
   summary="Listar todas las notificaciones con paginación",
   description="Retorna lista paginada de notificaciones. Admin ve todas. Filtros: search (título/mensaje)",
@@ -45,9 +45,9 @@ async def get_all_notifications_paginated(
   is_read: bool = Query(default=True, description="true=todos, false=solo no leídas"),
   db: AsyncSession = Depends(get_db_async)
 ):
-  filter = NotificationFilterDTO(is_read=is_read)
+  filter = NotificationFilterRequest(is_read=is_read)
 
-  pagination_request = PaginationRequestDTO[NotificationFilterDTO](
+  pagination_request = PaginationRequest[NotificationFilterRequest](
     page=page,
     limit=limit,
     search=search or "",
@@ -67,7 +67,7 @@ async def get_all_notifications_paginated(
 # USER: GET USER NOTIFICATIONS PAGINATED
 @router.get(
   "/user/pagination",
-  response_model=PaginationResponseDTO[list[NotificationDetailDTO]],
+  response_model=PaginationResponse[list[NotificationDetailResponse]],
   status_code=HTTP_200_OK,
   summary="Mis notificaciones paginadas",
   description="Retorna notificaciones del usuario actual (extraído del token JWT). Filtros: search",
@@ -84,9 +84,9 @@ async def get_user_notifications(
 ):
   user_id = UUID(current_user["sub"])
 
-  filter = NotificationFilterDTO(is_read=is_read)
+  filter = NotificationFilterRequest(is_read=is_read)
 
-  pagination_request = PaginationRequestDTO[NotificationFilterDTO](
+  pagination_request = PaginationRequest[NotificationFilterRequest](
     page=page,
     limit=limit,
     search=search or "",
@@ -125,7 +125,7 @@ async def get_unread_count(
 # GET BY ID
 @router.get(
   "/{id}",
-  response_model=NotificationDTO,
+  response_model=NotificationResponse,
   status_code=HTTP_200_OK,
   summary="Obtener notificación por ID",
   description="Retorna una notificación específica por su ID",
@@ -144,14 +144,14 @@ async def get_notification_by_id(
 # ADMIN: CREATE NOTIFICATION
 @router.post(
   "",
-  response_model=NotificationDTO,
+  response_model=NotificationResponse,
   status_code=HTTP_201_CREATED,
   summary="Crear notificación",
   description="Crea una nueva notificación para un usuario específico. Usado para anuncios generales de la biblioteca",
   dependencies=[admin_required]
 )
 async def create_notification(
-  dto: CreateNotificationByEmailDTO,
+  dto: NotificationByEmailRequest,
   db: AsyncSession = Depends(get_db_async)
 ):
   res = await service.create(db, dto)

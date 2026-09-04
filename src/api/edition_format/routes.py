@@ -6,7 +6,7 @@ from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.core.exceptions import AppError, NotFoundError
-from src.schemas.dtos import EditionFormatDTO
+from src.schemas.dtos import EditionFormatResponse
 from . import service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
@@ -22,7 +22,7 @@ router = APIRouter(
 # UPDATE (reemplaza formatos de la edición; body vacío elimina todos)
 @router.put(
   "/{id_edition}",
-  response_model=list[EditionFormatDTO],
+  response_model=list[EditionFormatResponse],
   status_code=HTTP_201_CREATED,
   summary="Actualizar formatos de una edición",
   description="Reemplaza todos los formatos asociados a una edición. Si el body viene vacío, elimina todos",

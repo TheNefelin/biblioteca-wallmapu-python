@@ -8,13 +8,13 @@ from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.core.exceptions import NotFoundError, ForbiddenError, AppError
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
 from src.schemas.dtos import (
-    CreateReservationDTO,
-    ReservationDTO,
-    ReservationDetailDTO,
-    ReservationFilterDTO,
-    ReservationPickupDTO,
+    ReservationRequest,
+    ReservationResponse,
+    ReservationDetailResponse,
+    ReservationFilterRequest,
+    ReservationPickupRequest,
 )
 from . import service
 
@@ -32,7 +32,7 @@ router = APIRouter(
 # GET ALL PAGINATION
 @router.get(
   "/pagination",
-  response_model=PaginationResponseDTO[List[ReservationDetailDTO]],
+  response_model=PaginationResponse[List[ReservationDetailResponse]],
   status_code=HTTP_200_OK,
   summary="Listar todas las reservas con paginación",
   description="Retorna lista paginada de reservas. Filtros: id_status (1=pendiente, 2=retirada, 3=cancelada, 4=vencida)",
@@ -46,9 +46,9 @@ async def get_reservations_paginated(
   id_status: int = Query(default=0),
   db: AsyncSession = Depends(get_db_async)
 ):
-  filter = ReservationFilterDTO(id_status=id_status) if id_status > 0 else None
+  filter = ReservationFilterRequest(id_status=id_status) if id_status > 0 else None
 
-  pagination_request = PaginationRequestDTO[ReservationFilterDTO](
+  pagination_request = PaginationRequest[ReservationFilterRequest](
     page=page,
     limit=limit,
     search=search or "",
@@ -69,7 +69,7 @@ async def get_reservations_paginated(
 # GET USER RESERVATIONS PAGINATION (Usuario actual)
 @router.get(
   "/pagination/user",
-  response_model=PaginationResponseDTO[List[ReservationDetailDTO]],
+  response_model=PaginationResponse[List[ReservationDetailResponse]],
   status_code=HTTP_200_OK,
   summary="Listar mis reservas con paginación",
   description="Retorna lista paginada de reservas por usuario. Filtros: id_status (1=pendiente, 2=retirada, 3=cancelada, 4=vencida)",
@@ -86,9 +86,9 @@ async def get_my_reservations_paginated(
 ):
   user_id = UUID(current_user["sub"])
 
-  filter = ReservationFilterDTO(id_status=id_status) if id_status > 0 else None
+  filter = ReservationFilterRequest(id_status=id_status) if id_status > 0 else None
 
-  pagination_request = PaginationRequestDTO[ReservationFilterDTO](
+  pagination_request = PaginationRequest[ReservationFilterRequest](
     page=page,
     limit=limit,
     search=search or "",
@@ -109,7 +109,7 @@ async def get_my_reservations_paginated(
 # GET BY ID
 @router.get(
   "/{id}",
-  response_model=ReservationDetailDTO,
+  response_model=ReservationDetailResponse,
   status_code=HTTP_200_OK,
   summary="Obtener una reserva por ID",
   description="Retorna los detalles completos de una reserva específica por su ID",
@@ -129,14 +129,14 @@ async def get_reservation_by_id(
 # CREATE
 @router.post(
   "/",
-  response_model=ReservationDTO,
+  response_model=ReservationResponse,
   status_code=HTTP_201_CREATED,
   summary="Crear una nueva reserva",
   description="Crea una nueva reserva. La fecha de expiración se calcula automáticamente según las políticas de préstamo",
   dependencies=[user_or_admin_required]
 )
 async def create_reservation(
-  dto: CreateReservationDTO,
+  dto: ReservationRequest,
   db: AsyncSession = Depends(get_db_async),
   current_user: dict = Depends(get_current_user()),
 ):
@@ -148,7 +148,7 @@ async def create_reservation(
 # UPDATE - MARK AS PICKUP
 @router.put(
   "/{id}/pickup",
-  response_model=ReservationDTO,
+  response_model=ReservationResponse,
   status_code=HTTP_200_OK,
   summary="Marcar reserva como retirada (libro recogido)",
   description="Confirma el retiro de una reserva y crea automáticamente un préstamo. Requiere verificación del ejemplar físico",
@@ -156,7 +156,7 @@ async def create_reservation(
 )
 async def mark_reservation_as_pickup(
   id: int,
-  dto: ReservationPickupDTO,
+  dto: ReservationPickupRequest,
   db: AsyncSession = Depends(get_db_async)
 ):
   res = await service.mark_as_pickup(db, id, dto.copy_id)
@@ -169,7 +169,7 @@ async def mark_reservation_as_pickup(
 # UPDATE - CANCEL
 @router.put(
   "/{id}/cancel",
-  response_model=ReservationDTO,
+  response_model=ReservationResponse,
   status_code=HTTP_200_OK,
   summary="Cancelar una reserva (usuario dueño o admin)",
   description="Cancela una reserva pendiente. Solo el dueño de la reserva o un administrador pueden cancelarla",

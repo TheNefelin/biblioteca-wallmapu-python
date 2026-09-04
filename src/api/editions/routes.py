@@ -7,12 +7,12 @@ from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.core.exceptions import NotFoundError, AppError
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
 from src.schemas.dtos import (
-    EditionDTO,
-    EditionDetailDTO,
-    EditionFilterDTO,
-    SaveEditionDTO,
+    EditionResponse,
+    EditionDetailResponse,
+    EditionFilterRequest,
+    EditionRequest,
 )
 from . import service
 
@@ -24,7 +24,7 @@ router = APIRouter(prefix="/edition", tags=["edition"])
 # -----------------------------------------------------------------
 @router.get(
   "/pagination",
-  response_model=PaginationResponseDTO[List[EditionDetailDTO]],
+  response_model=PaginationResponse[List[EditionDetailResponse]],
   status_code=HTTP_200_OK,
   summary="Listar ediciones con paginación (DTO plano)",
   description="Retorna lista paginada con DTO plano. Filtros: id_author, id_editorial, id_genre, id_format, id_subject, search",
@@ -41,7 +41,7 @@ async def get_all_pagination(
   id_subject: Optional[int] = Query(default=None),
   db: AsyncSession = Depends(get_db_async)
 ):
-  filter = EditionFilterDTO(
+  filter = EditionFilterRequest(
     id_author=id_author,
     id_editorial=id_editorial,
     id_genre=id_genre,
@@ -49,7 +49,7 @@ async def get_all_pagination(
     id_subject=id_subject
   ) if any([id_author, id_editorial, id_genre, id_format, id_subject]) else None
 
-  pagination = PaginationRequestDTO[EditionFilterDTO](
+  pagination = PaginationRequest[EditionFilterRequest](
     page=page,
     limit=limit,
     search=search or "",
@@ -69,7 +69,7 @@ async def get_all_pagination(
 # -----------------------------------------------------------------
 @router.get(
   "/book/{id_book}/detail",
-  response_model=List[EditionDetailDTO],
+  response_model=List[EditionDetailResponse],
   status_code=HTTP_200_OK,
   summary="Listar ediciones por libro con detalle",
   description="Retorna todas las ediciones de un libro con DTO plano (editorial, género, autor, copy_count)",
@@ -83,7 +83,7 @@ async def get_editions_by_book_detail(id_book: int, db: AsyncSession = Depends(g
 # -----------------------------------------------------------------
 @router.get(
   "/book/{id_book}",
-  response_model=List[EditionDTO],
+  response_model=List[EditionResponse],
   status_code=HTTP_200_OK,
   summary="Listar ediciones por libro",
   description="Retorna todas las ediciones de un libro (básico, sin relaciones)",
@@ -96,7 +96,7 @@ async def get_editions_by_book(id_book: int, db: AsyncSession = Depends(get_db_a
 # -----------------------------------------------------------------
 @router.get(
   "/{id}",
-  response_model=EditionDTO,
+  response_model=EditionResponse,
   status_code=HTTP_200_OK,
   summary="Obtener edición básica por ID",
   description="Retorna una edición sin relaciones",
@@ -112,13 +112,13 @@ async def get_edition_by_id(id: int, db: AsyncSession = Depends(get_db_async)):
 # -----------------------------------------------------------------
 @router.post(
   "/",
-  response_model=EditionDTO,
+  response_model=EditionResponse,
   status_code=HTTP_201_CREATED,
   summary="Crear nueva edición",
   description="Crea una nueva edición asociada a un libro",
   dependencies=[admin_required],
 )
-async def create_edition(item: SaveEditionDTO, db: AsyncSession = Depends(get_db_async)):
+async def create_edition(  item: EditionRequest, db: AsyncSession = Depends(get_db_async)):
   res = await service.create_edition(db, item)
   return res
 
@@ -126,13 +126,13 @@ async def create_edition(item: SaveEditionDTO, db: AsyncSession = Depends(get_db
 # -----------------------------------------------------------------
 @router.put(
   "/{id}",
-  response_model=EditionDTO,
+  response_model=EditionResponse,
   status_code=HTTP_200_OK,
   summary="Actualizar edición",
   description="Actualiza una edición existente por ID",
   dependencies=[admin_required],
 )
-async def update_edition(id: int, item: SaveEditionDTO, db: AsyncSession = Depends(get_db_async)):
+async def update_edition(id: int,   item: EditionRequest, db: AsyncSession = Depends(get_db_async)):
   result = await service.update_edition(db, id, item)
   if not result:
     raise NotFoundError(entity="Edición")

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_200_OK
 
 from src.core.database import get_db_async
-from src.schemas.dtos import LoanStatusDTO
+from src.schemas.dtos import LoanStatusResponse
 from . import service
 
 router = APIRouter(
@@ -14,7 +14,7 @@ router = APIRouter(
 
 @router.get(
   "/",
-  response_model=List[LoanStatusDTO],
+  response_model=List[LoanStatusResponse],
   status_code=HTTP_200_OK,
   summary="Listar estados de préstamo",
   description="Obtiene lista completa de estados de préstamo ordenada por ID",

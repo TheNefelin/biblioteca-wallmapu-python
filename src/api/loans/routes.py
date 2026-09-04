@@ -9,8 +9,8 @@ from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.core.exceptions import NotFoundError
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
-from src.schemas.dtos import CreateLoanDTO, LoanDTO, LoanDetailDTO, LoanFilterDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
+from src.schemas.dtos import LoanRequest, LoanResponse, LoanDetailResponse, LoanFilterRequest
 from . import service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
@@ -26,7 +26,7 @@ router = APIRouter(
 # GET ALL PAGINATION
 @router.get(
   "/pagination",
-  response_model=PaginationResponseDTO[list[LoanDetailDTO]],
+  response_model=PaginationResponse[list[LoanDetailResponse]],
   status_code=HTTP_200_OK,
   summary="Listar todos los préstamos con paginación",
   description="Retorna lista paginada de préstamos. Filtros: id_status (1=activo, 2=devuelto, 3=vencido)",
@@ -40,9 +40,9 @@ async def get_loans_paginated(
   id_status: int = Query(default=0),
   db: AsyncSession = Depends(get_db_async)
 ):
-  filter = LoanFilterDTO(id_status=id_status) if id_status > 0 else None
+  filter = LoanFilterRequest(id_status=id_status) if id_status > 0 else None
 
-  pagination_request = PaginationRequestDTO[LoanFilterDTO](
+  pagination_request = PaginationRequest[LoanFilterRequest](
     page=page,
     limit=limit,
     search=search or "",
@@ -63,7 +63,7 @@ async def get_loans_paginated(
 # GET USER RESERVATIONS PAGINATION (Usuario actual)
 @router.get(
   "/pagination/user",
-  response_model=PaginationResponseDTO[list[LoanDetailDTO]],
+  response_model=PaginationResponse[list[LoanDetailResponse]],
   status_code=HTTP_200_OK,
   summary="Listar todos los préstamos con paginación",
   description="Retorna lista paginada de préstamos por usuario. Filtros: id_status (1=activo, 2=devuelto, 3=vencido)",
@@ -80,9 +80,9 @@ async def get_loans_paginated_by_user(
 ):
   user_id = UUID(current_user["sub"])
 
-  filter = LoanFilterDTO(id_status=id_status) if id_status > 0 else None
+  filter = LoanFilterRequest(id_status=id_status) if id_status > 0 else None
 
-  pagination_request = PaginationRequestDTO[LoanFilterDTO](
+  pagination_request = PaginationRequest[LoanFilterRequest](
     page=page,
     limit=limit,
     search=search or "",
@@ -103,7 +103,7 @@ async def get_loans_paginated_by_user(
 # GET ALL OVERDUE
 @router.get(
   "/overdue",
-  response_model=List[LoanDetailDTO],
+  response_model=List[LoanDetailResponse],
   status_code=HTTP_200_OK,
   summary="Listar préstamos vencidos",
   description="Retorna todos los préstamos cuya fecha de vencimiento pasó y aún no han sido devueltos",
@@ -118,7 +118,7 @@ async def get_overdue_loans(db: AsyncSession = Depends(get_db_async)):
 # GET ACTIVE LOAN BY BARCODE
 @router.get(
   "/copy/{barcode}",
-  response_model=LoanDetailDTO,
+  response_model=LoanDetailResponse,
   status_code=HTTP_200_OK,
   summary="Buscar préstamo activo por barcode",
   description="Busca un préstamo activo escaneando el barcode del ejemplar",
@@ -138,14 +138,14 @@ async def get_active_loan_by_barcode(
 # CREATE
 @router.post(
   "/",
-  response_model=LoanDTO,
+  response_model=LoanResponse,
   status_code=HTTP_201_CREATED,
   summary="Crear un nuevo préstamo",
   description="Crea un nuevo préstamo. La fecha de vencimiento se calcula automáticamente según las políticas de préstamo",
   dependencies=[admin_required]
 )
 async def create_loan(
-  dto: CreateLoanDTO,
+  dto: LoanRequest,
   db: AsyncSession = Depends(get_db_async)
 ):
   res = await service.create(db, dto)
@@ -156,7 +156,7 @@ async def create_loan(
 # UPDATE - RETURN BY COPY ID
 @router.put(
   "/copy/{id}/return",
-  response_model=LoanDTO,
+  response_model=LoanResponse,
   status_code=HTTP_200_OK,
   summary="Registrar devolución por código de exemplar",
   description="Registra la devolución de un préstamo escaneando el código del ejemplar",

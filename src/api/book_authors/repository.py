@@ -1,4 +1,4 @@
-from sqlalchemy import delete as sqla_delete, select
+﻿from sqlalchemy import delete as sqla_delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import models

@@ -8,7 +8,7 @@ from src.core.exceptions import AppError
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.schemas.dtos import SubjectRequest, SubjectResponse
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
 from . import service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
@@ -23,7 +23,7 @@ router = APIRouter(
 # GET ALL PAGINATION
 @router.get(
   "/pagination",
-  response_model=PaginationResponseDTO[list[SubjectResponse]],
+  response_model=PaginationResponse[list[SubjectResponse]],
   status_code=HTTP_200_OK,
   summary="Listar descriptores con paginación",
   description="Obtiene lista paginada de descriptores, opcionalmente filtrada por búsqueda",
@@ -36,7 +36,7 @@ async def get_subjects_paginated(
   search: str = Query(default=""),
   db: AsyncSession = Depends(get_db_async),
 ):
-  pagination_request = PaginationRequestDTO[None](
+  pagination_request = PaginationRequest[None](
     page=page,
     limit=limit,
     search=search or "",

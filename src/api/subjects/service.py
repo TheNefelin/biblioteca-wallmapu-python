@@ -2,19 +2,19 @@
 
 from src.core.exceptions import AppError, DuplicateNameError, NotFoundError
 from src.schemas.dtos import SubjectResponse
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
 from . import repository
 
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
-async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse:
   pagination_response = await repository.get_all_pagination(db, pagination)
   items = pagination_response.data or []
 
   data = [SubjectResponse.model_validate(item) for item in items]
 
-  return PaginationResponseDTO(
+  return PaginationResponse(
     page=pagination_response.page,
     pages=pagination_response.pages,
     items=pagination_response.items,

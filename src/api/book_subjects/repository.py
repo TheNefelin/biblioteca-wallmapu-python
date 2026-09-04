@@ -1,11 +1,11 @@
-from sqlalchemy import delete as sqla_delete, select
+﻿from sqlalchemy import delete as sqla_delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import models
 
 
 # -----------------------------------------------------------------
-# UPDATE (reemplaza relaciones; si subject_ids viene vacío, solo elimina)
+# UPDATE (reemplaza relaciones; si subject_ids viene vacÃ­o, solo elimina)
 async def update(db: AsyncSession, id_book: int, subject_ids: list[int]) -> list[models.BookSubject]:
   await db.execute(
     sqla_delete(models.BookSubject).where(models.BookSubject.id_book == id_book)

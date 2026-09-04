@@ -3,8 +3,8 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from rfc9457 import BadRequestProblem
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
-from src.schemas.dtos import CreateLoanDTO, LoanDTO, LoanDetailDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
+from src.schemas.dtos import LoanRequest, LoanResponse, LoanDetailResponse
 from src.api.loan_policies import repository as loan_policies_repository
 from src.api.notifications import service as notification_service
 from src.api.copy import repository as copy_repository
@@ -12,9 +12,9 @@ from . import repository
 
 
 # -----------------------------------------------------------------
-# Helper: Map Loan entity -> LoanDetailDTO
-def _map_loan_to_detail(loan) -> LoanDetailDTO:
-  return LoanDetailDTO(
+# Helper: Map Loan entity -> LoanDetailResponse
+def _map_loan_to_detail(loan) -> LoanDetailResponse:
+  return LoanDetailResponse(
     id_loan=int(loan.id_loan),
     loan_date=loan.loan_date,
     due_date=loan.due_date,
@@ -33,13 +33,13 @@ def _map_loan_to_detail(loan) -> LoanDetailDTO:
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
-async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[LoanDetailDTO]]:
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse[list[LoanDetailResponse]]:
   pagination_response = await repository.get_all_pagination(db, pagination)
   loans = pagination_response.data or []
 
   data = [_map_loan_to_detail(loan) for loan in loans]
 
-  return PaginationResponseDTO[list[LoanDetailDTO]](
+  return PaginationResponse[list[LoanDetailResponse]](
     page=pagination_response.page,
     pages=pagination_response.pages,
     items=pagination_response.items,
@@ -51,13 +51,13 @@ async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO)
 
 # -----------------------------------------------------------------
 # GET USER PAGINATION
-async def get_all_pagination_by_user(db: AsyncSession, user_id: UUID, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[LoanDetailDTO]]:
+async def get_all_pagination_by_user(db: AsyncSession, user_id: UUID, pagination: PaginationRequest) -> PaginationResponse[list[LoanDetailResponse]]:
   pagination_response = await repository.get_all_pagination_by_user(db, user_id, pagination)
   loans = pagination_response.data or []
 
   data = [_map_loan_to_detail(loan) for loan in loans]
 
-  return PaginationResponseDTO[list[LoanDetailDTO]](
+  return PaginationResponse[list[LoanDetailResponse]](
     page=pagination_response.page,
     pages=pagination_response.pages,
     items=pagination_response.items,
@@ -69,14 +69,14 @@ async def get_all_pagination_by_user(db: AsyncSession, user_id: UUID, pagination
 
 # -----------------------------------------------------------------
 # GET ALL OVERDUE
-async def get_overdue(db: AsyncSession) -> list[LoanDetailDTO]:
+async def get_overdue(db: AsyncSession) -> list[LoanDetailResponse]:
   items = await repository.get_overdue(db)
   return [_map_loan_to_detail(item) for item in (items or [])]
 
 
 # -----------------------------------------------------------------
 # CREATE
-async def create(db: AsyncSession, dto: CreateLoanDTO) -> LoanDTO:
+async def create(db: AsyncSession, dto: LoanRequest) -> LoanResponse:
   policy = await loan_policies_repository.get_default_policy(db)
   if policy is None:
     raise BadRequestProblem(detail="No existe una política de préstamo configurada")
@@ -85,7 +85,7 @@ async def create(db: AsyncSession, dto: CreateLoanDTO) -> LoanDTO:
 
   due_date = date.today() + timedelta(days=max_days)
 
-  loan_dto = LoanDTO(
+  loan_dto = LoanResponse(
     copy_id=dto.copy_id,
     user_id=dto.user_id,
     due_date=due_date,
@@ -98,12 +98,12 @@ async def create(db: AsyncSession, dto: CreateLoanDTO) -> LoanDTO:
 
   await notification_service.notification_for_create_loan_and_send_email(db, created.id_loan)
 
-  return LoanDTO.model_validate(created)
+  return LoanResponse.model_validate(created)
 
 
 # -----------------------------------------------------------------
 # RETURN BY COPY ID
-async def return_loan_by_copy_id(db: AsyncSession, copy_id: int) -> LoanDTO | None:
+async def return_loan_by_copy_id(db: AsyncSession, copy_id: int) -> LoanResponse | None:
   loan = await repository.get_active_loan_by_copy_id(db, copy_id)
 
   if not loan:
@@ -118,7 +118,7 @@ async def return_loan_by_copy_id(db: AsyncSession, copy_id: int) -> LoanDTO | No
 
   await notification_service.notification_for_return_loan_and_send_email(db, returned.id_loan)
 
-  return LoanDTO.model_validate(returned)
+  return LoanResponse.model_validate(returned)
 
 
 # -----------------------------------------------------------------
@@ -139,7 +139,7 @@ async def expire_overdue_loans(db: AsyncSession) -> int:
 
 # -----------------------------------------------------------------
 # GET ACTIVE LOAN BY BARCODE
-async def get_active_by_barcode(db: AsyncSession, barcode: str) -> LoanDetailDTO | None:
+async def get_active_by_barcode(db: AsyncSession, barcode: str) -> LoanDetailResponse | None:
   loan = await repository.get_active_by_barcode(db, barcode)
   if not loan:
     return None

@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 from starlette.status import HTTP_200_OK
 
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
-from src.schemas.dtos import UpdateUserDTO, UpdateUserByAdminDTO, UserDTO, UserDetailDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
+from src.schemas.dtos import UserRequest, UserAdminRequest, UserResponse, UserDetailResponse
 from src.core.exceptions import NotFoundError, UnauthorizedError, AppError
 from src.core.security import get_current_user
 from src.core.roles import UserRole
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 # GET ALL DETAILED (PAGINATED)
 @router.get(
   "/pagination",
-  response_model=PaginationResponseDTO[list],
+  response_model=PaginationResponse[list],
   status_code=HTTP_200_OK,
   summary="Listar todos los usuarios con paginación",
   description="Retorna lista paginada de usuarios con nombres resueltos (comuna, rol, estado). Incluye búsqueda por nombre, email, rol o estado.",
@@ -29,7 +29,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 )
 async def get_all_detailed(
   request: Request,
-  pagination_request: PaginationRequestDTO = Depends(),
+  pagination_request: PaginationRequest = Depends(),
   db: AsyncSession = Depends(get_db_async)
 ):
   pagination_response = await service.get_all_detailed(db, pagination_request)
@@ -46,7 +46,7 @@ async def get_all_detailed(
 # GET BY ID DETAILED
 @router.get(
   "/{id}",
-  response_model=UserDetailDTO,
+  response_model=UserDetailResponse,
   status_code=HTTP_200_OK,
   summary="Obtener usuario por ID",
   description="Retorna un usuario con todos los datos resueltos (comuna, rol, estado)",
@@ -65,13 +65,13 @@ async def get_by_id_detailed(id: UUID, db: AsyncSession = Depends(get_db_async))
 # UPDATE USER (propio perfil)
 @router.put(
   "/{id}",
-  response_model=UserDTO,
+  response_model=UserResponse,
   status_code=HTTP_200_OK,
   summary="Actualizar perfil propio",
   description="Actualiza los datos de su propio perfil. Solo el usuario autenticado puede modificar su perfil",
 )
 async def update_user(
-  id: UUID, update_dto: UpdateUserDTO,
+  id: UUID, update_dto: UserRequest,
   db: AsyncSession = Depends(get_db_async),
   current_user: dict = Depends(get_current_user(required_roles=[UserRole.LECTOR]))
 ):
@@ -90,13 +90,13 @@ async def update_user(
 # UPDATE USER BY ADMIN
 @router.put(
   "/admin/{id}",
-  response_model=UserDTO,
+  response_model=UserResponse,
   status_code=HTTP_200_OK,
   summary="Actualizar usuario por administrador",
   description="Actualiza cualquier usuario incluyendo rol y estado. Solo administradores. Si el admin se modifica a sí mismo, no puede cambiar su propio rol ni estado.",
 )
 async def update_user_by_admin(
-  id: UUID, update_dto: UpdateUserByAdminDTO,
+  id: UUID, update_dto: UserAdminRequest,
   db: AsyncSession = Depends(get_db_async),
   current_user: dict = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 ):

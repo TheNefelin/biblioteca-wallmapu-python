@@ -3,13 +3,13 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
 from src.models import models
 
 
 # -----------------------------------------------------------------
 # GET ALL Pagination
-async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse:
   stmt = select(models.News).options(
     selectinload(models.News.images)
   )
@@ -38,7 +38,7 @@ async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO)
     .limit(pagination.limit)
   )).scalars().all()
 
-  return PaginationResponseDTO(
+  return PaginationResponse(
     page=page,
     pages=pages,
     items=items,

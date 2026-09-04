@@ -1,7 +1,7 @@
-import httpx
+﻿import httpx
 
 from src.core.config import settings
-from src.schemas.dtos import GoogleUserInfo
+from src.schemas.dtos import GoogleUserInfoResponse
 
 GOOGLE_TOKEN_INFO_URL = "https://oauth2.googleapis.com/tokeninfo"
 GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
@@ -15,13 +15,13 @@ async def _fetch_userinfo(client: httpx.AsyncClient, access_token: str) -> dict:
   return response.json() if response.status_code == 200 else {}
 
 
-async def verify_google_token(access_token: str) -> GoogleUserInfo:
+async def verify_google_token(access_token: str) -> GoogleUserInfoResponse:
   """
-  Valida el Access Token de Google y obtiene información del usuario.
+  Valida el Access Token de Google y obtiene informaciÃ³n del usuario.
 
-  Verifica que el token fue emitido para ESTA aplicación (aud == GOOGLE_CLIENT_ID).
-  Sin este check, cualquier access token de Google válido (emitido a otra app)
-  permitiría autenticarse en el backend.
+  Verifica que el token fue emitido para ESTA aplicaciÃ³n (aud == GOOGLE_CLIENT_ID).
+  Sin este check, cualquier access token de Google vÃ¡lido (emitido a otra app)
+  permitirÃ­a autenticarse en el backend.
   """
   try:
     async with httpx.AsyncClient(timeout=10) as client:
@@ -33,13 +33,13 @@ async def verify_google_token(access_token: str) -> GoogleUserInfo:
     raise ValueError(f"Error al validar token de Google: {str(e)}")
 
   if response.status_code != 200:
-    raise ValueError(f"Token inválido: {response.text}")
+    raise ValueError(f"Token invÃ¡lido: {response.text}")
 
   token_info = response.json()
 
-  # Validar que el token fue emitido para esta aplicación
+  # Validar que el token fue emitido para esta aplicaciÃ³n
   if settings.GOOGLE_CLIENT_ID and token_info.get("aud") != settings.GOOGLE_CLIENT_ID:
-    raise ValueError("Token inválido: no fue emitido para esta aplicación")
+    raise ValueError("Token invÃ¡lido: no fue emitido para esta aplicaciÃ³n")
 
   email_verified = token_info.get("email_verified")
   if email_verified not in (True, "true"):
@@ -56,7 +56,7 @@ async def verify_google_token(access_token: str) -> GoogleUserInfo:
       userinfo = {}
 
   try:
-    return GoogleUserInfo(
+    return GoogleUserInfoResponse(
       google_id=token_info["sub"],
       email=token_info["email"],
       name=userinfo.get("name") or token_info.get("name"),

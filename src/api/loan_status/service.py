@@ -1,9 +1,9 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+﻿from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.schemas.dtos import LoanStatusDTO
+from src.schemas.dtos import LoanStatusResponse
 from . import repository
 
 
-async def get_all(db: AsyncSession) -> list[LoanStatusDTO]:
+async def get_all(db: AsyncSession) -> list[LoanStatusResponse]:
   items = await repository.get_all(db)
-  return [LoanStatusDTO.model_validate(item) for item in items]
+  return [LoanStatusResponse.model_validate(item) for item in items]

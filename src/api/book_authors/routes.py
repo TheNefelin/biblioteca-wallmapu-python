@@ -6,7 +6,7 @@ from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.core.exceptions import AppError, NotFoundError
-from src.schemas.dtos import BookAuthorDTO
+from src.schemas.dtos import BookAuthorResponse
 from . import service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
@@ -22,7 +22,7 @@ router = APIRouter(
 # UPDATE (reemplaza autores del libro; body vacío elimina todos)
 @router.put(
   "/{id_book}",
-  response_model=list[BookAuthorDTO],
+  response_model=list[BookAuthorResponse],
   status_code=HTTP_201_CREATED,
   summary="Reemplazar autores de un libro",
   description="Elimina todos los autores actuales y asigna la nueva lista. Body vacío elimina todos.",

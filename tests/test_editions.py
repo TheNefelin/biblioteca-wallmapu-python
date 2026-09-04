@@ -1,6 +1,6 @@
 """Tests de la feature editions (lectura pública + CRUD admin).
 
-Reproduce y cubre la corrección del mapeo Row -> EditionDetailDTO en
+Reproduce y cubre la corrección del mapeo Row -> EditionDetailResponse en
 get_all_pagination (dict(item._mapping)).
 """
 
@@ -8,7 +8,7 @@ import pytest
 
 
 async def test_edition_pagination_public(client):
-  """El endpoint público de paginación valida cada Row contra EditionDetailDTO."""
+  """El endpoint público de paginación valida cada Row contra EditionDetailResponse."""
   resp = await client.get("/api/edition/pagination")
   assert resp.status_code == 200
   body = resp.json()

@@ -4,12 +4,12 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.models import Author, BookAuthor
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
 
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
-async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO:
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse:
   search_norm = None
   if pagination.search:
     search_norm = unicodedata.normalize('NFKD', pagination.search).encode('ascii', 'ignore').decode('ascii')
@@ -26,7 +26,7 @@ async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO)
 
   result = list((await db.execute(query.offset(offset).limit(pagination.limit))).scalars().all())
 
-  return PaginationResponseDTO(
+  return PaginationResponse(
     page=page,
     pages=total_pages,
     items=total_items,

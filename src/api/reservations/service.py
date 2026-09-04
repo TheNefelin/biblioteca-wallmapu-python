@@ -3,12 +3,12 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 
-from src.schemas.dtos import PaginationRequestDTO, PaginationResponseDTO
+from src.schemas.dtos import PaginationRequest, PaginationResponse
 from src.schemas.dtos import (
-    CreateLoanDTO,
-    CreateReservationDTO,
-    ReservationDTO,
-    ReservationDetailDTO,
+    LoanRequest,
+    ReservationRequest,
+    ReservationResponse,
+    ReservationDetailResponse,
 )
 from src.api.loan_policies import repository as loan_policy_repository
 from src.api.loans import repository as loan_repository, service as loan_service
@@ -25,11 +25,11 @@ logger = logging.getLogger(__name__)
 
 # -----------------------------------------------------------------
 # HELPER - Mapea entidad a DTO con relaciones
-def _map_reservation_to_detail(reservation) -> ReservationDetailDTO:
+def _map_reservation_to_detail(reservation) -> ReservationDetailResponse:
   copy = reservation.copy
   book = copy.edition.book if copy and copy.edition else None
 
-  return ReservationDetailDTO(
+  return ReservationDetailResponse(
     id_reservation=reservation.id_reservation,
     reservation_date=reservation.reservation_date,
     expiration_date=reservation.expiration_date,
@@ -49,9 +49,9 @@ def _map_reservation_to_detail(reservation) -> ReservationDetailDTO:
 
 # -----------------------------------------------------------------
 # GET ALL PAGINATION
-async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[ReservationDetailDTO]]:
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse[list[ReservationDetailResponse]]:
   page = await repository.get_all_pagination(db, pagination)
-  return PaginationResponseDTO[list[ReservationDetailDTO]](
+  return PaginationResponse[list[ReservationDetailResponse]](
     page=page.page,
     pages=page.pages,
     items=page.items,
@@ -63,9 +63,9 @@ async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO)
 
 # -----------------------------------------------------------------
 # GET USER PAGINATION
-async def get_all_pagination_by_user(db: AsyncSession, user_id: UUID, pagination: PaginationRequestDTO) -> PaginationResponseDTO[list[ReservationDetailDTO]]:
+async def get_all_pagination_by_user(db: AsyncSession, user_id: UUID, pagination: PaginationRequest) -> PaginationResponse[list[ReservationDetailResponse]]:
   page = await repository.get_all_pagination_by_user(db, user_id, pagination)
-  return PaginationResponseDTO[list[ReservationDetailDTO]](
+  return PaginationResponse[list[ReservationDetailResponse]](
     page=page.page,
     pages=page.pages,
     items=page.items,
@@ -77,7 +77,7 @@ async def get_all_pagination_by_user(db: AsyncSession, user_id: UUID, pagination
 
 # -----------------------------------------------------------------
 # GET BY ID
-async def get_by_id(db: AsyncSession, id: int) -> ReservationDetailDTO | None:
+async def get_by_id(db: AsyncSession, id: int) -> ReservationDetailResponse | None:
   reservation = await repository.get_by_id(db, id)
 
   if not reservation:
@@ -88,7 +88,7 @@ async def get_by_id(db: AsyncSession, id: int) -> ReservationDetailDTO | None:
 
 # -----------------------------------------------------------------
 # CREATE
-async def create(db: AsyncSession, user_id: UUID, dto: CreateReservationDTO) -> ReservationDTO:
+async def create(db: AsyncSession, user_id: UUID, dto: ReservationRequest) -> ReservationResponse:
   copy = await copy_repository.get_by_id(db, dto.copy_id)
 
   if not copy:
@@ -124,7 +124,7 @@ async def create(db: AsyncSession, user_id: UUID, dto: CreateReservationDTO) -> 
   if book_in_reservations or book_in_loans:
     raise BadRequestProblem(detail="Ya tienes este libro reservado o prestado")
 
-  reservation_dto = ReservationDTO(
+  reservation_dto = ReservationResponse(
     user_id=user_id,
     copy_id=dto.copy_id,
     expiration_date=expiration_date
@@ -139,12 +139,12 @@ async def create(db: AsyncSession, user_id: UUID, dto: CreateReservationDTO) -> 
   # Disparar notificación (efecto secundario resiliente)
   await notification_service.notification_for_create_reservation_and_send_email(db, created.id_reservation)
 
-  return ReservationDTO.model_validate(created)
+  return ReservationResponse.model_validate(created)
 
 
 # -----------------------------------------------------------------
 # UPDATE - CANCEL
-async def mark_as_cancelled(db: AsyncSession, id: int) -> ReservationDTO:
+async def mark_as_cancelled(db: AsyncSession, id: int) -> ReservationResponse:
   reservation = await repository.get_by_id(db, id)
 
   if not reservation:
@@ -159,12 +159,12 @@ async def mark_as_cancelled(db: AsyncSession, id: int) -> ReservationDTO:
   # Disparar notificación (efecto secundario resiliente)
   await notification_service.notification_for_cancel_reservation_and_send_email(db, updated.id_reservation)
 
-  return ReservationDTO.model_validate(updated)
+  return ReservationResponse.model_validate(updated)
 
 
 # -----------------------------------------------------------------
 # UPDATE - MARK AS PICKUP AND CREATE LOAN
-async def mark_as_pickup(db: AsyncSession, id: int, copy_id: int) -> ReservationDTO:
+async def mark_as_pickup(db: AsyncSession, id: int, copy_id: int) -> ReservationResponse:
   reservation = await repository.get_by_id(db, id)
   if not reservation:
     return None
@@ -182,7 +182,7 @@ async def mark_as_pickup(db: AsyncSession, id: int, copy_id: int) -> Reservation
   if int(copy.status_id) != 1:
     raise BadRequestProblem(detail="El ejemplar no está disponible")
 
-  loan_dto = CreateLoanDTO(
+  loan_dto = LoanRequest(
     copy_id=copy.id_copy,
     user_id=reservation.user_id,
   )
@@ -190,12 +190,12 @@ async def mark_as_pickup(db: AsyncSession, id: int, copy_id: int) -> Reservation
   await loan_service.create(db, loan_dto)
   updated_reservation = await repository.update_status(db, id, 2)
 
-  return ReservationDTO.model_validate(updated_reservation)
+  return ReservationResponse.model_validate(updated_reservation)
 
 
 # -----------------------------------------------------------------
 # UPDATE - MARK AS EXPIRED
-async def mark_as_expired(db: AsyncSession, id: int) -> ReservationDTO:
+async def mark_as_expired(db: AsyncSession, id: int) -> ReservationResponse:
   reservation = await repository.get_by_id(db, id)
   if not reservation:
     return None
@@ -205,7 +205,7 @@ async def mark_as_expired(db: AsyncSession, id: int) -> ReservationDTO:
 
   updated = await repository.update_status(db, id, 4)
 
-  return ReservationDTO.model_validate(updated)
+  return ReservationResponse.model_validate(updated)
 
 
 # -----------------------------------------------------------------

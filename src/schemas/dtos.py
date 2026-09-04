@@ -10,6 +10,7 @@ class AppModel(BaseModel):
 
 
 # EDITORIALS ------------------------------------------------------
+# Request: create/update comparten el mismo shape
 class EditorialRequest(BaseModel):
   name: str
 
@@ -22,6 +23,7 @@ class EditorialResponse(AppModel):
 
 
 # GENRES ----------------------------------------------------------
+# Request: create/update comparten el mismo shape
 class GenreRequest(BaseModel):
   name: str = Field(..., description="Nombre del género")
 
@@ -33,6 +35,7 @@ class GenreResponse(AppModel, GenreRequest):
 
 
 # FORMAT ----------------------------------------------------------
+# Request: create/update comparten el mismo shape
 class FormatRequest(BaseModel):
   name: str
 
@@ -45,6 +48,7 @@ class FormatResponse(AppModel):
 
 
 # AUTHORS ---------------------------------------------------------
+# Request: create/update comparten el mismo shape
 class AuthorRequest(BaseModel):
   name: str
 
@@ -56,6 +60,7 @@ class AuthorResponse(AppModel):
   updated_at: datetime
 
 # SUBJECTS --------------------------------------------------------
+# Request: create/update comparten el mismo shape
 class SubjectRequest(BaseModel):
   name: str
 
@@ -68,43 +73,43 @@ class SubjectResponse(AppModel):
 
 
 # CATÁLOGOS (solo lectura) ---------------------------------------
-class CopyStatusDTO(AppModel):
+class CopyStatusResponse(AppModel):
   id_status: int
   name: str
 
 
-class LoanStatusDTO(AppModel):
+class LoanStatusResponse(AppModel):
   id_status: int
   name: str
 
 
-class ReservationStatusDTO(AppModel):
+class ReservationStatusResponse(AppModel):
   id_status: int
   name: str
 
 
-class UserStatusDTO(AppModel):
+class UserStatusResponse(AppModel):
   id_user_status: int
   name: str
   created_at: datetime
   updated_at: datetime
 
 
-class UserRoleDTO(AppModel):
+class UserRoleResponse(AppModel):
   id_user_role: int
   name: str
   created_at: datetime
   updated_at: datetime
 
 
-class RegionDTO(AppModel):
+class RegionResponse(AppModel):
   id_region: int
   region: str
   created_at: datetime
   updated_at: datetime
 
 
-class ProvinceDTO(AppModel):
+class ProvinceResponse(AppModel):
   id_province: int
   province: str
   created_at: datetime
@@ -112,7 +117,7 @@ class ProvinceDTO(AppModel):
   region_id: int
 
 
-class CommuneDTO(AppModel):
+class CommuneResponse(AppModel):
   id_commune: int
   name: str
   created_at: datetime
@@ -121,14 +126,15 @@ class CommuneDTO(AppModel):
 
 
 # COPY ------------------------------------------------------------
-class SaveCopyDTO(BaseModel):
+# Request: create/update comparten el mismo shape
+class CopyRequest(BaseModel):
   signature_topography: str
   edition_id: int
   copy_number: int
   status_id: int
 
 
-class CopyDTO(AppModel, SaveCopyDTO):
+class CopyResponse(AppModel, CopyRequest):
   status_name: str
   id_copy: int
   barcode: str
@@ -136,7 +142,7 @@ class CopyDTO(AppModel, SaveCopyDTO):
   updated_at: datetime
 
 
-class CopyDetailDTO(AppModel):
+class CopyDetailResponse(AppModel):
   id_copy: int
   barcode: str
   signature_topography: str
@@ -156,13 +162,14 @@ class CopyDetailDTO(AppModel):
 
 
 # EDITION FORMAT --------------------------------------------------
-class EditionFormatDTO(AppModel):
+class EditionFormatResponse(AppModel):
   id_edition: int
   id_format: int
 
 
 # EDITIONS --------------------------------------------------------
-class BaseEditionDTO(AppModel):
+# Base compartida por Request y Response
+class BaseEdition(AppModel):
   edition: Optional[str] = None
   isbn: Optional[str] = None
   publication_year: int
@@ -172,18 +179,19 @@ class BaseEditionDTO(AppModel):
   book_id: int
 
 
-class SaveEditionDTO(BaseEditionDTO):
+# Request: create/update (format_ids solo en creación)
+class EditionRequest(BaseEdition):
   format_ids: Optional[list[int]] = None
 
 
-class EditionDTO(BaseEditionDTO):
+class EditionResponse(BaseEdition):
   id_edition: int
   created_at: datetime
   updated_at: datetime
   formats: list[FormatResponse]
 
 
-class EditionDetailDTO(BaseEditionDTO):
+class EditionDetailResponse(BaseEdition):
   id_edition: int
   created_at: datetime
   updated_at: datetime
@@ -196,7 +204,8 @@ class EditionDetailDTO(BaseEditionDTO):
   copy_count: int
 
 
-class EditionFilterDTO(BaseModel):
+# Request: filtros de búsqueda para paginación
+class EditionFilterRequest(BaseModel):
   id_author: Optional[int] = Field(None, description="Filtrar por autor")
   id_editorial: Optional[int] = Field(None, description="Filtrar por editorial")
   id_genre: Optional[int] = Field(None, description="Filtrar por género")
@@ -204,28 +213,18 @@ class EditionFilterDTO(BaseModel):
   id_subject: Optional[int] = Field(None, description="Filtrar por descriptores")
 
 
-
-
-
-
-
-
-
 # NEWS ------------------------------------------------------------
-class CreateNewsDTO(BaseModel):
-  title: str
-  subtitle: str
-  body: str
+# Request: merge create + update
+#   - Crear: title, subtitle, body (requeridos)
+#   - Actualizar: id_news (requerido) + campos a modificar
+class NewsRequest(BaseModel):
+  id_news: Optional[int] = Field(None, description="ID de la noticia (requerido solo en actualización)")
+  title: str = Field(..., description="Título de la noticia")
+  subtitle: str = Field(..., description="Subtítulo de la noticia")
+  body: str = Field(..., description="Cuerpo de la noticia")
 
 
-class UpdateNewsDTO(BaseModel):
-  id_news: int
-  title: str
-  subtitle: str
-  body: str
-
-
-class NewsDTO(AppModel):
+class NewsResponse(AppModel):
   id_news: int
   title: str
   subtitle: str
@@ -234,57 +233,59 @@ class NewsDTO(AppModel):
   updated_at: datetime
 
 
-class NewsGalleryDTO(AppModel):
+class NewsGalleryResponse(AppModel):
   id_news_gallery: int
   alt: str
   url: str
   news_id: int
 
 
-class NewsWithGalleryDTO(AppModel):
+class NewsWithGalleryResponse(AppModel):
   id_news: int
   title: str
   subtitle: str
   body: str
   created_at: datetime
   updated_at: datetime
-  images: list[NewsGalleryDTO]
+  images: list[NewsGalleryResponse]
 
 
 # BOOK AUTHORS / BOOK SUBJECTS ------------------------------------
-class BookAuthorDTO(AppModel):
+class BookAuthorResponse(AppModel):
   id_book: int
   id_author: int
 
 
-class BookSubjectDTO(AppModel):
+class BookSubjectResponse(AppModel):
   id_book: int
   id_subject: int
 
 
 # LOAN POLICIES ---------------------------------------------------
-class LoanPolicyDTO(BaseModel):
-  id_policy: int = Field(..., description="Identificador único de la política de préstamo")
+# Request: cuerpo de actualización (acepta id opcional para no romper el contrato del frontend)
+class LoanPolicyRequest(AppModel):
+  id_policy: Optional[int] = Field(None, description="Identificador de la política (opcional en el body)")
   name: Optional[str] = Field(None, description="Nombre de la política (ej: General, Estudiantes)")
   max_books: Optional[int] = Field(None, description="Cantidad máxima de libros que se pueden prestar")
   max_days: Optional[int] = Field(None, description="Número máximo de días de préstamo")
   reservation_days: Optional[int] = Field(3, description="Días que se mantiene una reserva activa")
 
-  model_config = ConfigDict(from_attributes=True)
 
-
-
+# Response: salida de lectura
+class LoanPolicyResponse(LoanPolicyRequest):
+  id_policy: int = Field(..., description="Identificador único de la política de préstamo")
 
 
 # LOANS -----------------------------------------------------------
-class CreateLoanDTO(BaseModel):
-  """DTO para crear un nuevo préstamo"""
+# Request: solo create (no existe update de préstamo)
+class LoanRequest(BaseModel):
+  """Request para crear un nuevo préstamo"""
   copy_id: int = Field(..., description="ID del ejemplar a prestar")
   user_id: UUID = Field(..., description="UUID del usuario que toma el préstamo")
 
 
-class LoanDTO(CreateLoanDTO):
-  """DTO de préstamo con todos los campos básicos"""
+class LoanResponse(LoanRequest):
+  """Response de préstamo con todos los campos"""
   id_loan: Optional[int] = Field(None, description="ID único del préstamo")
   loan_date: Optional[date] = Field(None, description="Fecha de creación del préstamo")
   due_date: date = Field(..., description="Fecha de vencimiento del préstamo")
@@ -296,13 +297,14 @@ class LoanDTO(CreateLoanDTO):
   model_config = ConfigDict(from_attributes=True)
 
 
-class LoanFilterDTO(BaseModel):
-  """DTO de filtros para paginación de préstamos"""
+# Request: filtros de búsqueda para paginación
+class LoanFilterRequest(BaseModel):
+  """Request de filtros para paginación de préstamos"""
   id_status: int = Field(default=0, description="ID del estado para filtrar (0 = todos, 1=activo, 2=devuelto, 3=vencido)")
 
 
-class LoanDetailDTO(BaseModel):
-  """DTO plano para listados con datos esenciales de préstamo, usuario y libro"""
+class LoanDetailResponse(AppModel):
+  """Response plano para listados con datos esenciales de préstamo, usuario y libro"""
   id_loan: int = Field(..., description="ID único del préstamo")
   loan_date: date = Field(..., description="Fecha de creación del préstamo")
   due_date: date = Field(..., description="Fecha de vencimiento del préstamo")
@@ -319,12 +321,13 @@ class LoanDetailDTO(BaseModel):
 
 
 # RESERVATIONS ---------------------------------------------------
-class CreateReservationDTO(BaseModel):
-  """DTO para crear una nueva reserva"""
+# Request: solo create (no existe update de reserva)
+class ReservationRequest(BaseModel):
+  """Request para crear una nueva reserva"""
   copy_id: int = Field(..., description="ID del ejemplar a reservar")
 
 
-class ReservationDTO(CreateReservationDTO):
+class ReservationResponse(ReservationRequest):
   id_reservation: Optional[int] = None
   reservation_date: Optional[datetime] = None
   expiration_date: datetime
@@ -334,8 +337,8 @@ class ReservationDTO(CreateReservationDTO):
   model_config = ConfigDict(from_attributes=True)
 
 
-class ReservationDetailDTO(BaseModel):
-  """DTO plano para listados con datos esenciales de reserva, usuario y libro"""
+class ReservationDetailResponse(AppModel):
+  """Response plano para listados con datos esenciales de reserva, usuario y libro"""
   id_reservation: int = Field(..., description="ID único de la reserva")
   reservation_date: datetime = Field(..., description="Fecha de creación de la reserva")
   expiration_date: datetime = Field(..., description="Fecha límite para retirar la reserva")
@@ -352,24 +355,25 @@ class ReservationDetailDTO(BaseModel):
   reservation_status_name: str = Field(..., description="Nombre del estado de la reserva")
 
 
-class ReservationPickupDTO(BaseModel):
-  """DTO para confirmar retiro de reserva"""
+# Request: acción de confirmar retiro
+class ReservationPickupRequest(BaseModel):
+  """Request para confirmar retiro de reserva"""
   copy_id: int = Field(..., description="ID del ejemplar a entregar")
 
 
-class ReservationFilterDTO(BaseModel):
-  """DTO de filtros para paginación de reservas"""
+# Request: filtros de búsqueda para paginación
+class ReservationFilterRequest(BaseModel):
+  """Request de filtros para paginación de reservas"""
   id_status: int = Field(default=0, description="ID del estado para filtrar (0 = todos, 1=pendiente, 2=retirada, 3=cancelada, 4=vencida)")
 
 
 # USERS -------------------------------------------------------------
-class CreateUser(BaseModel):
-  email: str = Field(..., description="Correo electrónico del usuario")
+# Request: merge create + update
+#   - Crear: email (requerido), name (opcional)
+#   - Actualizar: campos a modificar (todos opcionales)
+class UserRequest(BaseModel):
+  email: Optional[str] = Field(None, description="Correo electrónico (requerido en creación)")
   name: Optional[str] = Field(None, description="Nombre del usuario (puede no venir de Google)")
-
-
-class UpdateUserDTO(BaseModel):
-  name: Optional[str] = Field(None, description="Nombre del usuario")
   lastname: Optional[str] = Field(None, description="Apellido del usuario")
   rut: Optional[str] = Field(None, description="RUT del usuario (formato 12345678-9)")
   address: Optional[str] = Field(None, description="Dirección del usuario")
@@ -395,12 +399,13 @@ class UpdateUserDTO(BaseModel):
     return v
 
 
-class UpdateUserByAdminDTO(UpdateUserDTO):
+# Request: extiende UserRequest con campos de admin
+class UserAdminRequest(UserRequest):
   user_role_id: Optional[int] = Field(None, description="ID del rol del usuario")
   user_status_id: Optional[int] = Field(None, description="ID del estado del usuario")
 
 
-class UserDTO(BaseModel):
+class UserResponse(AppModel):
   id_user: UUID = Field(..., description="UUID único del usuario")
   email: str = Field(..., description="Correo electrónico del usuario")
   name: Optional[str] = Field(None, description="Nombre del usuario")
@@ -417,40 +422,42 @@ class UserDTO(BaseModel):
   model_config = ConfigDict(from_attributes=True)
 
 
-class UserDetailDTO(UserDTO):
+class UserDetailResponse(UserResponse):
   commune_name: Optional[str] = Field(None, description="Nombre de la comuna")
   user_role_name: Optional[str] = Field(None, description="Nombre del rol del usuario")
   user_status_name: Optional[str] = Field(None, description="Nombre del estado del usuario")
 
 
 # NOTIFICATIONS --------------------------------------------------
-class CreateNotificationDTO(BaseModel):
-  title: str = Field(..., description="Título de la notificación (ej: 'PRÉSTAMO VENCIDO', 'ANUNCIO')")
-  message: str = Field(..., description="Mensaje detallado de la notificación")
-  is_priority: bool = Field(default=False, description="True = Alta prioridad (urgente), False = Normal")
-  user_id: UUID = Field(..., description="UUID del usuario destinatario")
+# Request: merge create + update
+#   - Crear: title, message, is_priority, user_id (requeridos)
+#   - Actualizar (marcar leída): id_notification, is_read (requeridos)
+class NotificationRequest(BaseModel):
+  id_notification: Optional[int] = Field(None, description="ID de la notificación (requerido solo en actualización)")
+  title: Optional[str] = Field(None, description="Título de la notificación (ej: 'PRÉSTAMO VENCIDO', 'ANUNCIO')")
+  message: Optional[str] = Field(None, description="Mensaje detallado de la notificación")
+  is_priority: Optional[bool] = Field(None, description="True = Alta prioridad (urgente), False = Normal")
+  user_id: Optional[UUID] = Field(None, description="UUID del usuario destinatario")
+  is_read: Optional[bool] = Field(None, description="Estado de lectura: True = Leída, False = No leída (requerido en actualización)")
 
 
-class UpdateNotificationDTO(BaseModel):
-  id_notification: int = Field(..., description="ID único de la notificación")
-  is_read: bool = Field(..., description="Estado de lectura: True = Leída, False = No leída")
-
-
-class NotificationDTO(CreateNotificationDTO, UpdateNotificationDTO):
+class NotificationResponse(NotificationRequest):
   created_at: datetime = Field(..., description="Fecha de creación de la notificación")
 
   model_config = ConfigDict(from_attributes=True)
 
 
-class NotificationDetailDTO(NotificationDTO):
+class NotificationDetailResponse(NotificationResponse):
   email: str = Field(..., description="Email del usuario destinatario")
 
 
-class NotificationFilterDTO(BaseModel):
+# Request: filtros de búsqueda para paginación
+class NotificationFilterRequest(BaseModel):
   is_read: bool = Field(default=True, description="filtrar (true = todos, false = solo no leidas)")
 
 
-class CreateNotificationByEmailDTO(BaseModel):
+# Request: crear notificación por email (operación diferente a create/update)
+class NotificationByEmailRequest(BaseModel):
   email: str = Field(..., description="Email del usuario destinatario")
   title: str = Field(..., description="Título de la notificación")
   message: str = Field(..., description="Mensaje detallado de la notificación")
@@ -458,7 +465,11 @@ class CreateNotificationByEmailDTO(BaseModel):
 
 
 # BOOKS -------------------------------------------------------------
-class CreateBookDTO(BaseModel):
+# Request: merge create + update
+#   - Crear: title, summary, genre_id, author_ids, subject_ids (requeridos)
+#   - Actualizar: id_book (requerido) + campos a modificar
+class BookRequest(BaseModel):
+  id_book: Optional[int] = Field(None, description="ID del libro (requerido solo en actualización)")
   title: str
   summary: str
   genre_id: int
@@ -466,11 +477,7 @@ class CreateBookDTO(BaseModel):
   subject_ids: list[int]
 
 
-class UpdateBookDTO(CreateBookDTO):
-  id_book: int
-
-
-class BookDTO(BaseModel):
+class BookResponse(AppModel):
   id_book: int
   title: str
   summary: str
@@ -483,7 +490,7 @@ class BookDTO(BaseModel):
   model_config = ConfigDict(from_attributes=True)
 
 
-class BookDetailDTO(BaseModel):
+class BookDetailResponse(AppModel):
   id_book: int
   title: str
   created_at: datetime
@@ -500,7 +507,7 @@ class BookDetailDTO(BaseModel):
 
 
 # STATS -----------------------------------------------------------
-class AdminStatsDTO(BaseModel):
+class AdminStatsResponse(AppModel):
   reservations: int
   loans: int
   books: int
@@ -508,14 +515,14 @@ class AdminStatsDTO(BaseModel):
   news: int
 
 
-class UserStatsDTO(BaseModel):
+class UserStatsResponse(AppModel):
   total_borrowed: int
   active_loans: int
   overdue_loans: int
 
 
 # AUTH --------------------------------------------------------------
-class AuthUser(BaseModel):
+class AuthUserResponse(AppModel):
   id_user: UUID
   email: EmailStr
   name: Optional[str] = None
@@ -524,7 +531,7 @@ class AuthUser(BaseModel):
   role: str
 
 
-class GoogleUserInfo(BaseModel):
+class GoogleUserInfoResponse(AppModel):
   google_id: str
   email: str
   name: Optional[str] = None
@@ -538,30 +545,22 @@ class AuthGoogleRequest(BaseModel):
 
 class AuthGoogleResponse(BaseModel):
   token: str
-  user: AuthUser
-
-
-# COMPAT: nombres legacy reexportados por los features ------------
-"""Estos alias se exponen desde los `dtos.py` de cada feature (compat
-temporal) para no romper a los features aún síncronos que consumen los
-nombres viejos. Se eliminarán al completar la migración."""
+  user: AuthUserResponse
 
 
 # PAGINACIÓN --------------------------------------------------------
 T = TypeVar('T')
 
-class PaginationRequestDTO(BaseModel, Generic[T]):
+class PaginationRequest(BaseModel, Generic[T]):
   page: int = Field(default=1, ge=1, description="Número de página a mostrar")
   limit: int = Field(default=10, ge=1, le=100, description="Cantidad de elementos por página")
   search: Optional[str] = Field(default="", description="Texto de búsqueda opcional")
   filter: Optional[T] = Field(default=None, description="Filtros adicionales específicos del recurso")
 
-class PaginationResponseDTO(BaseModel, Generic[T]): 
+class PaginationResponse(BaseModel, Generic[T]):
   page: int = Field(..., description="Página actual")
   pages: int = Field(..., description="Cantidad total de páginas disponibles")
   items: int = Field(..., description="Cantidad total de registros disponibles")
   next: Optional[str] = Field(None, description="URL de la siguiente página, si existe")
   prev: Optional[str] = Field(None, description="URL de la página anterior, si existe")
   data: Optional[T] = Field(None, description="Lista de resultados de la página actual")
-
-

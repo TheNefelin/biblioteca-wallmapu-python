@@ -1,9 +1,9 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+﻿from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.schemas.dtos import RegionDTO
+from src.schemas.dtos import RegionResponse
 from . import repository
 
 
-async def get_all(db: AsyncSession) -> list[RegionDTO]:
+async def get_all(db: AsyncSession) -> list[RegionResponse]:
   items = await repository.get_all(db)
-  return [RegionDTO.model_validate(item) for item in items]
+  return [RegionResponse.model_validate(item) for item in items]
