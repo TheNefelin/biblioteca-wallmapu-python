@@ -9,13 +9,59 @@ class AppModel(BaseModel):
   model_config = ConfigDict(from_attributes=True)
 
 
+# EDITORIALS ------------------------------------------------------
+class EditorialRequest(BaseModel):
+  name: str
+
+
+class EditorialResponse(AppModel):
+  id_editorial: int
+  name: str
+  created_at: datetime
+  updated_at: datetime
+
+
 # GENRES ----------------------------------------------------------
 class GenreRequest(BaseModel):
   name: str = Field(..., description="Nombre del género")
 
 
-class GenreResponse(AppModel):
+class GenreResponse(AppModel, GenreRequest):
   id_genre: int
+  created_at: datetime
+  updated_at: datetime
+
+
+# FORMAT ----------------------------------------------------------
+class FormatRequest(BaseModel):
+  name: str
+
+
+class FormatResponse(AppModel):
+  id_format: int
+  name: str
+  created_at: datetime
+  updated_at: datetime
+
+
+# AUTHORS ---------------------------------------------------------
+class AuthorRequest(BaseModel):
+  name: str
+
+
+class AuthorResponse(AppModel):
+  id_author: int
+  name: str
+  created_at: datetime
+  updated_at: datetime
+
+# SUBJECTS --------------------------------------------------------
+class SubjectRequest(BaseModel):
+  name: str
+
+
+class SubjectResponse(AppModel):
+  id_subject: int
   name: str
   created_at: datetime
   updated_at: datetime
@@ -74,52 +120,95 @@ class CommuneDTO(AppModel):
   province_id: int
 
 
-# FORMAT ----------------------------------------------------------
-class FormatRequest(BaseModel):
-  name: str
+# COPY ------------------------------------------------------------
+class SaveCopyDTO(BaseModel):
+  signature_topography: str
+  edition_id: int
+  copy_number: int
+  status_id: int
 
 
-class FormatResponse(AppModel):
+class CopyDTO(AppModel, SaveCopyDTO):
+  status_name: str
+  id_copy: int
+  barcode: str
+  created_at: datetime
+  updated_at: datetime
+
+
+class CopyDetailDTO(AppModel):
+  id_copy: int
+  barcode: str
+  signature_topography: str
+  copy_number: int
+  created_at: datetime
+  updated_at: datetime
+  status_id: int
+  status_name: str
+  edition_id: int
+  edition_name: str
+  edition_isbn: Optional[str] = None
+  edition_cover_image: Optional[str] = None
+  editorial_id: int
+  editorial_name: str
+  is_availability: bool
+  availability_status: str
+
+
+# EDITION FORMAT --------------------------------------------------
+class EditionFormatDTO(AppModel):
+  id_edition: int
   id_format: int
-  name: str
+
+
+# EDITIONS --------------------------------------------------------
+class BaseEditionDTO(AppModel):
+  edition: Optional[str] = None
+  isbn: Optional[str] = None
+  publication_year: int
+  pages: int
+  cover_image: Optional[str] = None
+  editorial_id: int
+  book_id: int
+
+
+class SaveEditionDTO(BaseEditionDTO):
+  format_ids: Optional[list[int]] = None
+
+
+class EditionDTO(BaseEditionDTO):
+  id_edition: int
   created_at: datetime
   updated_at: datetime
+  formats: list[FormatResponse]
 
 
-# EDITORIALS ------------------------------------------------------
-class EditorialRequest(BaseModel):
-  name: str
-
-
-class EditorialResponse(AppModel):
-  id_editorial: int
-  name: str
+class EditionDetailDTO(BaseEditionDTO):
+  id_edition: int
   created_at: datetime
   updated_at: datetime
+  editorial_name: str
+  book_title: str
+  genre_id: int
+  genre_name: str
+  author_id: Optional[int]
+  author_name: Optional[str]
+  copy_count: int
 
 
-# AUTHORS ---------------------------------------------------------
-class AuthorRequest(BaseModel):
-  name: str
+class EditionFilterDTO(BaseModel):
+  id_author: Optional[int] = Field(None, description="Filtrar por autor")
+  id_editorial: Optional[int] = Field(None, description="Filtrar por editorial")
+  id_genre: Optional[int] = Field(None, description="Filtrar por género")
+  id_format: Optional[int] = Field(None, description="Filtrar por formato")
+  id_subject: Optional[int] = Field(None, description="Filtrar por descriptores")
 
 
-class AuthorResponse(AppModel):
-  id_author: int
-  name: str
-  created_at: datetime
-  updated_at: datetime
 
 
-# SUBJECTS --------------------------------------------------------
-class SubjectRequest(BaseModel):
-  name: str
 
 
-class SubjectResponse(AppModel):
-  id_subject: int
-  name: str
-  created_at: datetime
-  updated_at: datetime
+
 
 
 # NEWS ------------------------------------------------------------
@@ -184,54 +273,7 @@ class LoanPolicyDTO(BaseModel):
   model_config = ConfigDict(from_attributes=True)
 
 
-# EDITION FORMAT --------------------------------------------------
-class EditionFormatDTO(AppModel):
-  id_edition: int
-  id_format: int
 
-
-# EDITIONS --------------------------------------------------------
-class BaseEditionDTO(AppModel):
-  edition: Optional[str] = None
-  isbn: Optional[str] = None
-  publication_year: int
-  pages: int
-  cover_image: Optional[str] = None
-  editorial_id: int
-  book_id: int
-
-
-class SaveEditionDTO(BaseEditionDTO):
-  format_ids: Optional[list[int]] = None
-
-
-class EditionDTO(BaseEditionDTO):
-  id_edition: int
-  created_at: datetime
-  updated_at: datetime
-  formats: list[FormatResponse]
-
-
-class EditionDetailDTO(BaseEditionDTO):
-  id_edition: int
-  created_at: datetime
-  updated_at: datetime
-  editorial_name: str
-  book_title: str
-  genre_id: int
-  genre_name: str
-  author_id: Optional[int]
-  author_name: Optional[str]
-  copy_count: int
-
-
-
-class EditionFilterDTO(BaseModel):
-  id_author: Optional[int] = Field(None, description="Filtrar por autor")
-  id_editorial: Optional[int] = Field(None, description="Filtrar por editorial")
-  id_genre: Optional[int] = Field(None, description="Filtrar por género")
-  id_format: Optional[int] = Field(None, description="Filtrar por formato")
-  id_subject: Optional[int] = Field(None, description="Filtrar por descriptores")
 
 
 # LOANS -----------------------------------------------------------
@@ -455,41 +497,6 @@ class BookDetailDTO(BaseModel):
   copy_count: int
 
   model_config = ConfigDict(from_attributes=True)
-
-
-# COPY ------------------------------------------------------------
-class SaveCopyDTO(BaseModel):
-  signature_topography: str
-  edition_id: int
-  copy_number: int
-  status_id: int
-
-
-class CopyDTO(AppModel, SaveCopyDTO):
-  status_name: str
-  id_copy: int
-  barcode: str
-  created_at: datetime
-  updated_at: datetime
-
-
-class CopyDetailDTO(AppModel):
-  id_copy: int
-  barcode: str
-  signature_topography: str
-  copy_number: int
-  created_at: datetime
-  updated_at: datetime
-  status_id: int
-  status_name: str
-  edition_id: int
-  edition_name: str
-  edition_isbn: Optional[str] = None
-  edition_cover_image: Optional[str] = None
-  editorial_id: int
-  editorial_name: str
-  is_availability: bool
-  availability_status: str
 
 
 # STATS -----------------------------------------------------------
