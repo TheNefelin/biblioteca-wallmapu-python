@@ -19,7 +19,7 @@ async def get_all_pagination(db: AsyncSession, pagination: PaginationRequestDTO)
   if search_norm:
     query = query.where(func.unaccent(Genre.name).ilike(f"%{search_norm}%"))
 
-  total_items = len((await db.execute(select(func.count()).select_from(query.subquery()))).scalar_one())
+  total_items = (await db.execute(select(func.count()).select_from(query.subquery()))).scalar_one()
 
   total_pages = ceil(total_items / pagination.limit) if total_items > 0 else 0
   page = min(pagination.page, total_pages) if total_pages > 0 else 1

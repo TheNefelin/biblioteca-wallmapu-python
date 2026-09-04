@@ -149,7 +149,7 @@ async def root():
   return {
     "status": "Api Running",
     "swagger": "/docs",
-    "version": "1.0.231",
+    "version": "1.1.0",
     "uptime_seconds": round(time.time() - start_time, 2),
   }
 
