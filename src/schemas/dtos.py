@@ -225,29 +225,24 @@ class BookSubjectResponse(AppModel):
 
 
 # BOOKS -------------------------------------------------------------
-# Request: merge create + update
-#   - Crear: title, summary, genre_id, author_ids, subject_ids (requeridos)
-#   - Actualizar: id_book (requerido) + campos a modificar
-class BookRequest(BaseModel):
-  id_book: Optional[int] = Field(None, description="ID del libro (requerido solo en actualización)")
+class BookBase(BaseModel):
   title: str
   summary: str
+
+  
+class BookRequest(BookBase):
   genre_id: int
   author_ids: list[int]
   subject_ids: list[int]
 
 
-class BookResponse(AppModel):
+class BookResponse(AppModel, BookBase):
   id_book: int
-  title: str
-  summary: str
   created_at: datetime
   updated_at: datetime
   genre: GenreResponse = Field(..., description="Género del libro")
   authors: list[AuthorResponse] = Field(..., description="Autores del libro")
   subjects: list[SubjectResponse] = Field(..., description="Descriptores del libro")
-
-  model_config = ConfigDict(from_attributes=True)
 
 
 class BookDetailResponse(AppModel):
@@ -262,8 +257,6 @@ class BookDetailResponse(AppModel):
   edition_cover_image: Optional[str]
   edition_count: int
   copy_count: int
-
-  model_config = ConfigDict(from_attributes=True)
 
 
 # NEWS ------------------------------------------------------------

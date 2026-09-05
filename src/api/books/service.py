@@ -72,17 +72,13 @@ async def create_book(db: AsyncSession, data: BookRequest) -> BookResponse:
 # -----------------------------------------------------------------
 # UPDATE
 async def update_book(db: AsyncSession, id: int, data: BookRequest) -> BookResponse | None:
-  if data.id_book != id:
-    raise BadRequestProblem(detail="El ID no coincide")
-
-  book = await repository.get_entity_by_id(db, data.id_book)
+  book = await repository.get_entity_by_id(db, id)
   if not book:
     return None
 
   dump = data.model_dump(exclude_unset=True)
   author_ids = dump.pop("author_ids", []) or []
   subject_ids = dump.pop("subject_ids", []) or []
-  dump.pop("id_book", None)
 
   if dump.get("genre_id") == 0:
     raise BadRequestProblem(detail="El género es requerido")
