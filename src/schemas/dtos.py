@@ -213,6 +213,59 @@ class EditionFilterRequest(BaseModel):
   id_subject: Optional[int] = Field(None, description="Filtrar por descriptores")
 
 
+# BOOK AUTHORS / BOOK SUBJECTS ------------------------------------
+class BookAuthorResponse(AppModel):
+  id_book: int
+  id_author: int
+
+
+class BookSubjectResponse(AppModel):
+  id_book: int
+  id_subject: int
+
+
+# BOOKS -------------------------------------------------------------
+# Request: merge create + update
+#   - Crear: title, summary, genre_id, author_ids, subject_ids (requeridos)
+#   - Actualizar: id_book (requerido) + campos a modificar
+class BookRequest(BaseModel):
+  id_book: Optional[int] = Field(None, description="ID del libro (requerido solo en actualización)")
+  title: str
+  summary: str
+  genre_id: int
+  author_ids: list[int]
+  subject_ids: list[int]
+
+
+class BookResponse(AppModel):
+  id_book: int
+  title: str
+  summary: str
+  created_at: datetime
+  updated_at: datetime
+  genre: GenreResponse = Field(..., description="Género del libro")
+  authors: list[AuthorResponse] = Field(..., description="Autores del libro")
+  subjects: list[SubjectResponse] = Field(..., description="Descriptores del libro")
+
+  model_config = ConfigDict(from_attributes=True)
+
+
+class BookDetailResponse(AppModel):
+  id_book: int
+  title: str
+  created_at: datetime
+  updated_at: datetime
+  genre_id: int
+  genre_name: str
+  author_id: Optional[int]
+  author_name: Optional[str]
+  edition_cover_image: Optional[str]
+  edition_count: int
+  copy_count: int
+
+  model_config = ConfigDict(from_attributes=True)
+
+
 # NEWS ------------------------------------------------------------
 # Request: merge create + update
 #   - Crear: title, subtitle, body (requeridos)
@@ -248,17 +301,6 @@ class NewsWithGalleryResponse(AppModel):
   created_at: datetime
   updated_at: datetime
   images: list[NewsGalleryResponse]
-
-
-# BOOK AUTHORS / BOOK SUBJECTS ------------------------------------
-class BookAuthorResponse(AppModel):
-  id_book: int
-  id_author: int
-
-
-class BookSubjectResponse(AppModel):
-  id_book: int
-  id_subject: int
 
 
 # LOAN POLICIES ---------------------------------------------------
@@ -462,48 +504,6 @@ class NotificationByEmailRequest(BaseModel):
   title: str = Field(..., description="Título de la notificación")
   message: str = Field(..., description="Mensaje detallado de la notificación")
   is_priority: bool = Field(default=False, description="True = Alta prioridad, False = Normal")
-
-
-# BOOKS -------------------------------------------------------------
-# Request: merge create + update
-#   - Crear: title, summary, genre_id, author_ids, subject_ids (requeridos)
-#   - Actualizar: id_book (requerido) + campos a modificar
-class BookRequest(BaseModel):
-  id_book: Optional[int] = Field(None, description="ID del libro (requerido solo en actualización)")
-  title: str
-  summary: str
-  genre_id: int
-  author_ids: list[int]
-  subject_ids: list[int]
-
-
-class BookResponse(AppModel):
-  id_book: int
-  title: str
-  summary: str
-  created_at: datetime
-  updated_at: datetime
-  genre: str = Field(..., description="Nombre del género")
-  authors: list[str] = Field(..., description="Nombres de los autores")
-  subjects: list[str] = Field(..., description="Nombres de los descriptores")
-
-  model_config = ConfigDict(from_attributes=True)
-
-
-class BookDetailResponse(AppModel):
-  id_book: int
-  title: str
-  created_at: datetime
-  updated_at: datetime
-  genre_id: int
-  genre_name: str
-  author_id: Optional[int]
-  author_name: Optional[str]
-  edition_cover_image: Optional[str]
-  edition_count: int
-  copy_count: int
-
-  model_config = ConfigDict(from_attributes=True)
 
 
 # STATS -----------------------------------------------------------

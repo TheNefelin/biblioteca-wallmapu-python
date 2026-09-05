@@ -3,6 +3,7 @@
 from rfc9457 import BadRequestProblem
 from src.schemas.dtos import PaginationRequest, PaginationResponse
 from src.schemas.dtos import BookRequest, BookResponse, BookDetailResponse
+from src.schemas.dtos import GenreResponse, AuthorResponse, SubjectResponse
 from src.api.book_authors import repository as book_authors_repository
 from src.api.book_authors import service as book_author_service
 from src.api.book_subjects import repository as book_subjects_repository
@@ -13,16 +14,16 @@ from . import repository
 
 
 def _to_book_dto(item) -> BookResponse:
-  """Convierte un objeto ORM Book a BookResponse, aplanando relaciones a strings."""
+  """Convierte un objeto ORM Book a BookResponse, anidando relaciones como objetos."""
   return BookResponse(
     id_book=item.id_book,
     title=item.title,
     summary=item.summary,
     created_at=item.created_at,
     updated_at=item.updated_at,
-    genre=item.genre.name if item.genre else "",
-    authors=[ba.author.name for ba in item.book_authors],
-    subjects=[bs.subject.name for bs in item.book_subjects],
+    genre=GenreResponse.model_validate(item.genre),
+    authors=[AuthorResponse.model_validate(ba.author) for ba in item.book_authors],
+    subjects=[SubjectResponse.model_validate(bs.subject) for bs in item.book_subjects],
   )
 
 
