@@ -20,6 +20,15 @@ logger = logging.getLogger(__name__)
 
 
 # -----------------------------------------------------------------
+# LOG EMAIL FAILURE (helper centralizado; sin print residual)
+def _log_email_failure(context: str, exc: Exception, notification_id=None):
+  if notification_id is not None:
+    logger.error(f"Error al enviar el email durante {context} (notification {notification_id}): {exc}", exc_info=True)
+  else:
+    logger.error(f"Error al enviar el email durante {context}: {exc}", exc_info=True)
+
+
+# -----------------------------------------------------------------
 # GET ALL PAGINATED (Admin)
 async def get_all_pagination(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse[list[NotificationDetailResponse]]:
   pagination_response = await repository.get_all_pagination(db, pagination)
@@ -108,9 +117,8 @@ async def create(db: AsyncSession, dto: NotificationByEmailRequest) -> Notificat
 
     if not response or response.get("messageId") is None:
       logger.warning(f"Email no fue enviado correctamente para notification {created.id_notification}: response={response}")
-  except Exception:
-    print(f"Error al enviar el email: {created.id_notification}")
-    logger.error(f"Error al enviar el email: {created.id_notification}", exc_info=True)
+  except Exception as exc:
+    _log_email_failure(context=f"admin create para user {user.id_user}", exc=exc, notification_id=created.id_notification)
 
   return NotificationResponse.model_validate(created)
 
@@ -133,8 +141,8 @@ async def create_welcome_notification(db: AsyncSession, user_id: str, user_email
   try:
     email_data = email.WelcomeEmailData(user_email=user_email, user_name=user_name)
     await email.send_welcome_email(data=email_data)
-  except Exception:
-    logger.error(f"Error al enviar email de bienvenida para user {user_id}", exc_info=True)
+  except Exception as exc:
+    _log_email_failure(context=f"welcome para user {user_id}", exc=exc, notification_id=created.id_notification)
 
 
 # -----------------------------------------------------------------
@@ -164,9 +172,8 @@ async def notification_for_create_reservation_and_send_email(db: AsyncSession, r
 
   try:
     await email.send_reservation_created_email(data=email_data)
-  except Exception:
-    print(f"Error al enviar el email: {created.id_notification}")
-    logger.error(f"Error al enviar el email: {created.id_notification}", exc_info=True)
+  except Exception as exc:
+    _log_email_failure(context=f"reservation created {reservation_id}", exc=exc, notification_id=created.id_notification)
 
 
 # -----------------------------------------------------------------
@@ -195,9 +202,8 @@ async def notification_for_cancel_reservation_and_send_email(db: AsyncSession, r
 
   try:
     await email.send_reservation_cancelled_email(data=email_data)
-  except Exception:
-    print(f"Error creando notificación para reserva cancelada {reservation_id}")
-    logger.error(f"Error creando notificación para reserva cancelada {reservation_id}", exc_info=True)
+  except Exception as exc:
+    _log_email_failure(context=f"reservation cancel {reservation_id}", exc=exc, notification_id=created.id_notification)
 
 
 # -----------------------------------------------------------------
@@ -227,9 +233,8 @@ async def notification_for_create_loan_and_send_email(db: AsyncSession, loan_id:
 
   try:
     await email.send_loan_created_email(data=email_data)
-  except Exception:
-    print(f"Error al enviar el email: {created.id_notification}")
-    logger.error(f"Error al enviar el email: {created.id_notification}", exc_info=True)
+  except Exception as exc:
+    _log_email_failure(context=f"loan created {loan_id}", exc=exc, notification_id=created.id_notification)
 
 
 # -----------------------------------------------------------------
@@ -258,9 +263,8 @@ async def notification_for_return_loan_and_send_email(db: AsyncSession, loan_id:
 
   try:
     await email.send_loan_returned_email(data=email_data)
-  except Exception:
-    print(f"Error al enviar el email: {created.id_notification}")
-    logger.error(f"Error al enviar el email: {created.id_notification}", exc_info=True)
+  except Exception as exc:
+    _log_email_failure(context=f"loan return {loan_id}", exc=exc, notification_id=created.id_notification)
 
 
 # -----------------------------------------------------------------

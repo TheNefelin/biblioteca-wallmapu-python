@@ -4,6 +4,7 @@ import httpx
 from typing import Optional
 
 from src.core.config import settings
+from src.core.logger import logger
 
 
 @dataclass
@@ -136,10 +137,10 @@ async def send_email(to: str, subject: str, html: str) -> Optional[dict]:
     response.raise_for_status()
     return response.json()
   except httpx.HTTPStatusError as e:
-    print(f"Error sending email to {to}: HTTP {e.response.status_code} detail={e.response.text[:500]}")
+    logger.error("Error sending email to %s: HTTP %s detail=%s", to, e.response.status_code, e.response.text[:500])
     raise
   except Exception as e:
-    print(f"Error sending email to {to}: {e}")
+    logger.error("Error sending email to %s: %s", to, e)
     raise
 
 

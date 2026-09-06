@@ -1218,6 +1218,7 @@ Antes de dar una API por terminada:
 - [ ] Uploads: borra la imagen anterior antes de subir, `delete()` limpia el storage, `extract_public_id` salta transformaciones
 - [ ] Rate limiting por identidad (JWT→`user:{id}`, si no→IP) + límite por endpoint si es formulario público
 - [ ] Logging JSON con `request_id` por petición
+- [ ] Logs con `logger` (nunca `print()`); excepciones con `exc_info=True` (o `logger.exception`) y contexto en el mensaje (ej. `notification_id`); helper centralizado si el mismo fallo se loguea en varios puntos
 - [ ] Tests con BD real, que dropean solo sus tablas (prefijo), seed de roles/admin, caso de error por recurso
 - [ ] Cliente externo por uso: 1 feature → dentro del feature (`contact/brevo.py`), ≥2 features → `core/`
 - [ ] Errores de proveedor externo mapeados por status (401/403→config, 429→429, resto→502) y respuesta logueada en éxito
@@ -1234,6 +1235,8 @@ Antes de dar una API por terminada:
 | Anti-patrón | Por qué evitarlo |
 |-------------|------------------|
 | `HTTPException(status_code=404, detail=...)` dentro de rutas | Duplica lógica y rompe el formato RFC 9457 |
+| `print()` para registrar errores | Ruido no estructurado, sin `request_id` ni nivel ni stack trace; usar el `logger` del proyecto (`src.core.logger`) y `logger.error(..., exc_info=True)`. Un helper compartido (ej. `_log_email_failure`) evita 5 bloques duplicados |
+| Llamar a un proveedor externo sin `raise_for_status()` | Los 4xx/5xx se devuelven "exitosos" y se procesa el body de error como éxito (fallo silencioso). `response.raise_for_status()` convierte el status en excepción, y loguear `status_code` + body anticipa el diagnóstico |
 | Un `crud.py` global | No escala: mezcla dominios y genera acoplamiento |
 | `from sqlalchemy import delete` + función local `async def delete` | Name shadowing: la función local opaca el import → `NameError`/`TypeError` al operar. Renombrar el import (`delete as sqla_delete`) |
 | DTO de respuesta sin `from_attributes=True` | `model_validate(orm_object)` falla (no lee atributos) → 500 en runtime. Los responses llevan `ConfigDict(from_attributes=True)` |
