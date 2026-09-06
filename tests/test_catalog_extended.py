@@ -1,7 +1,7 @@
-﻿"""Tests de lectura de catÃ¡logos de soporte (selecciÃ³n/selects).
+﻿"""Tests de lectura de catálogos de soporte (selección/selects).
 
-Cubre los catÃ¡logos que no estaban incluidos en test_catalog_read.py:
-- loan_status: GET pÃºblico (sin token).
+Cubre los catálogos que no estaban incluidos en test_catalog_read.py:
+- loan_status: GET público (sin token).
 - copy_status, reservation_status, division_commune/province/region,
   user_status, user_role: requieren auth ADMIN o LECTOR (se autentica un Lector).
 

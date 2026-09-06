@@ -35,6 +35,17 @@ async def create(db: AsyncSession, data: dict) -> models.NewsGallery:
 
 
 # -----------------------------------------------------------------
+# CREATE MANY (multi-entidad atomico; evita construir entidades en el service)
+async def create_many(db: AsyncSession, items: list[dict]) -> list[models.NewsGallery]:
+  entities = [models.NewsGallery(**item) for item in items]
+  db.add_all(entities)
+  await db.commit()
+  for entity in entities:
+    await db.refresh(entity)
+  return entities
+
+
+# -----------------------------------------------------------------
 # DELETE BY ID NEWS
 async def delete_by_news_id(db: AsyncSession, news_id: int) -> bool:
   items = (await db.execute(

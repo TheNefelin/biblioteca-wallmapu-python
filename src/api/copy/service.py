@@ -2,7 +2,6 @@
 
 from rfc9457 import BadRequestProblem
 from src.core.exceptions import NotFoundError
-from src.models import models
 from src.api.loans import repository as loan_repository
 from src.api.reservations import repository as reservation_repository
 from src.schemas.dtos import CopyResponse, CopyDetailResponse, CopyRequest
@@ -17,7 +16,7 @@ def _compute_availability(row, loaned_ids: set, reserved_ids: set) -> tuple[bool
   if row.id_copy in reserved_ids:
     return False, "Pendiente de Retiro"
   if row.id_copy in loaned_ids:
-    return False, "En PrÃ©stamo"
+    return False, "En Préstamo"
   return True, "Disponible"
 
 
@@ -49,15 +48,14 @@ async def get_all_by_edition_id(db: AsyncSession, edition_id: int) -> list[CopyR
 # -----------------------------------------------------------------
 # CREATE COPY
 async def create(db: AsyncSession, data: CopyRequest) -> CopyResponse:
-  edition = await db.get(models.Edition, data.edition_id)
-  if not edition:
-    raise NotFoundError(entity="EdiciÃ³n")
+  if not await repository.edition_exists(db, data.edition_id):
+    raise NotFoundError(entity="Edición")
 
   if await repository.signature_exists(db, data.signature_topography):
-    raise BadRequestProblem(detail="La Firma TopogrÃ¡fica ya existe")
+    raise BadRequestProblem(detail="La Firma Topográfica ya existe")
 
   if await repository.copy_number_exists(db, data.edition_id, data.copy_number):
-    raise BadRequestProblem(detail=f"El nÃºmero de ejemplar {data.copy_number} ya existe para esta ediciÃ³n")
+    raise BadRequestProblem(detail=f"El número de ejemplar {data.copy_number} ya existe para esta edición")
 
   entity_data = data.model_dump()
   entity_data["barcode"] = data.signature_topography
@@ -70,11 +68,9 @@ async def create(db: AsyncSession, data: CopyRequest) -> CopyResponse:
 # -----------------------------------------------------------------
 # UPDATE COPY
 async def update(db: AsyncSession, id: int, data: CopyRequest) -> CopyResponse | None:
-  edition = await db.get(models.Edition, data.edition_id)
-  if not edition:
-    raise NotFoundError(entity="EdiciÃ³n")
-  status = await db.get(models.CopyStatus, data.status_id)
-  if not status:
+  if not await repository.edition_exists(db, data.edition_id):
+    raise NotFoundError(entity="Edición")
+  if not await repository.copy_status_exists(db, data.status_id):
     raise NotFoundError(entity="Estado")
 
   current = await repository.get_by_id(db, id)
@@ -87,14 +83,14 @@ async def update(db: AsyncSession, id: int, data: CopyRequest) -> CopyResponse |
     new_signature = update_data["signature_topography"]
     if new_signature != current.signature_topography:
       if await repository.signature_exists(db, new_signature, exclude_id=id):
-        raise BadRequestProblem(detail="La signatura topogrÃ¡fica ya estÃ¡ en uso por otro ejemplar")
+        raise BadRequestProblem(detail="La signatura topográfica ya está en uso por otro ejemplar")
       update_data["barcode"] = new_signature
 
   if "copy_number" in update_data and update_data["copy_number"] is not None:
     new_copy_number = update_data["copy_number"]
     if new_copy_number != current.copy_number:
       if await repository.copy_number_exists(db, data.edition_id, new_copy_number, exclude_id=id):
-        raise BadRequestProblem(detail=f"El nÃºmero de ejemplar {new_copy_number} ya existe para esta ediciÃ³n")
+        raise BadRequestProblem(detail=f"El número de ejemplar {new_copy_number} ya existe para esta edición")
 
   entity = await repository.update(db, current, update_data)
   row = await repository.get_by_id_with_status(db, entity.id_copy)
@@ -109,7 +105,7 @@ async def delete(db: AsyncSession, id: int) -> bool:
     return False
 
   if await loan_repository.exists_by_copy_id(db, id):
-    raise BadRequestProblem(detail="No se puede eliminar el ejemplar porque tiene prÃ©stamos asociados")
+    raise BadRequestProblem(detail="No se puede eliminar el ejemplar porque tiene préstamos asociados")
 
   if await reservation_repository.exists_by_copy_id(db, id):
     raise BadRequestProblem(detail="No se puede eliminar el ejemplar porque tiene reservas asociadas")

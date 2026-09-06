@@ -3,7 +3,6 @@ from typing import List
 
 from src.api.news import repository as news_repository
 from src.core.exceptions import NotFoundError
-from src.models import models
 from src.schemas.dtos import NewsGalleryResponse
 from src.core import cloudinary
 from . import repository
@@ -36,7 +35,7 @@ async def create_news_gallery_with_images(
     raise NotFoundError(entity="Noticia")
 
   uploaded_public_ids = []
-  created_items = []
+  uploads = []
 
   try:
     for file, alt in zip(files, alts):
@@ -46,20 +45,10 @@ async def create_news_gallery_with_images(
         folder=f"{PATH}"
       )
 
-      gallery = models.NewsGallery(
-        news_id=news_id,
-        alt=alt,
-        url=url
-      )
-      db.add(gallery)
-
+      uploads.append({"news_id": news_id, "alt": alt, "url": url})
       uploaded_public_ids.append(public_id)
-      created_items.append(gallery)
 
-    await db.commit()
-
-    for item in created_items:
-      await db.refresh(item)
+    created_items = await repository.create_many(db, uploads)
 
     return created_items
   except Exception as e:

@@ -35,7 +35,7 @@ async def auth_service(
     user.user_role_name
   )
 
-  # 5. verificar si el perfil estÃ¡ completo
+  # 5. verificar si el perfil está completo
   profile_complete = bool(
     user.name and
     user.lastname and

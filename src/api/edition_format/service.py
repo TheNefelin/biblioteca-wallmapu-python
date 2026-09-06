@@ -5,7 +5,7 @@ from . import repository
 
 
 # -----------------------------------------------------------------
-# UPDATE (reemplaza relaciones; si format_ids viene vacÃ­o, elimina todas)
+# UPDATE (reemplaza relaciones; si format_ids viene vacío, elimina todas)
 async def update_formats(db: AsyncSession, id_edition: int, format_ids: list[int]) -> list[EditionFormatResponse]:
   format_ids = list(set(format_ids or []))
   items = await repository.update(db, id_edition, format_ids)
@@ -13,7 +13,7 @@ async def update_formats(db: AsyncSession, id_edition: int, format_ids: list[int
 
 
 # -----------------------------------------------------------------
-# DELETE (elimina una relaciÃ³n edition-format)
+# DELETE (elimina una relación edition-format)
 async def delete_format(db: AsyncSession, id_edition: int, id_format: int) -> bool:
   return await repository.delete(db, id_edition, id_format)
 

@@ -47,6 +47,15 @@ async def get_by_id_detailed(db: AsyncSession, id_user: UUID) -> UserDetailRespo
 
 
 # -----------------------------------------------------------------
+# GET BY EMAIL (para orquestación cross-feature: service→service)
+async def get_by_email(db: AsyncSession, email: str) -> UserDetailResponse | None:
+  entity = await repository.get_by_email(db, email)
+  if not entity:
+    return None
+  return _map_user_to_detail(entity)
+
+
+# -----------------------------------------------------------------
 # GET OR CREATE USER (Auth)
 async def get_or_create_user(db: AsyncSession, dto: UserRequest) -> UserDetailResponse:
   entity = await repository.get_by_email(db, dto.email)

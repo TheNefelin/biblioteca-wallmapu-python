@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, Query, Request, WebSocket, WebSocketDisc
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 
+from src.api.users import service as user_service
 from src.core.database import get_db_async
 from src.core.security import get_current_user
 from src.core.roles import UserRole
@@ -154,7 +155,11 @@ async def create_notification(
   dto: NotificationByEmailRequest,
   db: AsyncSession = Depends(get_db_async)
 ):
-  res = await service.create(db, dto)
+  user = await user_service.get_by_email(db, dto.email)
+  if not user:
+    raise NotFoundError(entity="Usuario")
+
+  res = await service.create(db, dto, user.id_user)
   return res
 
 # -----------------------------------------------------------------

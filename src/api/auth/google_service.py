@@ -17,11 +17,11 @@ async def _fetch_userinfo(client: httpx.AsyncClient, access_token: str) -> dict:
 
 async def verify_google_token(access_token: str) -> GoogleUserInfoResponse:
   """
-  Valida el Access Token de Google y obtiene informaciÃ³n del usuario.
+  Valida el Access Token de Google y obtiene información del usuario.
 
-  Verifica que el token fue emitido para ESTA aplicaciÃ³n (aud == GOOGLE_CLIENT_ID).
-  Sin este check, cualquier access token de Google vÃ¡lido (emitido a otra app)
-  permitirÃ­a autenticarse en el backend.
+  Verifica que el token fue emitido para ESTA aplicación (aud == GOOGLE_CLIENT_ID).
+  Sin este check, cualquier access token de Google válido (emitido a otra app)
+  permitiría autenticarse en el backend.
   """
   try:
     async with httpx.AsyncClient(timeout=10) as client:
@@ -33,13 +33,13 @@ async def verify_google_token(access_token: str) -> GoogleUserInfoResponse:
     raise ValueError(f"Error al validar token de Google: {str(e)}")
 
   if response.status_code != 200:
-    raise ValueError(f"Token invÃ¡lido: {response.text}")
+    raise ValueError(f"Token inválido: {response.text}")
 
   token_info = response.json()
 
-  # Validar que el token fue emitido para esta aplicaciÃ³n
+  # Validar que el token fue emitido para esta aplicación
   if settings.GOOGLE_CLIENT_ID and token_info.get("aud") != settings.GOOGLE_CLIENT_ID:
-    raise ValueError("Token invÃ¡lido: no fue emitido para esta aplicaciÃ³n")
+    raise ValueError("Token inválido: no fue emitido para esta aplicación")
 
   email_verified = token_info.get("email_verified")
   if email_verified not in (True, "true"):

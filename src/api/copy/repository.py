@@ -110,6 +110,22 @@ async def signature_exists(db: AsyncSession, signature: str, exclude_id: int = 0
 
 
 # -----------------------------------------------------------------
+# CHECK IF EDITION EXISTS (validacion de FK; evita db.get en el service)
+async def edition_exists(db: AsyncSession, edition_id: int) -> bool:
+  stmt = select(models.Edition.id_edition).where(models.Edition.id_edition == edition_id)
+  result = await db.execute(stmt)
+  return result.first() is not None
+
+
+# -----------------------------------------------------------------
+# CHECK IF COPY STATUS EXISTS (validacion de FK; evita db.get en el service)
+async def copy_status_exists(db: AsyncSession, status_id: int) -> bool:
+  stmt = select(models.CopyStatus.id_status).where(models.CopyStatus.id_status == status_id)
+  result = await db.execute(stmt)
+  return result.first() is not None
+
+
+# -----------------------------------------------------------------
 # CHECK IF COPY NUMBER EXISTS FOR EDITION
 async def copy_number_exists(db: AsyncSession, edition_id: int, copy_number: int, exclude_id: int = 0) -> bool:
   stmt = select(models.Copy.copy_number).where(

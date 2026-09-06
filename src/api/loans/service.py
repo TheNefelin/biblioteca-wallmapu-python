@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from rfc9457 import BadRequestProblem
 from src.schemas.dtos import PaginationRequest, PaginationResponse
 from src.schemas.dtos import LoanRequest, LoanResponse, LoanDetailResponse
+from src.core import email
 from src.api.loan_policies import repository as loan_policies_repository
 from src.api.notifications import service as notification_service
 from src.api.copy import repository as copy_repository
@@ -96,7 +97,15 @@ async def create(db: AsyncSession, dto: LoanRequest) -> LoanResponse:
   if not created or not created.id_loan:
     raise BadRequestProblem(detail="Error al crear el préstamo")
 
-  await notification_service.notification_for_create_loan_and_send_email(db, created.id_loan)
+  loaded = await repository.get_by_id(db, created.id_loan)
+  email_data = email.EmailData(
+    id=loaded.id_loan,
+    book_title=loaded.copy.edition.book.title,
+    book_barcode=loaded.copy.barcode,
+    user_email=loaded.user.email,
+    expiration_date=loaded.due_date,
+  )
+  await notification_service.notification_for_create_loan_and_send_email(db, email_data, str(loaded.user_id))
 
   return LoanResponse.model_validate(created)
 
@@ -116,7 +125,14 @@ async def return_loan_by_copy_id(db: AsyncSession, copy_id: int) -> LoanResponse
 
   await copy_repository.update_status(db, loan.copy_id, 1)
 
-  await notification_service.notification_for_return_loan_and_send_email(db, returned.id_loan)
+  loaded = await repository.get_by_id(db, returned.id_loan)
+  email_data = email.EmailData(
+    id=loaded.id_loan,
+    book_title=loaded.copy.edition.book.title,
+    book_barcode=loaded.copy.barcode,
+    user_email=loaded.user.email,
+  )
+  await notification_service.notification_for_return_loan_and_send_email(db, email_data, str(loaded.user_id))
 
   return LoanResponse.model_validate(returned)
 

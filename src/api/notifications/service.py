@@ -1,4 +1,5 @@
 ﻿from sqlalchemy.ext.asyncio import AsyncSession
+from uuid import UUID
 import logging
 
 from src.schemas.dtos import PaginationRequest, PaginationResponse
@@ -9,11 +10,7 @@ from src.schemas.dtos import (
   NotificationDetailResponse,
 )
 from rfc9457 import BadRequestProblem
-from src.api.reservations import repository as reservation_repository
-from src.api.loans import repository as loan_repository
-from src.api.users import repository as user_repository
 from src.core import email
-from src.core.exceptions import NotFoundError
 from . import repository
 
 logger = logging.getLogger(__name__)
@@ -87,12 +84,7 @@ async def get_by_id(db: AsyncSession, id: int) -> NotificationResponse | None:
 
 # -----------------------------------------------------------------
 # CREATE
-async def create(db: AsyncSession, dto: NotificationByEmailRequest) -> NotificationResponse | None:
-  user = await user_repository.get_by_email(db, dto.email)
-
-  if not user:
-    raise NotFoundError(entity="Usuario")
-
+async def create(db: AsyncSession, dto: NotificationByEmailRequest, user_id: UUID) -> NotificationResponse | None:
   email_data = email.AdminEmailData(
     title=dto.title,
     message=dto.message,
@@ -104,7 +96,7 @@ async def create(db: AsyncSession, dto: NotificationByEmailRequest) -> Notificat
     title=dto.title,
     message=dto.message,
     is_priority=dto.is_priority,
-    user_id=user.id_user
+    user_id=user_id
   )
 
   created = await repository.create(db, notification.model_dump(exclude_unset=True))
@@ -118,7 +110,7 @@ async def create(db: AsyncSession, dto: NotificationByEmailRequest) -> Notificat
     if not response or response.get("messageId") is None:
       logger.warning(f"Email no fue enviado correctamente para notification {created.id_notification}: response={response}")
   except Exception as exc:
-    _log_email_failure(context=f"admin create para user {user.id_user}", exc=exc, notification_id=created.id_notification)
+    _log_email_failure(context=f"admin create para user {user_id}", exc=exc, notification_id=created.id_notification)
 
   return NotificationResponse.model_validate(created)
 
@@ -147,22 +139,12 @@ async def create_welcome_notification(db: AsyncSession, user_id: str, user_email
 
 # -----------------------------------------------------------------
 # CREATE NOTIFICATION FOR RESERVATION
-async def notification_for_create_reservation_and_send_email(db: AsyncSession, reservation_id: int):
-  reservation = await reservation_repository.get_by_id(db, reservation_id)
-
-  email_data = email.EmailData(
-    id=reservation.id_reservation,
-    book_title=reservation.copy.edition.book.title,
-    book_barcode=reservation.copy.barcode,
-    user_email=reservation.user.email,
-    expiration_date=reservation.expiration_date
-  )
-
+async def notification_for_create_reservation_and_send_email(db: AsyncSession, email_data: email.EmailData, user_id: str):
   notification = NotificationRequest(
     title="RESERVA CREADA",
     message=f"Reserva #{email_data.id} registrada. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}. Vence: {email_data.expiration_date.strftime('%d-%m-%Y')}",
     is_priority=False,
-    user_id=reservation.user_id
+    user_id=user_id
   )
 
   created = await repository.create(db, notification.model_dump(exclude_unset=True))
@@ -173,26 +155,17 @@ async def notification_for_create_reservation_and_send_email(db: AsyncSession, r
   try:
     await email.send_reservation_created_email(data=email_data)
   except Exception as exc:
-    _log_email_failure(context=f"reservation created {reservation_id}", exc=exc, notification_id=created.id_notification)
+    _log_email_failure(context=f"reservation created {email_data.id}", exc=exc, notification_id=created.id_notification)
 
 
 # -----------------------------------------------------------------
 # CREATE NOTIFICATION FOR CANCEL RESERVATION
-async def notification_for_cancel_reservation_and_send_email(db: AsyncSession, reservation_id: int):
-  reservation = await reservation_repository.get_by_id(db, reservation_id)
-
-  email_data = email.EmailData(
-    id=reservation.id_reservation,
-    book_title=reservation.copy.edition.book.title,
-    book_barcode=reservation.copy.barcode,
-    user_email=reservation.user.email,
-  )
-
+async def notification_for_cancel_reservation_and_send_email(db: AsyncSession, email_data: email.EmailData, user_id: str):
   notification = NotificationRequest(
     title="RESERVA CANCELADA",
     message=f"Reserva #{email_data.id} cancelada. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}.",
     is_priority=False,
-    user_id=reservation.user_id
+    user_id=user_id
   )
 
   created = await repository.create(db, notification.model_dump(exclude_unset=True))
@@ -203,27 +176,17 @@ async def notification_for_cancel_reservation_and_send_email(db: AsyncSession, r
   try:
     await email.send_reservation_cancelled_email(data=email_data)
   except Exception as exc:
-    _log_email_failure(context=f"reservation cancel {reservation_id}", exc=exc, notification_id=created.id_notification)
+    _log_email_failure(context=f"reservation cancel {email_data.id}", exc=exc, notification_id=created.id_notification)
 
 
 # -----------------------------------------------------------------
 # CREATE NOTIFICATION FOR CREATE LOAN
-async def notification_for_create_loan_and_send_email(db: AsyncSession, loan_id: int):
-  loan = await loan_repository.get_by_id(db, loan_id)
-
-  email_data = email.EmailData(
-    id=loan.id_loan,
-    book_title=loan.copy.edition.book.title,
-    book_barcode=loan.copy.barcode,
-    user_email=loan.user.email,
-    expiration_date=loan.due_date,
-  )
-
+async def notification_for_create_loan_and_send_email(db: AsyncSession, email_data: email.EmailData, user_id: str):
   notification = NotificationRequest(
     title="PRÉSTAMO REALIZADO",
     message=f"Préstamo #{email_data.id} registrado. Ejemplar: {email_data.book_title}. CodBarra: {email_data.book_barcode}. Vence: {email_data.expiration_date.strftime('%d-%m-%Y')}",
     is_priority=False,
-    user_id=loan.user_id
+    user_id=user_id
   )
 
   created = await repository.create(db, notification.model_dump(exclude_unset=True))
@@ -234,26 +197,17 @@ async def notification_for_create_loan_and_send_email(db: AsyncSession, loan_id:
   try:
     await email.send_loan_created_email(data=email_data)
   except Exception as exc:
-    _log_email_failure(context=f"loan created {loan_id}", exc=exc, notification_id=created.id_notification)
+    _log_email_failure(context=f"loan created {email_data.id}", exc=exc, notification_id=created.id_notification)
 
 
 # -----------------------------------------------------------------
 # CREATE NOTIFICATION FOR RETURN LOAN
-async def notification_for_return_loan_and_send_email(db: AsyncSession, loan_id: int):
-  loan = await loan_repository.get_by_id(db, loan_id)
-
-  email_data = email.EmailData(
-    id=loan.id_loan,
-    book_title=loan.copy.edition.book.title,
-    book_barcode=loan.copy.barcode,
-    user_email=loan.user.email,
-  )
-
+async def notification_for_return_loan_and_send_email(db: AsyncSession, email_data: email.EmailData, user_id: str):
   notification = NotificationRequest(
     title="PRÉSTAMO DEVUELTO",
-    message=f"Préstamo #{loan.id_loan} devuelto exitosamente.",
+    message=f"Préstamo #{email_data.id} devuelto exitosamente.",
     is_priority=False,
-    user_id=loan.user_id
+    user_id=user_id
   )
 
   created = await repository.create(db, notification.model_dump(exclude_unset=True))
@@ -264,7 +218,7 @@ async def notification_for_return_loan_and_send_email(db: AsyncSession, loan_id:
   try:
     await email.send_loan_returned_email(data=email_data)
   except Exception as exc:
-    _log_email_failure(context=f"loan return {loan_id}", exc=exc, notification_id=created.id_notification)
+    _log_email_failure(context=f"loan return {email_data.id}", exc=exc, notification_id=created.id_notification)
 
 
 # -----------------------------------------------------------------

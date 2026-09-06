@@ -3,21 +3,15 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 
-from src.schemas.dtos import PaginationRequest, PaginationResponse
-from src.schemas.dtos import (
-    LoanRequest,
-    ReservationRequest,
-    ReservationResponse,
-    ReservationDetailResponse,
-)
+from src.schemas.dtos import LoanRequest, PaginationRequest, PaginationResponse, ReservationDetailResponse, ReservationRequest, ReservationResponse
 from src.api.loan_policies import repository as loan_policy_repository
 from src.api.loans import repository as loan_repository, service as loan_service
 from src.api.copy import repository as copy_repository
 from src.api.notifications import service as notification_service
 from src.api.users import repository as user_repository
 from rfc9457 import BadRequestProblem
+from src.core import email
 from src.core.exceptions import NotFoundError
-from src.models import models
 from . import repository
 
 logger = logging.getLogger(__name__)
@@ -136,8 +130,16 @@ async def create(db: AsyncSession, user_id: UUID, dto: ReservationRequest) -> Re
   if not created or not created.id_reservation:
     raise BadRequestProblem(detail="Error al crear la reserva")
 
-  # Disparar notificación (efecto secundario resiliente)
-  await notification_service.notification_for_create_reservation_and_send_email(db, created.id_reservation)
+  # Disparar notificación (efecto secundario resiliente): el caller carga con su propio repo
+  loaded = await repository.get_by_id(db, created.id_reservation)
+  email_data = email.EmailData(
+    id=loaded.id_reservation,
+    book_title=loaded.copy.edition.book.title,
+    book_barcode=loaded.copy.barcode,
+    user_email=loaded.user.email,
+    expiration_date=loaded.expiration_date,
+  )
+  await notification_service.notification_for_create_reservation_and_send_email(db, email_data, str(loaded.user_id))
 
   return ReservationResponse.model_validate(created)
 
@@ -156,8 +158,15 @@ async def mark_as_cancelled(db: AsyncSession, id: int) -> ReservationResponse:
   # Actualiza Reserva
   updated = await repository.update_status(db, id, 3)
 
-  # Disparar notificación (efecto secundario resiliente)
-  await notification_service.notification_for_cancel_reservation_and_send_email(db, updated.id_reservation)
+  # Disparar notificación (efecto secundario resiliente): el caller carga con su propio repo
+  loaded = await repository.get_by_id(db, id)
+  email_data = email.EmailData(
+    id=loaded.id_reservation,
+    book_title=loaded.copy.edition.book.title,
+    book_barcode=loaded.copy.barcode,
+    user_email=loaded.user.email,
+  )
+  await notification_service.notification_for_cancel_reservation_and_send_email(db, email_data, str(loaded.user_id))
 
   return ReservationResponse.model_validate(updated)
 
