@@ -2,7 +2,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from rfc9457 import BadRequestProblem
-from src.api.editions import repository as edition_repository
+from src.api.editions import service as editions_service
 from src.core import cloudinary
 from src.core.exceptions import NotFoundError
 
@@ -23,19 +23,18 @@ async def create_edition_image(file: UploadFile) -> str:
 # -----------------------------------------------------------------
 # DELETE
 async def delete_edition_image(id_edition: int, db: AsyncSession) -> bool:
-  item = await edition_repository.get_entity_by_id(db, id_edition)
-  if not item:
+  edition = await editions_service.get_edition_by_id(db, id_edition)
+  if not edition:
     raise NotFoundError(entity="Edición")
 
-  if not item.cover_image or item.cover_image.strip() == "":
+  if not edition.cover_image or edition.cover_image.strip() == "":
     raise BadRequestProblem(detail="La edición no tiene imagen")
 
-  public_id = cloudinary.extract_public_id(item.cover_image)
+  public_id = cloudinary.extract_public_id(edition.cover_image)
 
   if public_id:
     cloudinary.delete_image(public_id)
 
-  item.cover_image = None
-  await db.commit()
+  await editions_service.update_cover_image(db, id_edition, None)
 
   return True

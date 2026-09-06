@@ -1,7 +1,7 @@
 ﻿from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
-from src.api.news import repository as news_repository
+from src.api.news import service as news_service
 from src.core.exceptions import NotFoundError
 from src.schemas.dtos import NewsGalleryResponse
 from src.core import cloudinary
@@ -16,7 +16,7 @@ async def get_by_news_id(db: AsyncSession, news_id: int) -> list[NewsGalleryResp
 
 
 async def create(db: AsyncSession, news_id: int, url: str, alt: str = "") -> NewsGalleryResponse:
-  news = await news_repository.get_by_id(db, news_id)
+  news = await news_service.get_by_id(db, news_id)
   if not news:
     raise NotFoundError(entity="Noticia")
 
@@ -30,7 +30,7 @@ async def create_news_gallery_with_images(
     files: List,
     alts: List,
 ):
-  news = await news_repository.get_by_id(db, news_id)
+  news = await news_service.get_by_id(db, news_id)
   if not news:
     raise NotFoundError(entity="Noticia")
 

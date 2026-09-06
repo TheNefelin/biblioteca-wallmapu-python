@@ -63,6 +63,16 @@ async def create_edition(db: AsyncSession, data: EditionRequest) -> EditionRespo
 
 
 # -----------------------------------------------------------------
+# UPDATE COVER IMAGE (cross-feature edition_image no toca entidades)
+async def update_cover_image(db: AsyncSession, id: int, cover_image: str | None) -> bool:
+  edition = await repository.get_entity_by_id(db, id)
+  if not edition:
+    return False
+  await repository.update(db, edition, {"cover_image": cover_image})
+  return True
+
+
+# -----------------------------------------------------------------
 # UPDATE
 async def update_edition(db: AsyncSession, id: int, data: EditionRequest) -> EditionResponse | None:
   edition = await repository.get_entity_by_id(db, id)

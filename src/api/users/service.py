@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import UUID
 
 from src.schemas.dtos import PaginationRequest, PaginationResponse
-from src.schemas.dtos import UserRequest, UserResponse, UserDetailResponse, UserRequest, UserAdminRequest
+from src.schemas.dtos import UserRequest, UserResponse, UserDetailResponse, UserAdminRequest
 from src.api.notifications import service as notification_service
 from . import repository
 
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 # -----------------------------------------------------------------
-# MAPPER: User ORM â†’ UserDetailResponse
+# MAPPER: User ORM → UserDetailResponse
 def _map_user_to_detail(user) -> UserDetailResponse:
   return UserDetailResponse(
     **UserResponse.model_validate(user).model_dump(),

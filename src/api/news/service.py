@@ -2,7 +2,7 @@
 
 from rfc9457 import BadRequestProblem
 from src.schemas.dtos import PaginationRequest, PaginationResponse
-from src.schemas.dtos import NewsRequest, NewsResponse, NewsWithGalleryResponse, NewsRequest
+from src.schemas.dtos import NewsRequest, NewsResponse, NewsWithGalleryResponse
 from . import repository
 
 

@@ -234,3 +234,7 @@ async def get_pending_copy_ids(db: AsyncSession) -> set[int]:
 
 async def exists_by_copy_id(db: AsyncSession, copy_id: int) -> bool:
   return await repository.exists_by_copy_id(db, copy_id)
+
+
+async def exists_active_by_book_id(db: AsyncSession, book_id: int) -> bool:
+  return bool(await repository.get_active_by_book_id(db, book_id))

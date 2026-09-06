@@ -4,12 +4,10 @@ from rfc9457 import BadRequestProblem
 from src.schemas.dtos import PaginationRequest, PaginationResponse
 from src.schemas.dtos import BookRequest, BookResponse, BookDetailResponse
 from src.schemas.dtos import GenreResponse, AuthorResponse, SubjectResponse
-from src.api.book_authors import repository as book_authors_repository
 from src.api.book_authors import service as book_author_service
-from src.api.book_subjects import repository as book_subjects_repository
 from src.api.book_subjects import service as book_subject_service
-from src.api.reservations import repository as reservations_repository
-from src.api.loans import repository as loans_repository
+from src.api.reservations import service as reservations_service
+from src.api.loans import service as loans_service
 from . import repository
 
 
@@ -105,18 +103,16 @@ async def delete_book(db: AsyncSession, id: int) -> bool:
 
   dependencies = []
 
-  active_reservations = await reservations_repository.get_active_by_book_id(db, id)
-  if active_reservations:
+  if await reservations_service.exists_active_by_book_id(db, id):
     dependencies.append("reservas activas")
 
-  active_loans = await loans_repository.get_active_by_book_id(db, id)
-  if active_loans:
+  if await loans_service.exists_active_by_book_id(db, id):
     dependencies.append("préstamos activos")
 
   if dependencies:
     raise BadRequestProblem(detail=f"No se puede eliminar el libro. Dependencias: {', '.join(dependencies)}")
 
-  await book_authors_repository.delete_by_book(db, id)
-  await book_subjects_repository.delete_by_book(db, id)
+  await book_author_service.delete_author_by_book(db, id)
+  await book_subject_service.delete_subject_by_book(db, id)
   await repository.delete(db, book)
   return True
