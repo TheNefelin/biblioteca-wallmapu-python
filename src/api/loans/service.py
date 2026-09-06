@@ -6,9 +6,9 @@ from rfc9457 import BadRequestProblem
 from src.schemas.dtos import PaginationRequest, PaginationResponse
 from src.schemas.dtos import LoanRequest, LoanResponse, LoanDetailResponse
 from src.core import email
-from src.api.loan_policies import repository as loan_policies_repository
+from src.api.loan_policies import service as loan_policies_service
 from src.api.notifications import service as notification_service
-from src.api.copy import repository as copy_repository
+from src.api.copy import service as copy_service
 from . import repository
 
 
@@ -78,7 +78,7 @@ async def get_overdue(db: AsyncSession) -> list[LoanDetailResponse]:
 # -----------------------------------------------------------------
 # CREATE
 async def create(db: AsyncSession, dto: LoanRequest) -> LoanResponse:
-  policy = await loan_policies_repository.get_default_policy(db)
+  policy = await loan_policies_service.get_default_policy(db)
   if policy is None:
     raise BadRequestProblem(detail="No existe una política de préstamo configurada")
 
@@ -123,7 +123,7 @@ async def return_loan_by_copy_id(db: AsyncSession, copy_id: int) -> LoanResponse
 
   returned = await repository.return_loan(db, loan.id_loan, date.today(), 2)
 
-  await copy_repository.update_status(db, loan.copy_id, 1)
+  await copy_service.update_status(db, loan.copy_id, 1)
 
   loaded = await repository.get_by_id(db, returned.id_loan)
   email_data = email.EmailData(
@@ -160,3 +160,19 @@ async def get_active_by_barcode(db: AsyncSession, barcode: str) -> LoanDetailRes
   if not loan:
     return None
   return _map_loan_to_detail(loan)
+
+
+# -----------------------------------------------------------------
+# CROSS-FEATURE (service→service; copy y reservations no acceden al repository)
+
+async def get_active_by_user(db: AsyncSession, user_id: UUID) -> list[tuple[int, int, int]]:
+  """Devuelve préstamos activos del usuario como (id_loan, copy_id, book_id)."""
+  return [tuple(row) for row in await repository.get_active_by_user(db, user_id)]
+
+
+async def get_active_copy_ids(db: AsyncSession) -> set[int]:
+  return {int(row.copy_id) for row in await repository.get_all_active(db)}
+
+
+async def exists_by_copy_id(db: AsyncSession, copy_id: int) -> bool:
+  return await repository.exists_by_copy_id(db, copy_id)

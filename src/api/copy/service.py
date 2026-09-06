@@ -2,8 +2,8 @@
 
 from rfc9457 import BadRequestProblem
 from src.core.exceptions import NotFoundError
-from src.api.loans import repository as loan_repository
-from src.api.reservations import repository as reservation_repository
+from src.api.loans import service as loan_service
+from src.api.reservations import service as reservation_service
 from src.schemas.dtos import CopyResponse, CopyDetailResponse, CopyRequest
 from . import repository
 
@@ -33,8 +33,8 @@ def _map_to_detail(row, loaned_ids: set, reserved_ids: set) -> CopyDetailRespons
 async def get_all_detail_by_book_id(db: AsyncSession, book_id: int) -> list[CopyDetailResponse]:
   rows = await repository.get_all_detail_by_book_id(db, book_id)
   rows = [r for r in rows if r.status_id == 1]
-  loaned_ids = {l.copy_id for l in await loan_repository.get_all_active(db)}
-  reserved_ids = {r.copy_id for r in await reservation_repository.get_all_pending(db)}
+  loaned_ids = await loan_service.get_active_copy_ids(db)
+  reserved_ids = await reservation_service.get_pending_copy_ids(db)
   return [_map_to_detail(r, loaned_ids, reserved_ids) for r in rows]
 
 
@@ -104,11 +104,26 @@ async def delete(db: AsyncSession, id: int) -> bool:
   if not item:
     return False
 
-  if await loan_repository.exists_by_copy_id(db, id):
+  if await loan_service.exists_by_copy_id(db, id):
     raise BadRequestProblem(detail="No se puede eliminar el ejemplar porque tiene préstamos asociados")
 
-  if await reservation_repository.exists_by_copy_id(db, id):
+  if await reservation_service.exists_by_copy_id(db, id):
     raise BadRequestProblem(detail="No se puede eliminar el ejemplar porque tiene reservas asociadas")
 
   await repository.delete(db, item)
   return True
+
+
+# -----------------------------------------------------------------
+# GET BY ID (cross-feature service→service; retorna DTO)
+async def get_by_id(db: AsyncSession, id: int) -> CopyResponse | None:
+  row = await repository.get_by_id_with_status(db, id)
+  if not row:
+    return None
+  return CopyResponse.model_validate(dict(row._mapping))
+
+
+# -----------------------------------------------------------------
+# UPDATE STATUS (cross-feature service→service)
+async def update_status(db: AsyncSession, copy_id: int, status_id: int) -> bool:
+  return await repository.update_status(db, copy_id, status_id)

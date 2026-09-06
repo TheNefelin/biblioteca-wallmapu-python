@@ -234,6 +234,6 @@ async def websocket_endpoint(
         # Recibir mensajes del cliente (opcional)
         data = await websocket.receive_text()
     except WebSocketDisconnect:
-      manager.disconnect(user_id)
+      manager.disconnect(websocket, user_id)
   except Exception as e:
     await websocket.close(code=4000, reason=str(e))

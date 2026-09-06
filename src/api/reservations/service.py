@@ -4,11 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 
 from src.schemas.dtos import LoanRequest, PaginationRequest, PaginationResponse, ReservationDetailResponse, ReservationRequest, ReservationResponse
-from src.api.loan_policies import repository as loan_policy_repository
-from src.api.loans import repository as loan_repository, service as loan_service
-from src.api.copy import repository as copy_repository
+from src.api.loan_policies import service as loan_policies_service
+from src.api.loans import service as loan_service
+from src.api.copy import service as copy_service
 from src.api.notifications import service as notification_service
-from src.api.users import repository as user_repository
+from src.api.users import service as user_service
+from src.api.editions import service as editions_service
 from rfc9457 import BadRequestProblem
 from src.core import email
 from src.core.exceptions import NotFoundError
@@ -83,27 +84,28 @@ async def get_by_id(db: AsyncSession, id: int) -> ReservationDetailResponse | No
 # -----------------------------------------------------------------
 # CREATE
 async def create(db: AsyncSession, user_id: UUID, dto: ReservationRequest) -> ReservationResponse:
-  copy = await copy_repository.get_by_id(db, dto.copy_id)
+  copy = await copy_service.get_by_id(db, dto.copy_id)
 
   if not copy:
     raise NotFoundError(entity="Ejemplar")
 
-  book_id = copy.edition.book_id
+  edition = await editions_service.get_edition_by_id(db, copy.edition_id)
+  book_id = edition.book_id if edition else 0
 
   if int(copy.status_id) != 1:
     raise BadRequestProblem(detail="El ejemplar no está disponible")
 
-  user_entity = await user_repository.get_by_id_detailed(db, user_id)
+  user_entity = await user_service.get_by_id_detailed(db, user_id)
   if not user_entity or int(user_entity.user_status_id) != 1:
     raise BadRequestProblem(detail="No puedes realizar reservas si tu cuenta no está activa")
 
-  loan_policy = await loan_policy_repository.get_default_policy(db)
+  loan_policy = await loan_policies_service.get_default_policy(db)
   reservation_days = int(loan_policy.reservation_days)
   expiration_date = date.today() + timedelta(days=reservation_days)
 
   # Obtener reservas y préstamos activos del usuario
   active_reservations = await repository.get_active_by_user(db, user_id)
-  active_loans = await loan_repository.get_active_by_user(db, user_id)
+  active_loans = await loan_service.get_active_by_user(db, user_id)
 
   # 1. Validar límite de Loan Policies
   total = len(active_reservations) + len(active_loans)
@@ -184,7 +186,7 @@ async def mark_as_pickup(db: AsyncSession, id: int, copy_id: int) -> Reservation
   if reservation.expiration_date < datetime.now():
     raise BadRequestProblem(detail="No se puede entregar una reserva vencida. Debe generar una nueva.")
 
-  copy = await copy_repository.get_by_id(db, copy_id)
+  copy = await copy_service.get_by_id(db, copy_id)
   if not copy:
     raise NotFoundError(entity="Ejemplar")
 
@@ -221,3 +223,14 @@ async def mark_as_expired(db: AsyncSession, id: int) -> ReservationResponse:
 # UPDATE - EXPIRE OVERDUE
 async def expire_overdue_reservations(db: AsyncSession) -> int:
   return await repository.bulk_update_status_by_expired(db, old_status_id=1, new_status_id=4)
+
+
+# -----------------------------------------------------------------
+# CROSS-FEATURE (service→service; copy no accede al repository)
+
+async def get_pending_copy_ids(db: AsyncSession) -> set[int]:
+  return {int(row.copy_id) for row in await repository.get_all_pending(db)}
+
+
+async def exists_by_copy_id(db: AsyncSession, copy_id: int) -> bool:
+  return await repository.exists_by_copy_id(db, copy_id)
