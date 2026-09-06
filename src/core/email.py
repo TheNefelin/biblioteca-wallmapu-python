@@ -133,10 +133,14 @@ async def send_email(to: str, subject: str, html: str) -> Optional[dict]:
           "htmlContent": html
         }
       )
+    response.raise_for_status()
     return response.json()
+  except httpx.HTTPStatusError as e:
+    print(f"Error sending email to {to}: HTTP {e.response.status_code} detail={e.response.text[:500]}")
+    raise
   except Exception as e:
     print(f"Error sending email to {to}: {e}")
-    return None
+    raise
 
 
 # -----------------------------------------------------------------

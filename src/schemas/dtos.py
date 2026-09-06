@@ -258,103 +258,6 @@ class BookDetailResponse(AppModel):
   edition_count: int
   copy_count: int
 
-
-# NEWS ------------------------------------------------------------
-# Request: merge create + update
-#   - Crear: title, subtitle, body (requeridos)
-#   - Actualizar: id_news (requerido) + campos a modificar
-class NewsRequest(BaseModel):
-  id_news: Optional[int] = Field(None, description="ID de la noticia (requerido solo en actualización)")
-  title: str = Field(..., description="Título de la noticia")
-  subtitle: str = Field(..., description="Subtítulo de la noticia")
-  body: str = Field(..., description="Cuerpo de la noticia")
-
-
-class NewsResponse(AppModel):
-  id_news: int
-  title: str
-  subtitle: str
-  body: str
-  created_at: datetime
-  updated_at: datetime
-
-
-class NewsGalleryResponse(AppModel):
-  id_news_gallery: int
-  alt: str
-  url: str
-  news_id: int
-
-
-class NewsWithGalleryResponse(AppModel):
-  id_news: int
-  title: str
-  subtitle: str
-  body: str
-  created_at: datetime
-  updated_at: datetime
-  images: list[NewsGalleryResponse]
-
-
-# LOAN POLICIES ---------------------------------------------------
-# Request: cuerpo de actualización (acepta id opcional para no romper el contrato del frontend)
-class LoanPolicyRequest(AppModel):
-  id_policy: Optional[int] = Field(None, description="Identificador de la política (opcional en el body)")
-  name: Optional[str] = Field(None, description="Nombre de la política (ej: General, Estudiantes)")
-  max_books: Optional[int] = Field(None, description="Cantidad máxima de libros que se pueden prestar")
-  max_days: Optional[int] = Field(None, description="Número máximo de días de préstamo")
-  reservation_days: Optional[int] = Field(3, description="Días que se mantiene una reserva activa")
-
-
-# Response: salida de lectura
-class LoanPolicyResponse(LoanPolicyRequest):
-  id_policy: int = Field(..., description="Identificador único de la política de préstamo")
-
-
-# LOANS -----------------------------------------------------------
-# Request: solo create (no existe update de préstamo)
-class LoanRequest(BaseModel):
-  """Request para crear un nuevo préstamo"""
-  copy_id: int = Field(..., description="ID del ejemplar a prestar")
-  user_id: UUID = Field(..., description="UUID del usuario que toma el préstamo")
-
-
-class LoanResponse(LoanRequest):
-  """Response de préstamo con todos los campos"""
-  id_loan: Optional[int] = Field(None, description="ID único del préstamo")
-  loan_date: Optional[date] = Field(None, description="Fecha de creación del préstamo")
-  due_date: date = Field(..., description="Fecha de vencimiento del préstamo")
-  return_date: Optional[date] = Field(None, description="Fecha de devolución (null si no ha sido devuelto)")
-  loan_status_id: Optional[int] = Field(None, description="ID del estado del préstamo (1=activo, 2=devuelto, 3=vencido)")
-  created_at: Optional[datetime] = Field(None, description="Fecha de creación del registro en base de datos")
-  updated_at: Optional[datetime] = Field(None, description="Fecha de última actualización del registro")
-
-  model_config = ConfigDict(from_attributes=True)
-
-
-# Request: filtros de búsqueda para paginación
-class LoanFilterRequest(BaseModel):
-  """Request de filtros para paginación de préstamos"""
-  id_status: int = Field(default=0, description="ID del estado para filtrar (0 = todos, 1=activo, 2=devuelto, 3=vencido)")
-
-
-class LoanDetailResponse(AppModel):
-  """Response plano para listados con datos esenciales de préstamo, usuario y libro"""
-  id_loan: int = Field(..., description="ID único del préstamo")
-  loan_date: date = Field(..., description="Fecha de creación del préstamo")
-  due_date: date = Field(..., description="Fecha de vencimiento del préstamo")
-  return_date: Optional[date] = Field(None, description="Fecha de devolución (null si no ha sido devuelto)")
-  loan_status_id: int = Field(..., description="ID del estado del préstamo (1=activo, 2=devuelto, 3=vencido)")
-  loan_status_name: str = Field(..., description="Nombre del estado del préstamo")
-  user_id: UUID = Field(..., description="UUID del usuario que tiene el préstamo")
-  user_name: str = Field(..., description="Nombre completo del usuario")
-  copy_id: int = Field(..., description="ID del ejemplar prestado")
-  copy_barcode: str = Field(..., description="Código de barras del ejemplar")
-  copy_signature: str = Field(..., description="Signatura topográfica del ejemplar")
-  book_id: int = Field(..., description="ID del libro al que pertenece el ejemplar")
-  book_title: str = Field(..., description="Título del libro")
-
-
 # RESERVATIONS ---------------------------------------------------
 # Request: solo create (no existe update de reserva)
 class ReservationRequest(BaseModel):
@@ -400,6 +303,100 @@ class ReservationPickupRequest(BaseModel):
 class ReservationFilterRequest(BaseModel):
   """Request de filtros para paginación de reservas"""
   id_status: int = Field(default=0, description="ID del estado para filtrar (0 = todos, 1=pendiente, 2=retirada, 3=cancelada, 4=vencida)")
+
+
+# LOAN POLICIES ---------------------------------------------------
+# Request: cuerpo de actualización (acepta id opcional para no romper el contrato del frontend)
+class LoanPolicyRequest(BaseModel):
+  id_policy: Optional[int] = Field(None, description="Identificador de la política (opcional en el body)")
+  name: Optional[str] = Field(None, description="Nombre de la política (ej: General, Estudiantes)")
+  max_books: Optional[int] = Field(None, description="Cantidad máxima de libros que se pueden prestar")
+  max_days: Optional[int] = Field(None, description="Número máximo de días de préstamo")
+  reservation_days: Optional[int] = Field(3, description="Días que se mantiene una reserva activa")
+
+
+# Response: salida de lectura
+class LoanPolicyResponse(AppModel, LoanPolicyRequest):
+  id_policy: int = Field(..., description="Identificador único de la política de préstamo")
+
+
+# LOANS -----------------------------------------------------------
+# Request: solo create (no existe update de préstamo)
+class LoanRequest(BaseModel):
+  """Request para crear un nuevo préstamo"""
+  copy_id: int = Field(..., description="ID del ejemplar a prestar")
+  user_id: UUID = Field(..., description="UUID del usuario que toma el préstamo")
+
+
+class LoanResponse(AppModel, LoanRequest):
+  """Response de préstamo con todos los campos"""
+  id_loan: Optional[int] = Field(None, description="ID único del préstamo")
+  loan_date: Optional[date] = Field(None, description="Fecha de creación del préstamo")
+  due_date: date = Field(..., description="Fecha de vencimiento del préstamo")
+  return_date: Optional[date] = Field(None, description="Fecha de devolución (null si no ha sido devuelto)")
+  loan_status_id: Optional[int] = Field(None, description="ID del estado del préstamo (1=activo, 2=devuelto, 3=vencido)")
+  created_at: Optional[datetime] = Field(None, description="Fecha de creación del registro en base de datos")
+  updated_at: Optional[datetime] = Field(None, description="Fecha de última actualización del registro")
+
+
+# Request: filtros de búsqueda para paginación
+class LoanFilterRequest(BaseModel):
+  """Request de filtros para paginación de préstamos"""
+  id_status: int = Field(default=0, description="ID del estado para filtrar (0 = todos, 1=activo, 2=devuelto, 3=vencido)")
+
+
+class LoanDetailResponse(AppModel):
+  """Response plano para listados con datos esenciales de préstamo, usuario y libro"""
+  id_loan: int = Field(..., description="ID único del préstamo")
+  loan_date: date = Field(..., description="Fecha de creación del préstamo")
+  due_date: date = Field(..., description="Fecha de vencimiento del préstamo")
+  return_date: Optional[date] = Field(None, description="Fecha de devolución (null si no ha sido devuelto)")
+  loan_status_id: int = Field(..., description="ID del estado del préstamo (1=activo, 2=devuelto, 3=vencido)")
+  loan_status_name: str = Field(..., description="Nombre del estado del préstamo")
+  user_id: UUID = Field(..., description="UUID del usuario que tiene el préstamo")
+  user_name: str = Field(..., description="Nombre completo del usuario")
+  copy_id: int = Field(..., description="ID del ejemplar prestado")
+  copy_barcode: str = Field(..., description="Código de barras del ejemplar")
+  copy_signature: str = Field(..., description="Signatura topográfica del ejemplar")
+  book_id: int = Field(..., description="ID del libro al que pertenece el ejemplar")
+  book_title: str = Field(..., description="Título del libro")
+
+
+# NEWS ------------------------------------------------------------
+# Request: merge create + update
+#   - Crear: title, subtitle, body (requeridos)
+#   - Actualizar: id_news (requerido) + campos a modificar
+class NewsRequest(BaseModel):
+  id_news: Optional[int] = Field(None, description="ID de la noticia (requerido solo en actualización)")
+  title: str = Field(..., description="Título de la noticia")
+  subtitle: str = Field(..., description="Subtítulo de la noticia")
+  body: str = Field(..., description="Cuerpo de la noticia")
+
+
+class NewsResponse(AppModel):
+  id_news: int
+  title: str
+  subtitle: str
+  body: str
+  created_at: datetime
+  updated_at: datetime
+
+
+class NewsGalleryResponse(AppModel):
+  id_news_gallery: int
+  alt: str
+  url: str
+  news_id: int
+
+
+class NewsWithGalleryResponse(AppModel):
+  id_news: int
+  title: str
+  subtitle: str
+  body: str
+  created_at: datetime
+  updated_at: datetime
+  images: list[NewsGalleryResponse]
 
 
 # USERS -------------------------------------------------------------
@@ -464,28 +461,6 @@ class UserDetailResponse(UserResponse):
 
 
 # NOTIFICATIONS --------------------------------------------------
-# Request: merge create + update
-#   - Crear: title, message, is_priority, user_id (requeridos)
-#   - Actualizar (marcar leída): id_notification, is_read (requeridos)
-class NotificationRequest(BaseModel):
-  id_notification: Optional[int] = Field(None, description="ID de la notificación (requerido solo en actualización)")
-  title: Optional[str] = Field(None, description="Título de la notificación (ej: 'PRÉSTAMO VENCIDO', 'ANUNCIO')")
-  message: Optional[str] = Field(None, description="Mensaje detallado de la notificación")
-  is_priority: Optional[bool] = Field(None, description="True = Alta prioridad (urgente), False = Normal")
-  user_id: Optional[UUID] = Field(None, description="UUID del usuario destinatario")
-  is_read: Optional[bool] = Field(None, description="Estado de lectura: True = Leída, False = No leída (requerido en actualización)")
-
-
-class NotificationResponse(NotificationRequest):
-  created_at: datetime = Field(..., description="Fecha de creación de la notificación")
-
-  model_config = ConfigDict(from_attributes=True)
-
-
-class NotificationDetailResponse(NotificationResponse):
-  email: str = Field(..., description="Email del usuario destinatario")
-
-
 # Request: filtros de búsqueda para paginación
 class NotificationFilterRequest(BaseModel):
   is_read: bool = Field(default=True, description="filtrar (true = todos, false = solo no leidas)")
@@ -497,6 +472,23 @@ class NotificationByEmailRequest(BaseModel):
   title: str = Field(..., description="Título de la notificación")
   message: str = Field(..., description="Mensaje detallado de la notificación")
   is_priority: bool = Field(default=False, description="True = Alta prioridad, False = Normal")
+
+
+class NotificationRequest(BaseModel):
+  id_notification: Optional[int] = Field(None, description="ID de la notificación (requerido solo en actualización)")
+  title: Optional[str] = Field(None, description="Título de la notificación (ej: 'PRÉSTAMO VENCIDO', 'ANUNCIO')")
+  message: Optional[str] = Field(None, description="Mensaje detallado de la notificación")
+  is_priority: Optional[bool] = Field(None, description="True = Alta prioridad (urgente), False = Normal")
+  user_id: Optional[UUID] = Field(None, description="UUID del usuario destinatario")
+  is_read: Optional[bool] = Field(None, description="Estado de lectura: True = Leída, False = No leída (requerido en actualización)")
+
+
+class NotificationResponse(AppModel, NotificationRequest):
+  created_at: datetime = Field(..., description="Fecha de creación de la notificación")
+
+
+class NotificationDetailResponse(NotificationResponse):
+  email: str = Field(..., description="Email del usuario destinatario")
 
 
 # STATS -----------------------------------------------------------

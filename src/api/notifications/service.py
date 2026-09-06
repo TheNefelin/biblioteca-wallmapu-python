@@ -107,7 +107,7 @@ async def create(db: AsyncSession, dto: NotificationByEmailRequest) -> Notificat
     response = await email.send_admin_email(data=email_data)
 
     if not response or response.get("messageId") is None:
-      logger.warning(f"Email no fue enviado correctamente para notification {created.id_notification}")
+      logger.warning(f"Email no fue enviado correctamente para notification {created.id_notification}: response={response}")
   except Exception:
     print(f"Error al enviar el email: {created.id_notification}")
     logger.error(f"Error al enviar el email: {created.id_notification}", exc_info=True)
