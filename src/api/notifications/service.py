@@ -26,9 +26,8 @@ def _log_email_failure(context: str, exc: Exception, notification_id=None):
 
 
 # -----------------------------------------------------------------
-# GET ALL PAGINATED (Admin)
-async def get_all_pagination(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse[list[NotificationDetailResponse]]:
-  pagination_response = await repository.get_all_pagination(db, pagination)
+# HELPER - Mapea una página de entidades a PaginationResponse de NotificationDetailResponse
+def _map_page_to_detail_response(pagination_response: PaginationResponse) -> PaginationResponse[list[NotificationDetailResponse]]:
   items = pagination_response.data or []
 
   data = [NotificationDetailResponse(
@@ -47,24 +46,17 @@ async def get_all_pagination(db: AsyncSession, pagination: PaginationRequest) ->
 
 
 # -----------------------------------------------------------------
+# GET ALL PAGINATED (Admin)
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse[list[NotificationDetailResponse]]:
+  pagination_response = await repository.get_all_pagination(db, pagination)
+  return _map_page_to_detail_response(pagination_response)
+
+
+# -----------------------------------------------------------------
 # GET BY USER PAGINATED
 async def get_by_user_paginated(db: AsyncSession, user_id: str, pagination: PaginationRequest) -> PaginationResponse[list[NotificationDetailResponse]]:
   pagination_response = await repository.get_by_user_paginated(db, user_id, pagination)
-  items = pagination_response.data or []
-
-  data = [NotificationDetailResponse(
-    **NotificationResponse.model_validate(item).model_dump(),
-    email=item.user.email if item.user else ""
-  ) for item in items]
-
-  return PaginationResponse[list[NotificationDetailResponse]](
-    page=pagination_response.page,
-    pages=pagination_response.pages,
-    items=pagination_response.items,
-    data=data,
-    next=pagination_response.next,
-    prev=pagination_response.prev,
-  )
+  return _map_page_to_detail_response(pagination_response)
 
 
 # -----------------------------------------------------------------

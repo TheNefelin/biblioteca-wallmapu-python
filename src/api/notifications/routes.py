@@ -231,8 +231,8 @@ async def websocket_endpoint(
 
     try:
       while True:
-        # Recibir mensajes del cliente (opcional)
-        data = await websocket.receive_text()
+        # Mantener la conexión viva; detecta cierre del cliente (WebSocketDisconnect)
+        await websocket.receive_text()
     except WebSocketDisconnect:
       manager.disconnect(websocket, user_id)
   except Exception as e:

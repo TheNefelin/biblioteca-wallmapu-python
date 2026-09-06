@@ -475,12 +475,12 @@ class NotificationByEmailRequest(BaseModel):
 
 
 class NotificationRequest(BaseModel):
-  id_notification: Optional[int] = Field(None, description="ID de la notificación (requerido solo en actualización)")
+  id_notification: Optional[int] = Field(None, description="ID de la notificación (solo lectura, lo asigna la BD)")
   title: Optional[str] = Field(None, description="Título de la notificación (ej: 'PRÉSTAMO VENCIDO', 'ANUNCIO')")
   message: Optional[str] = Field(None, description="Mensaje detallado de la notificación")
   is_priority: Optional[bool] = Field(None, description="True = Alta prioridad (urgente), False = Normal")
   user_id: Optional[UUID] = Field(None, description="UUID del usuario destinatario")
-  is_read: Optional[bool] = Field(None, description="Estado de lectura: True = Leída, False = No leída (requerido en actualización)")
+  is_read: Optional[bool] = Field(None, description="Estado de lectura: True = Leída, False = No leída (solo lectura; se marca vía endpoints de lectura)")
 
 
 class NotificationResponse(AppModel, NotificationRequest):
