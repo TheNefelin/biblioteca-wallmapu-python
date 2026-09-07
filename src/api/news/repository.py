@@ -64,9 +64,11 @@ async def get_by_id(db: AsyncSession, id: int):
 async def create(db: AsyncSession, data: dict):
   new_item = models.News(**data)
   db.add(new_item)
+  await db.flush()
+  news_id = new_item.id_news
   await db.commit()
-  await db.refresh(new_item)
-  return new_item
+
+  return await get_by_id(db, news_id)
 
 
 # -----------------------------------------------------------------
@@ -83,8 +85,8 @@ async def update(db: AsyncSession, id: int, data: dict):
     setattr(item, key, value)
 
   await db.commit()
-  await db.refresh(item)
-  return item
+
+  return await get_by_id(db, id)
 
 
 # -----------------------------------------------------------------

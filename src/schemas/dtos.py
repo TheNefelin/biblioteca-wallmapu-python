@@ -362,26 +362,7 @@ class LoanDetailResponse(AppModel):
   book_title: str = Field(..., description="Título del libro")
 
 
-# NEWS ------------------------------------------------------------
-# Request: merge create + update
-#   - Crear: title, subtitle, body (requeridos)
-#   - Actualizar: id_news (requerido) + campos a modificar
-class NewsRequest(BaseModel):
-  id_news: Optional[int] = Field(None, description="ID de la noticia (requerido solo en actualización)")
-  title: str = Field(..., description="Título de la noticia")
-  subtitle: str = Field(..., description="Subtítulo de la noticia")
-  body: str = Field(..., description="Cuerpo de la noticia")
-
-
-class NewsResponse(AppModel):
-  id_news: int
-  title: str
-  subtitle: str
-  body: str
-  created_at: datetime
-  updated_at: datetime
-
-
+# NEWS GALLERY ----------------------------------------------------
 class NewsGalleryResponse(AppModel):
   id_news_gallery: int
   alt: str
@@ -389,14 +370,18 @@ class NewsGalleryResponse(AppModel):
   news_id: int
 
 
-class NewsWithGalleryResponse(AppModel):
-  id_news: int
-  title: str
-  subtitle: str
-  body: str
+# NEWS ------------------------------------------------------------
+class NewsRequest(BaseModel):
+  title: str = Field(..., description="Título de la noticia")
+  subtitle: str = Field(..., description="Subtítulo de la noticia")
+  body: str = Field(..., description="Cuerpo de la noticia")
+
+
+class NewsResponse(AppModel, NewsRequest):
+  id_news: Optional[int] = Field(None, description="ID de la noticia (requerido solo en actualización)")
+  images: list[NewsGalleryResponse] = Field(default_factory=list, description="Imágenes asociadas a la noticia")
   created_at: datetime
   updated_at: datetime
-  images: list[NewsGalleryResponse]
 
 
 # USERS -------------------------------------------------------------

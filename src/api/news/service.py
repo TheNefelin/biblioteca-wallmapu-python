@@ -2,27 +2,27 @@
 
 from rfc9457 import BadRequestProblem
 from src.schemas.dtos import PaginationRequest, PaginationResponse
-from src.schemas.dtos import NewsRequest, NewsResponse, NewsWithGalleryResponse
+from src.schemas.dtos import NewsRequest, NewsResponse
 from . import repository
 
 
-async def get_all_pagination(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse[list[NewsWithGalleryResponse]]:
+async def get_all_pagination(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse[list[NewsResponse]]:
   page = await repository.get_all_pagination(db, pagination)
-  return PaginationResponse[list[NewsWithGalleryResponse]](
+  return PaginationResponse[list[NewsResponse]](
     page=page.page,
     pages=page.pages,
     items=page.items,
-    data=[NewsWithGalleryResponse.model_validate(item) for item in page.data],
+    data=[NewsResponse.model_validate(item) for item in page.data],
     next=page.next,
     prev=page.prev,
   )
 
 
-async def get_by_id(db: AsyncSession, id: int) -> NewsWithGalleryResponse | None:
+async def get_by_id(db: AsyncSession, id: int) -> NewsResponse | None:
   entity = await repository.get_by_id(db, id)
   if not entity:
     return None
-  return NewsWithGalleryResponse.model_validate(entity)
+  return NewsResponse.model_validate(entity)
 
 
 async def create(db: AsyncSession, data: NewsRequest) -> NewsResponse:

@@ -25,16 +25,6 @@ async def get_by_id(db: AsyncSession, id: int):
 
 
 # -----------------------------------------------------------------
-# CREATE
-async def create(db: AsyncSession, data: dict) -> models.NewsGallery:
-  new_item = models.NewsGallery(**data)
-  db.add(new_item)
-  await db.commit()
-  await db.refresh(new_item)
-  return new_item
-
-
-# -----------------------------------------------------------------
 # CREATE MANY (multi-entidad atomico; evita construir entidades en el service)
 async def create_many(db: AsyncSession, items: list[dict]) -> list[models.NewsGallery]:
   entities = [models.NewsGallery(**item) for item in items]

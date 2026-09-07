@@ -1,5 +1,5 @@
 ﻿from typing import List
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_200_OK, HTTP_202_ACCEPTED
 
@@ -8,7 +8,7 @@ from src.schemas.dtos import PaginationRequest, PaginationResponse
 from src.core.security import get_current_user
 from src.core.roles import UserRole
 from src.core.database import get_db_async
-from src.schemas.dtos import NewsRequest, NewsResponse, NewsWithGalleryResponse
+from src.schemas.dtos import NewsRequest, NewsResponse
 from . import service
 
 admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
@@ -16,10 +16,42 @@ admin_required = Depends(get_current_user(required_roles=[UserRole.ADMIN]))
 router = APIRouter(prefix="/news", tags=["news"])
 
 # -----------------------------------------------------------------
+# GET ALL Pagination (estándar /pagination)
+@router.get(
+  "/pagination",
+  response_model=PaginationResponse[List[NewsResponse]],
+  status_code=HTTP_200_OK,
+  summary="Listar noticias (paginación)",
+  description="Retorna lista paginada de noticias con sus imágenes (estándar /pagination)"
+)
+async def get_all_pagination_standard(
+  request: Request,
+  page: int = Query(default=1, ge=1),
+  limit: int = Query(default=10, ge=1, le=100),
+  search: str = Query(default=""),
+  db: AsyncSession = Depends(get_db_async)
+):
+  pagination_request = PaginationRequest[None](
+    page=page,
+    limit=limit,
+    search=search or "",
+    filter=None,
+  )
+
+  pagination_response = await service.get_all_pagination(db, pagination_request)
+
+  if pagination_response.pages > pagination_response.page:
+    pagination_response.next = str(request.url.include_query_params(page=pagination_response.page + 1, limit=pagination_request.limit))
+  if pagination_response.page > 1:
+    pagination_response.prev = str(request.url.include_query_params(page=pagination_response.page - 1, limit=pagination_request.limit))
+
+  return pagination_response
+
+# -----------------------------------------------------------------
 # GET ALL Pagination
 @router.get(
   "/",
-  response_model=PaginationResponse[List[NewsWithGalleryResponse]],
+  response_model=PaginationResponse[List[NewsResponse]],
   status_code=HTTP_200_OK,
   summary="Listar noticias",
   description="Retorna lista paginada de noticias con sus imágenes"
@@ -49,7 +81,7 @@ async def get_all_pagination(
 # GET BY ID
 @router.get(
   "/{id}",
-  response_model=NewsWithGalleryResponse,
+  response_model=NewsResponse,
   status_code=HTTP_200_OK,
   summary="Obtener noticia por ID",
   description="Retorna una noticia específica con sus imágenes"
@@ -103,9 +135,6 @@ async def update(
   db: AsyncSession = Depends(get_db_async)
 ):
   try:
-    if (id != news.id_news):
-      raise AppError(f"El id: {id} no coincide")
-
     updated = await service.update(db, id, news)
 
     if not updated:

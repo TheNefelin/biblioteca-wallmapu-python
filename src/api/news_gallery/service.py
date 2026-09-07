@@ -15,15 +15,6 @@ async def get_by_news_id(db: AsyncSession, news_id: int) -> list[NewsGalleryResp
   return [NewsGalleryResponse.model_validate(item) for item in items]
 
 
-async def create(db: AsyncSession, news_id: int, url: str, alt: str = "") -> NewsGalleryResponse:
-  news = await news_service.get_by_id(db, news_id)
-  if not news:
-    raise NotFoundError(entity="Noticia")
-
-  item = await repository.create(db, {"news_id": news_id, "url": url, "alt": alt})
-  return NewsGalleryResponse.model_validate(item)
-
-
 async def create_news_gallery_with_images(
     db: AsyncSession,
     news_id: int,
