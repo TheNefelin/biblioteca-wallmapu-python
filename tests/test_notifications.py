@@ -32,6 +32,31 @@ async def test_notifications_user_pagination(client, make_user, db):
   assert len(body["data"]) == 1
 
 
+async def test_notifications_user_pagination_filter_unread(client, make_user, db):
+  lector, headers = await make_user("lector@filtro1.cl", "Lector")
+  db.add(models.Notification(user_id=lector.id_user, title="Leída", message="A", is_priority=False, is_read=True))
+  db.add(models.Notification(user_id=lector.id_user, title="No leída", message="B", is_priority=False, is_read=False))
+  await db.commit()
+
+  resp = await client.get("/api/notifications/user/pagination?is_read=true", headers=headers)
+  assert resp.status_code == 200
+  body = resp.json()
+  assert len(body["data"]) == 1
+  assert body["data"][0]["title"] == "No leída"
+
+
+async def test_notifications_user_pagination_filter_false_shows_all(client, make_user, db):
+  lector, headers = await make_user("lector@filtro2.cl", "Lector")
+  db.add(models.Notification(user_id=lector.id_user, title="Leída", message="A", is_priority=False, is_read=True))
+  db.add(models.Notification(user_id=lector.id_user, title="No leída", message="B", is_priority=False, is_read=False))
+  await db.commit()
+
+  resp = await client.get("/api/notifications/user/pagination?is_read=false", headers=headers)
+  assert resp.status_code == 200
+  body = resp.json()
+  assert len(body["data"]) == 2
+
+
 async def test_notifications_unread_count(client, make_user, db):
   lector, headers = await make_user("lector@nt2.cl", "Lector")
   db.add(models.Notification(user_id=lector.id_user, title="No leída", message="M", is_priority=False))

@@ -435,20 +435,17 @@ class UserResponse(AppModel):
   commune_id: Optional[int] = Field(None, description="ID de la comuna")
   user_role_id: Optional[int] = Field(None, description="ID del rol del usuario")
   user_status_id: Optional[int] = Field(None, description="ID del estado del usuario")
-
-  model_config = ConfigDict(from_attributes=True)
-
-
-class UserDetailResponse(UserResponse):
   commune_name: Optional[str] = Field(None, description="Nombre de la comuna")
   user_role_name: Optional[str] = Field(None, description="Nombre del rol del usuario")
   user_status_name: Optional[str] = Field(None, description="Nombre del estado del usuario")
+
+  model_config = ConfigDict(from_attributes=True)
 
 
 # NOTIFICATIONS --------------------------------------------------
 # Request: filtros de búsqueda para paginación
 class NotificationFilterRequest(BaseModel):
-  is_read: bool = Field(default=True, description="filtrar (true = todos, false = solo no leidas)")
+  is_read: bool = Field(default=False, description="false = todas, true = solo no leídas")
 
 
 # Request: crear notificación por email (operación diferente a create/update)

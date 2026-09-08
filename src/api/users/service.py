@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import UUID
 
 from src.schemas.dtos import PaginationRequest, PaginationResponse
-from src.schemas.dtos import UserRequest, UserResponse, UserDetailResponse, UserAdminRequest
+from src.schemas.dtos import UserRequest, UserResponse, UserAdminRequest
 from src.api.notifications import service as notification_service
 from . import repository
 
@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 # -----------------------------------------------------------------
-# MAPPER: User ORM → UserDetailResponse
-def _map_user_to_detail(user) -> UserDetailResponse:
-  return UserDetailResponse(
-    **UserResponse.model_validate(user).model_dump(),
+# MAPPER: User ORM → UserResponse (con nombres resueltos)
+def _map_user_to_response(user) -> UserResponse:
+  return UserResponse(
+    **UserResponse.model_validate(user).model_dump(exclude={"commune_name", "user_role_name", "user_status_name"}),
     commune_name=user.commune.name if user.commune else "",
     user_role_name=user.user_role.name if user.user_role else "",
     user_status_name=user.user_status.name if user.user_status else "",
@@ -23,13 +23,13 @@ def _map_user_to_detail(user) -> UserDetailResponse:
 
 # -----------------------------------------------------------------
 # GET ALL DETAILED (PAGINATED)
-async def get_all_detailed(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse[list[UserDetailResponse]]:
+async def get_all_detailed(db: AsyncSession, pagination: PaginationRequest) -> PaginationResponse[list[UserResponse]]:
   pagination_response = await repository.get_all_detailed(db, pagination)
   users = pagination_response.data or []
 
-  data = [_map_user_to_detail(user) for user in users]
+  data = [_map_user_to_response(user) for user in users]
 
-  return PaginationResponse[list[UserDetailResponse]](
+  return PaginationResponse[list[UserResponse]](
     page=pagination_response.page,
     pages=pagination_response.pages,
     items=pagination_response.items,
@@ -39,25 +39,25 @@ async def get_all_detailed(db: AsyncSession, pagination: PaginationRequest) -> P
 
 # -----------------------------------------------------------------
 # GET BY ID DETAILED
-async def get_by_id_detailed(db: AsyncSession, id_user: UUID) -> UserDetailResponse | None:
+async def get_by_id_detailed(db: AsyncSession, id_user: UUID) -> UserResponse | None:
   entity = await repository.get_by_id_detailed(db, id_user)
   if not entity:
     return None
-  return _map_user_to_detail(entity)
+  return _map_user_to_response(entity)
 
 
 # -----------------------------------------------------------------
 # GET BY EMAIL (para orquestación cross-feature: service→service)
-async def get_by_email(db: AsyncSession, email: str) -> UserDetailResponse | None:
+async def get_by_email(db: AsyncSession, email: str) -> UserResponse | None:
   entity = await repository.get_by_email(db, email)
   if not entity:
     return None
-  return _map_user_to_detail(entity)
+  return _map_user_to_response(entity)
 
 
 # -----------------------------------------------------------------
 # GET OR CREATE USER (Auth)
-async def get_or_create_user(db: AsyncSession, dto: UserRequest) -> UserDetailResponse:
+async def get_or_create_user(db: AsyncSession, dto: UserRequest) -> UserResponse:
   entity = await repository.get_by_email(db, dto.email)
 
   if not entity:
@@ -73,9 +73,9 @@ async def get_or_create_user(db: AsyncSession, dto: UserRequest) -> UserDetailRe
     except Exception:
       logger.warning(f"Error al enviar notificación de bienvenida para user {created.id_user}")
 
-    return _map_user_to_detail(created)
+    return _map_user_to_response(created)
 
-  return _map_user_to_detail(entity)
+  return _map_user_to_response(entity)
 
 
 # -----------------------------------------------------------------

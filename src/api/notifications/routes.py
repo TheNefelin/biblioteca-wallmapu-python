@@ -43,7 +43,7 @@ async def get_all_notifications_paginated(
   page: int = Query(default=1, ge=1),
   limit: int = Query(default=10, ge=1, le=100),
   search: str = Query(default=""),
-  is_read: bool = Query(default=True, description="true=todos, false=solo no leídas"),
+  is_read: bool = Query(default=False, description="false=todas, true=solo no leídas"),
   db: AsyncSession = Depends(get_db_async)
 ):
   filter = NotificationFilterRequest(is_read=is_read)
@@ -79,7 +79,7 @@ async def get_user_notifications(
   page: int = Query(default=1, ge=1),
   limit: int = Query(default=10, ge=1, le=100),
   search: str = Query(default=""),
-  is_read: bool = Query(default=True, description="true=todos, false=solo no leídas"),
+  is_read: bool = Query(default=False, description="false=todas, true=solo no leídas"),
   current_user: dict = Depends(get_current_user()),
   db: AsyncSession = Depends(get_db_async),
 ):

@@ -14,8 +14,8 @@ async def get_all_pagination(db: AsyncSession, pagination: PaginationRequest) ->
     selectinload(models.Notification.user)
   )
 
-  is_read_filter = pagination.filter.is_read if pagination.filter else True
-  if not is_read_filter:
+  is_read_filter = pagination.filter.is_read if pagination.filter else False
+  if is_read_filter:
     stmt = stmt.where(models.Notification.is_read == False)
 
   search_filter = pagination.search if pagination.search else None
@@ -58,8 +58,8 @@ async def get_by_user_paginated(db: AsyncSession, user_id: str, pagination: Pagi
     selectinload(models.Notification.user)
   ).where(models.Notification.user_id == user_id)
 
-  is_read_filter = pagination.filter.is_read if pagination.filter else True
-  if not is_read_filter:
+  is_read_filter = pagination.filter.is_read if pagination.filter else False
+  if is_read_filter:
     stmt = stmt.where(models.Notification.is_read == False)
 
   search_filter = pagination.search if pagination.search else None

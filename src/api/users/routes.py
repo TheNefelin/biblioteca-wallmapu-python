@@ -4,7 +4,7 @@ from uuid import UUID
 from starlette.status import HTTP_200_OK
 
 from src.schemas.dtos import PaginationRequest, PaginationResponse
-from src.schemas.dtos import UserRequest, UserAdminRequest, UserResponse, UserDetailResponse
+from src.schemas.dtos import UserRequest, UserAdminRequest, UserResponse
 from src.core.exceptions import NotFoundError, UnauthorizedError, AppError
 from src.core.security import get_current_user
 from src.core.roles import UserRole
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 # GET ALL DETAILED (PAGINATED)
 @router.get(
   "/pagination",
-  response_model=PaginationResponse[list],
+  response_model=PaginationResponse[list[UserResponse]],
   status_code=HTTP_200_OK,
   summary="Listar todos los usuarios con paginación",
   description="Retorna lista paginada de usuarios con nombres resueltos (comuna, rol, estado). Incluye búsqueda por nombre, email, rol o estado.",
@@ -46,7 +46,7 @@ async def get_all_detailed(
 # GET BY ID DETAILED
 @router.get(
   "/{id}",
-  response_model=UserDetailResponse,
+  response_model=UserResponse,
   status_code=HTTP_200_OK,
   summary="Obtener usuario por ID",
   description="Retorna un usuario con todos los datos resueltos (comuna, rol, estado)",
