@@ -84,7 +84,7 @@ async def update(db: AsyncSession, id_user: UUID, update_dto: UserRequest) -> Us
   entity = await repository.update(db, id_user, update_dto.model_dump(exclude_unset=True))
   if not entity:
     return None
-  return UserResponse.model_validate(entity)
+  return _map_user_to_response(entity)
 
 
 # -----------------------------------------------------------------
@@ -99,7 +99,7 @@ async def update_by_admin(db: AsyncSession, id_user: UUID, update_dto: UserAdmin
   entity = await repository.update(db, id_user, update_data)
   if not entity:
     return None
-  return UserResponse.model_validate(entity)
+  return _map_user_to_response(entity)
 
 
 # -----------------------------------------------------------------

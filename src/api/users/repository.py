@@ -122,5 +122,6 @@ async def update(
 
   await db.commit()
   await db.refresh(entity)
+  await db.refresh(entity, ["commune", "user_role", "user_status"])
 
   return entity

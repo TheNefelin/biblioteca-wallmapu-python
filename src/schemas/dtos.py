@@ -433,13 +433,11 @@ class UserResponse(AppModel):
   created_at: datetime = Field(..., description="Fecha de creación del registro")
   updated_at: datetime = Field(..., description="Fecha de última actualización")
   commune_id: Optional[int] = Field(None, description="ID de la comuna")
+  commune_name: Optional[str] = Field(None, description="Nombre de la comuna")  
   user_role_id: Optional[int] = Field(None, description="ID del rol del usuario")
+  user_role_name: Optional[str] = Field(None, description="Nombre del rol del usuario")  
   user_status_id: Optional[int] = Field(None, description="ID del estado del usuario")
-  commune_name: Optional[str] = Field(None, description="Nombre de la comuna")
-  user_role_name: Optional[str] = Field(None, description="Nombre del rol del usuario")
   user_status_name: Optional[str] = Field(None, description="Nombre del estado del usuario")
-
-  model_config = ConfigDict(from_attributes=True)
 
 
 # NOTIFICATIONS --------------------------------------------------
