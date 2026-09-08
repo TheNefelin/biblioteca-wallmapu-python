@@ -24,7 +24,6 @@ iniconfig==2.3.0
 limits==5.8.0
 multidict==6.7.1
 packaging==26.3
-pillow==12.3.0
 pluggy==1.6.0
 pyasn1==0.6.4
 pycparser==3.0
@@ -37,7 +36,6 @@ pytest-asyncio==1.4.0
 python-dotenv==1.2.3
 python-jose==3.5.0
 python-multipart==0.0.32
-PyYAML==6.0.3
 rfc9457==0.4.1
 rsa==4.9.1
 six==1.17.0

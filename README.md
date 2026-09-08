@@ -46,8 +46,6 @@ pip install httpx
 pip install python-multipart
 # Almacenamiento de imágenes en Cloudinary
 pip install cloudinary
-# Validación y procesamiento de imágenes
-pip install pillow
 # WebSocket (notificaciones en tiempo real)
 pip install websockets
 ```

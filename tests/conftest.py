@@ -17,7 +17,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_SQL_PATH = BASE_DIR / "postgre_base.sql"
 SEED_SQL_PATH = BASE_DIR / "postgre_seed.sql"
 
-test_db_url = settings.TEST_DATABASE_URL or settings.DATABASE_URL
+if not settings.TEST_DATABASE_URL:
+  raise RuntimeError(
+    "TEST_DATABASE_URL no está definida. Los tests ejecutan DROP TABLE y NO deben correr "
+    "sobre una BD de producción. Configura una BD aislada de testing."
+  )
+test_db_url = settings.TEST_DATABASE_URL
 engine = create_async_engine(test_db_url, poolclass=NullPool)
 TestingSessionLocal = async_sessionmaker(
   autocommit=False,

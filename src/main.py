@@ -47,7 +47,11 @@ from src.core.logger import logger, set_request_id
 
 start_time = time.time()
 
-app = FastAPI(title="Biblioteca Wallmapu API", description="In development", version="1.0")
+app = FastAPI(
+  title="Biblioteca Wallmapu API", 
+  description="In production", 
+  version="1.1.0"
+)
 
 app.add_middleware(
   CORSMiddleware,
@@ -149,7 +153,6 @@ async def root():
   return {
     "status": "Api Running",
     "swagger": "/docs",
-    "version": "1.1.0",
     "uptime_seconds": round(time.time() - start_time, 2),
   }
 

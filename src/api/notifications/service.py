@@ -66,6 +66,16 @@ async def count_unread_by_user_id(db: AsyncSession, user_id: str) -> int:
 
 
 # -----------------------------------------------------------------
+# GET USER ID BY EMAIL (cross-feature; encapsula acceso a users_service
+# para que el router no salte la capa de servicio de notificaciones)
+async def get_user_id_by_email(db: AsyncSession, email_addr: str) -> UUID | None:
+  from src.api.users import service as user_service
+
+  user = await user_service.get_by_email(db, email_addr)
+  return user.id_user if user else None
+
+
+# -----------------------------------------------------------------
 # GET BY ID
 async def get_by_id(db: AsyncSession, id: int) -> NotificationResponse | None:
   notification = await repository.get_by_id(db, id)
