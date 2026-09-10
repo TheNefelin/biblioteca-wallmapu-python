@@ -291,7 +291,15 @@ INSERT INTO wm_formats (name) VALUES
 ('Traducción / Bilingüe'),
 ('Versión Comentada'),
 ('Versión Original completa'),
-('Versión Resumida');
+('Versión Resumida'),
+('Cómic'),
+('Tapa dura'),
+('Tapa blanda'),
+('Libro impreso con CD-ROM'),
+('Rústica de bolsillo'),
+('Rústica con solapas'),
+('Tapa dura con sobrecubierta'),
+('Libro electrónico');
 
 -- === GÉNEROS ===
 INSERT INTO wm_genres (name) VALUES
@@ -304,7 +312,13 @@ INSERT INTO wm_genres (name) VALUES
 ('Literatura clásica'),
 ('Literatura juvenil'),
 ('Ciencia ficción'),
-('Manga');
+('Manga'),
+('Fantasía oscura'),
+('Superhéroes'),
+('Educación'),
+  ('Espiritualidad'),
+  ('Poesía'),
+  ('Ensayo');
 
 -- === MATERIAS ===
 INSERT INTO wm_subjects (name) VALUES
@@ -341,7 +355,161 @@ INSERT INTO wm_subjects (name) VALUES
 ('Manga'),
 ('Aventura'),
 ('Humor'),
-('Cuentos');
+('Cuentos'),
+('Cómic'),
+('Sueños'),
+('Mitología'),
+('Horror'),
+('DC Comics'),
+('Batman'),
+  ('Gotham City'),
+  ('Flash'),
+('Viajes en el tiempo'),
+('Universos alternativos'),
+('Álgebra'),
+('Matemáticas'),
+('Ejercicios'),
+('Enseñanza media'),
+('Francia del siglo XVIII'),
+('Perfumería'),
+('Obsesión'),
+('Asesinato'),
+('Identidad'),
+('Metafísica cristiana'),
+('Desarrollo personal'),
+('Pensamiento positivo'),
+('Espiritualidad'),
+('Saint Germain'),
+('Jesús de Nazaret'),
+('Jerusalén'),
+('Misterio'),
+('Religión'),
+('Hobbits'),
+('Anillos de poder'),
+('Viaje heroico'),
+('Guerra'),
+('Rohan'),
+  ('Mordor'),
+  ('Sauron'),
+  ('Realismo mágico'),
+  ('Saga familiar'),
+  ('Destino'),
+  ('América Latina'),
+  ('Caballería andante'),
+  ('Locura'),
+  ('Idealismo'),
+  ('Sátira'),
+  ('Novela picaresca'),
+  ('Honor'),
+  ('Crimen'),
+  ('Pueblo'),
+  ('Honorabilidad'),
+  ('Política'),
+  ('Amor'),
+  ('Chile'),
+  ('Muerte'),
+  ('Pueblo fantasma'),
+  ('Voz'),
+  ('Memoria'),
+  ('Existencialismo'),
+  ('Incomunicación'),
+  ('Pintura'),
+  ('Alienación'),
+  ('Familia'),
+  ('Absurdo'),
+  ('Transformación'),
+  ('Amistad'),
+  ('Infancia'),
+  ('Sabiduría'),
+  ('Viaje'),
+  ('Experimentalismo'),
+  ('Jazz'),
+  ('París'),
+  ('Buenos Aires'),
+  ('Juego narrativo'),
+  ('Totalitarismo'),
+  ('Vigilancia'),
+  ('Control social'),
+  ('Censura'),
+  ('Libros'),
+  ('Conformismo'),
+  ('Rebeldía'),
+  ('Sociedad'),
+  ('Manipulación'),
+  ('Felicidad artificial'),
+  ('Tecnología'),
+  ('Supervivencia'),
+  ('Instinto'),
+  ('Naturaleza humana'),
+  ('Isla'),
+  ('Civilización'),
+  ('Escuela'),
+  ('Brujería'),
+  ('Espacio'),
+  ('Ecología'),
+  ('Imperio'),
+  ('Especia'),
+  ('Imperio galáctico'),
+  ('Psicohistoria'),
+  ('Conocimiento'),
+  ('Poder'),
+  ('Narnia'),
+  ('Hadas'),
+  ('Reinos'),
+  ('Guerras'),
+  ('Traición'),
+  ('Futuros oscuros'),
+  ('Televisión'),
+  ('Rebelión'),
+  ('Universos paralelos'),
+  ('Daimonion'),
+  ('Polo Norte'),
+  ('Música'),
+  ('Universidad'),
+  ('Leyenda'),
+  ('Realidad virtual'),
+  ('Videojuegos'),
+  ('Nostalgia'),
+  ('Competencia'),
+  ('Futuro distópico'),
+  ('Hotel embrujado'),
+  ('Alcoholismo'),
+  ('Psicología'),
+  ('Aislamiento'),
+  ('Payaso siniestro'),
+  ('Pueblo maldito'),
+  ('Grupo de amigos'),
+  ('Miedo ancestral'),
+  ('Chocolate'),
+  ('Fábrica'),
+  ('Imaginación'),
+  ('Genio precoz'),
+  ('Lectura'),
+  ('Poderes telequinéticos'),
+  ('Justicia infantil'),
+  ('Independencia'),
+  ('Libertad'),
+  ('Crítica social'),
+  ('Moralidad'),
+  ('Anarquismo'),
+  ('Ninjas'),
+  ('Superación'),
+  ('Combate'),
+  ('Piratas'),
+  ('Tesoro'),
+  ('Evolución'),
+  ('Historia humana'),
+  ('Cultura'),
+  ('Antropología'),
+  ('Pasión'),
+  ('Erotismo'),
+  ('Melancolía'),
+  ('Naturaleza'),
+  ('Estrategia'),
+  ('Milicia'),
+  ('Filosofía'),
+  ('Liderazgo'),
+  ('Conflicto');
 
 -- === AUTORES ===
 INSERT INTO wm_authors (name) VALUES
@@ -359,13 +527,57 @@ INSERT INTO wm_authors (name) VALUES
 ('J. R. R. Tolkien'),
 ('Yoshihiro Togashi'),
 ('Manuel Rojas'),
-('Julio Cortázar');
+('Julio Cortázar'),
+('Neil Gaiman'),
+('Sam Kieth'),
+('Mike Dringenberg'),
+('Frank Miller'),
+('Klaus Janson'),
+('Lynn Varley'),
+('Geoff Johns'),
+('Andy Kubert'),
+('Sandra Hope'),
+('Aurelio Baldor'),
+('Patrick Süskind'),
+('Conny Méndez'),
+('J. J. Benítez'),
+('Elio M. García Jr.'),
+  ('Linda Antonsson'),
+  ('Gabriel García Márquez'),
+  ('Miguel de Cervantes Saavedra'),
+  ('Isabel Allende'),
+  ('Juan Rulfo'),
+  ('Ernesto Sabato'),
+  ('Franz Kafka'),
+  ('Antoine de Saint-Exupéry'),
+  ('George Orwell'),
+  ('Ray Bradbury'),
+  ('Aldous Huxley'),
+  ('William Golding'),
+  ('J. K. Rowling'),
+  ('Frank Herbert'),
+  ('Isaac Asimov'),
+  ('C. S. Lewis'),
+  ('Suzanne Collins'),
+  ('Philip Pullman'),
+  ('Patrick Rothfuss'),
+  ('Ernest Cline'),
+  ('Roald Dahl'),
+  ('Astrid Lindgren'),
+  ('Alan Moore'),
+  ('Dave Gibbons'),
+  ('David Lloyd'),
+  ('Masashi Kishimoto'),
+  ('Eiichiro Oda'),
+  ('Yuval Noah Harari'),
+  ('Pablo Neruda'),
+  ('Sun Tzu');
 
 -- === EDITORIALES ===
 INSERT INTO wm_editorials (name) VALUES
 ('Editorial Universitaria'),
 ('Tusquets Editores'),
-('Autor-editor (ebook)'),
+('Lukeman Literary Management'),
 ('Gigamesh'),
 ('Debolsillo'),
 ('Alianza Editorial'),
@@ -376,7 +588,24 @@ INSERT INTO wm_editorials (name) VALUES
 ('Minotauro'),
 ('Panini'),
 ('Zig-Zag'),
-('Alfaguara');
+('Alfaguara'),
+('ECC Ediciones'),
+('Planeta DeAgostini Cómics'),
+('OVNI Press'),
+('Grupo Editorial Patria'),
+  ('Giluz'),
+  ('Austral'),
+  ('RM Verlag'),
+  ('Salamandra'),
+  ('Penguin Clásicos'),
+  ('Plaza & Janés'),
+  ('Molino'),
+  ('Roca Bolsillo'),
+  ('Nova'),
+  ('Punto de Lectura'),
+  ('Blackie Books'),
+  ('Debate'),
+  ('Planeta Cómic');
 
 -- === SEED DEMO: 16 LIBROS ENRIQUECIDOS ===
 DO $$
@@ -391,9 +620,9 @@ BEGIN
   VALUES (v_title, v_summary, (SELECT id_genre FROM wm_genres WHERE name = 'Literatura infantil'))
   RETURNING id_book INTO v_book_id;
   INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image)
-  VALUES (v_book_id, '9789561111851', 1995, 125, (SELECT id_editorial FROM wm_editorials WHERE name = 'Editorial Universitaria'), '1ra edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1774721980/edition/g0laexbhrtzwkyzlhz03.webp')
+  VALUES (v_book_id, '9789561111851', 1995, 111, (SELECT id_editorial FROM wm_editorials WHERE name = 'Editorial Universitaria'), 'Edición de 1995', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1774721980/edition/g0laexbhrtzwkyzlhz03.webp')
   RETURNING id_edition INTO v_edit_id;
-  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Sin Clasificar'));
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
   INSERT INTO wm_book_author (id_book, id_author)
   VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Marcela Paz'))
   ON CONFLICT DO NOTHING;
@@ -422,9 +651,9 @@ BEGIN
   VALUES (v_title, v_summary, (SELECT id_genre FROM wm_genres WHERE name = 'Novela'))
   RETURNING id_book INTO v_book_id;
   INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image)
-  VALUES (v_book_id, '9788472236554', 1993, 144, (SELECT id_editorial FROM wm_editorials WHERE name = 'Tusquets Editores'), '1ra edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773089263/edition/aniuzgtkfw2yknukydix.webp')
+  VALUES (v_book_id, '9788472236554', 1993, 144, (SELECT id_editorial FROM wm_editorials WHERE name = 'Tusquets Editores'), 'Colección Andanzas', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773089263/edition/aniuzgtkfw2yknukydix.webp')
   RETURNING id_edition INTO v_edit_id;
-  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Sin Clasificar'));
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica con solapas'));
   INSERT INTO wm_book_author (id_book, id_author)
   VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Luis Sepúlveda'))
   ON CONFLICT DO NOTHING;
@@ -450,9 +679,9 @@ BEGIN
   VALUES (v_title, v_summary, (SELECT id_genre FROM wm_genres WHERE name = 'Fantasía'))
   RETURNING id_book INTO v_book_id;
   INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image)
-  VALUES (v_book_id, '9781632912824', 2015, 0, (SELECT id_editorial FROM wm_editorials WHERE name = 'Autor-editor (ebook)'), '1ra edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773089263/edition/g8aug3ov198rkumybpcf.webp')
+  VALUES (v_book_id, '9781632912824', 2015, 281, (SELECT id_editorial FROM wm_editorials WHERE name = 'Lukeman Literary Management'), 'Reyes y hechiceros, libro 1', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773089263/edition/g8aug3ov198rkumybpcf.webp')
   RETURNING id_edition INTO v_edit_id;
-  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Sin Clasificar'));
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Libro electrónico'));
   INSERT INTO wm_book_author (id_book, id_author)
   VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Morgan Rice'))
   ON CONFLICT DO NOTHING;
@@ -481,9 +710,9 @@ BEGIN
   VALUES (v_title, v_summary, (SELECT id_genre FROM wm_genres WHERE name = 'Fantasía'))
   RETURNING id_book INTO v_book_id;
   INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image)
-  VALUES (v_book_id, '9788416035847', 2017, 336, (SELECT id_editorial FROM wm_editorials WHERE name = 'Gigamesh'), '1ra edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773089263/edition/pt9kf9rqzva50pjsbrcj.webp')
+  VALUES (v_book_id, '9788416035847', 2017, 336, (SELECT id_editorial FROM wm_editorials WHERE name = 'Gigamesh'), 'Segunda edición en rústica', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773089263/edition/pt9kf9rqzva50pjsbrcj.webp')
   RETURNING id_edition INTO v_edit_id;
-  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Sin Clasificar'));
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
   INSERT INTO wm_book_author (id_book, id_author)
   VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'George R. R. Martin'))
   ON CONFLICT DO NOTHING;
@@ -506,9 +735,9 @@ BEGIN
   VALUES (v_title, v_summary, (SELECT id_genre FROM wm_genres WHERE name = 'Terror'))
   RETURNING id_book INTO v_book_id;
   INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image)
-  VALUES (v_book_id, '9788497930994', 2004, 488, (SELECT id_editorial FROM wm_editorials WHERE name = 'Debolsillo'), '1ra edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195682/edition/gaz9ueno8r0ja9nshprf.jpg')
+  VALUES (v_book_id, '9788497930994', 2004, 483, (SELECT id_editorial FROM wm_editorials WHERE name = 'Debolsillo'), 'Colección Best Seller', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195682/edition/gaz9ueno8r0ja9nshprf.jpg')
   RETURNING id_edition INTO v_edit_id;
-  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Sin Clasificar'));
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica de bolsillo'));
   INSERT INTO wm_book_author (id_book, id_author)
   VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Stephen King'))
   ON CONFLICT DO NOTHING;
@@ -524,16 +753,16 @@ DO $$
 DECLARE
   v_book_id INTEGER;
   v_edit_id INTEGER;
-  v_title TEXT := 'El llamado de Cthulhu';
-  v_summary TEXT := 'Lovecraft explora en este relato, el terror a lo desconocido y el miedo por la existencia de creaturas míticas escondidas de la sociedad moderna. El llamado de Cthulhu es un relato en primera persona que provoca en el lector desconcierto e incertidumbre sobre la realidad en la que vive. ¿Pueden existir creaturas de las que sólo hay registro en los mitos? ¿Hasta dónde alcanza el conocimiento de nuestra realidad? De la mano con la ciencia y los descubrimientos de su tiempo Lovecraft crea un universo literario, donde cuestiona, los límites del conocimiento humano.';
+  v_title TEXT := 'La llamada de Cthulhu y otros cuentos';
+  v_summary TEXT := 'Lovecraft explora en este relato, el terror a lo desconocido y el miedo por la existencia de creaturas míticas escondidas de la sociedad moderna. La llamada de Cthulhu es un relato en primera persona que provoca en el lector desconcierto e incertidumbre sobre la realidad en la que vive. ¿Pueden existir creaturas de las que sólo hay registro en los mitos? ¿Hasta dónde alcanza el conocimiento de nuestra realidad? De la mano con la ciencia y los descubrimientos de su tiempo Lovecraft crea un universo literario, donde cuestiona, los límites del conocimiento humano.';
 BEGIN
   INSERT INTO wm_books (title, summary, genre_id)
   VALUES (v_title, v_summary, (SELECT id_genre FROM wm_genres WHERE name = 'Cuento'))
   RETURNING id_book INTO v_book_id;
   INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image)
-  VALUES (v_book_id, '9788420658537', 2004, 208, (SELECT id_editorial FROM wm_editorials WHERE name = 'Alianza Editorial'), '1ra edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773182339/edition/qan097holp6dqnow2z0g.webp')
+  VALUES (v_book_id, '9788420658537', 2004, 208, (SELECT id_editorial FROM wm_editorials WHERE name = 'Alianza Editorial'), 'El libro de bolsillo — Bibliotecas temáticas', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773182339/edition/qan097holp6dqnow2z0g.webp')
   RETURNING id_edition INTO v_edit_id;
-  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Sin Clasificar'));
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
   INSERT INTO wm_book_author (id_book, id_author)
   VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'H. P. Lovecraft'))
   ON CONFLICT DO NOTHING;
@@ -568,9 +797,9 @@ BEGIN
   VALUES (v_title, v_summary, (SELECT id_genre FROM wm_genres WHERE name = 'Thriller'))
   RETURNING id_book INTO v_book_id;
   INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image)
-  VALUES (v_book_id, '9788408176022', 2017, 624, (SELECT id_editorial FROM wm_editorials WHERE name = 'Planeta'), '1ra edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195606/edition/mgetonnzlujkwplxghni.jpg')
+  VALUES (v_book_id, '9788408176022', 2017, 624, (SELECT id_editorial FROM wm_editorials WHERE name = 'Planeta'), 'Planeta Internacional, edición 2017', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195606/edition/mgetonnzlujkwplxghni.jpg')
   RETURNING id_edition INTO v_edit_id;
-  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Sin Clasificar'));
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica con solapas'));
   INSERT INTO wm_book_author (id_book, id_author)
   VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Dan Brown'))
   ON CONFLICT DO NOTHING;
@@ -593,9 +822,9 @@ BEGIN
   VALUES (v_title, v_summary, (SELECT id_genre FROM wm_genres WHERE name = 'Literatura clásica'))
   RETURNING id_book INTO v_book_id;
   INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image)
-  VALUES (v_book_id, '9788416540846', 2017, 200, (SELECT id_editorial FROM wm_editorials WHERE name = 'La Otra H'), '1ra edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195104/edition/sy07b8kgsfx6dx23swoz.webp')
+  VALUES (v_book_id, '9788416540846', 2017, 200, (SELECT id_editorial FROM wm_editorials WHERE name = 'La Otra H'), 'Manga, primera edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195104/edition/sy07b8kgsfx6dx23swoz.webp')
   RETURNING id_edition INTO v_edit_id;
-  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Sin Clasificar'));
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
   INSERT INTO wm_book_author (id_book, id_author)
   VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Homero'))
   ON CONFLICT DO NOTHING;
@@ -626,9 +855,9 @@ BEGIN
   VALUES (v_title, v_summary, (SELECT id_genre FROM wm_genres WHERE name = 'Literatura juvenil'))
   RETURNING id_book INTO v_book_id;
   INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image)
-  VALUES (v_book_id, '9788490439210', 2019, 336, (SELECT id_editorial FROM wm_editorials WHERE name = 'Montena'), '1ra edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195135/edition/bcb10klmstviynx6iygi.webp')
+  VALUES (v_book_id, '9788490439210', 2019, 336, (SELECT id_editorial FROM wm_editorials WHERE name = 'Montena'), 'DC Icons, primera edición en español', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195135/edition/bcb10klmstviynx6iygi.webp')
   RETURNING id_edition INTO v_edit_id;
-  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Sin Clasificar'));
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
   INSERT INTO wm_book_author (id_book, id_author)
   VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Matt de la Peña'))
   ON CONFLICT DO NOTHING;
@@ -651,9 +880,9 @@ BEGIN
   VALUES (v_title, v_summary, (SELECT id_genre FROM wm_genres WHERE name = 'Thriller'))
   RETURNING id_book INTO v_book_id;
   INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image)
-  VALUES (v_book_id, '9788497599368', 2003, 408, (SELECT id_editorial FROM wm_editorials WHERE name = 'Debolsillo'), '1ra edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195005/edition/s8fd6qiku0ugqotftsgm.webp')
+  VALUES (v_book_id, '9788497599368', 2003, 408, (SELECT id_editorial FROM wm_editorials WHERE name = 'Debolsillo'), 'Colección Best Seller, bolsillo', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773195005/edition/s8fd6qiku0ugqotftsgm.webp')
   RETURNING id_edition INTO v_edit_id;
-  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Sin Clasificar'));
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica de bolsillo'));
   INSERT INTO wm_book_author (id_book, id_author)
   VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Thomas Harris'))
   ON CONFLICT DO NOTHING;
@@ -678,9 +907,9 @@ BEGIN
   VALUES (v_title, v_summary, (SELECT id_genre FROM wm_genres WHERE name = 'Ciencia ficción'))
   RETURNING id_book INTO v_book_id;
   INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image)
-  VALUES (v_book_id, '9788445002698', 2015, 240, (SELECT id_editorial FROM wm_editorials WHERE name = 'Booket'), '1ra edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773194942/edition/dvikpgxy3xqiuqn1yecw.webp')
+  VALUES (v_book_id, '9788445002698', 2015, 240, (SELECT id_editorial FROM wm_editorials WHERE name = 'Booket'), 'Edición de bolsillo', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773194942/edition/dvikpgxy3xqiuqn1yecw.webp')
   RETURNING id_edition INTO v_edit_id;
-  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Sin Clasificar'));
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
   INSERT INTO wm_book_author (id_book, id_author)
   VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Arthur C. Clarke'))
   ON CONFLICT DO NOTHING;
@@ -706,9 +935,9 @@ BEGIN
   VALUES (v_title, v_summary, (SELECT id_genre FROM wm_genres WHERE name = 'Fantasía'))
   RETURNING id_book INTO v_book_id;
   INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image)
-  VALUES (v_book_id, '9788445013588', 2023, 448, (SELECT id_editorial FROM wm_editorials WHERE name = 'Minotauro'), '1ra edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773194862/edition/quwflvgijtzwlvu48pju.webp')
+  VALUES (v_book_id, '9788445013588', 2023, 448, (SELECT id_editorial FROM wm_editorials WHERE name = 'Minotauro'), 'Edición revisada', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1773194862/edition/quwflvgijtzwlvu48pju.webp')
   RETURNING id_edition INTO v_edit_id;
-  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Sin Clasificar'));
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
   INSERT INTO wm_book_author (id_book, id_author)
   VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'J. R. R. Tolkien'))
   ON CONFLICT DO NOTHING;
@@ -739,7 +968,7 @@ BEGIN
   INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image)
   VALUES (v_book_id, '9788490242070', 2012, 192, (SELECT id_editorial FROM wm_editorials WHERE name = 'Panini'), 'Tomo 1', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1775055228/edition/jklsmj90ybgi91scubqu.webp')
   RETURNING id_edition INTO v_edit_id;
-  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Adaptación juvenil'));
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
   INSERT INTO wm_book_author (id_book, id_author)
   VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Yoshihiro Togashi'))
   ON CONFLICT DO NOTHING;
@@ -762,9 +991,9 @@ BEGIN
   VALUES (v_title, v_summary, (SELECT id_genre FROM wm_genres WHERE name = 'Novela'))
   RETURNING id_book INTO v_book_id;
   INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image)
-  VALUES (v_book_id, '9789561231047', 2013, 312, (SELECT id_editorial FROM wm_editorials WHERE name = 'Zig-Zag'), '1ra edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1776512269/edition/ojhg029an6eyyyodaifu.webp')
+  VALUES (v_book_id, '9789561231047', 2013, 320, (SELECT id_editorial FROM wm_editorials WHERE name = 'Zig-Zag'), 'Colección Viento Joven', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1776512269/edition/ojhg029an6eyyyodaifu.webp')
   RETURNING id_edition INTO v_edit_id;
-  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Sin Clasificar'));
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
   INSERT INTO wm_book_author (id_book, id_author)
   VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Manuel Rojas'))
   ON CONFLICT DO NOTHING;
@@ -787,9 +1016,9 @@ BEGIN
   VALUES (v_title, v_summary, (SELECT id_genre FROM wm_genres WHERE name = 'Novela'))
   RETURNING id_book INTO v_book_id;
   INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image)
-  VALUES (v_book_id, '9789561223684', 2017, 232, (SELECT id_editorial FROM wm_editorials WHERE name = 'Zig-Zag'), '1ra edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1780003694/edition/ggz5dm9d0bzqdhtthrkf.webp')
+  VALUES (v_book_id, '9789561223684', 2017, 232, (SELECT id_editorial FROM wm_editorials WHERE name = 'Zig-Zag'), 'Colección Narrativa', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1780003694/edition/ggz5dm9d0bzqdhtthrkf.webp')
   RETURNING id_edition INTO v_edit_id;
-  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Sin Clasificar'));
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
   INSERT INTO wm_book_author (id_book, id_author)
   VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Manuel Rojas'))
   ON CONFLICT DO NOTHING;
@@ -803,15 +1032,15 @@ DECLARE
   v_book_id INTEGER;
   v_edit_id INTEGER;
   v_title TEXT := 'De cronopios y de famas';
-  v_summary TEXT := 'historia de cronopios y de famas';
+  v_summary TEXT := 'Colección de cuentos, instrucciones y viñetas en la que Julio Cortázar contrapone a los imaginativos cronopios con los ordenados famas y las ambiguas esperanzas.';
 BEGIN
   INSERT INTO wm_books (title, summary, genre_id)
   VALUES (v_title, v_summary, (SELECT id_genre FROM wm_genres WHERE name = 'Cuento'))
   RETURNING id_book INTO v_book_id;
   INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image)
-  VALUES (v_book_id, '9788420406794', 2010, 144, (SELECT id_editorial FROM wm_editorials WHERE name = 'Alfaguara'), '1ra edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1780177255/edition/zooigr4bprb1xrklu0ti.webp')
+  VALUES (v_book_id, '9788420406794', 2010, 176, (SELECT id_editorial FROM wm_editorials WHERE name = 'Alfaguara'), 'Edición de 2010', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1780177255/edition/zooigr4bprb1xrklu0ti.webp')
   RETURNING id_edition INTO v_edit_id;
-  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Edición Ilustrada'));
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
   INSERT INTO wm_book_author (id_book, id_author)
   VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Julio Cortázar'))
   ON CONFLICT DO NOTHING;
@@ -821,6 +1050,536 @@ BEGIN
   INSERT INTO wm_book_subject (id_book, id_subject)
   VALUES (v_book_id, (SELECT id_subject FROM wm_subjects WHERE name = 'Cuentos'))
   ON CONFLICT DO NOTHING;
+END $$;
+
+-- === LIBROS DE lista.txt ===
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Sandman: Preludios y nocturnos', 'Morfeo, señor de los sueños, escapa tras décadas de cautiverio y busca los tres objetos que concentran su poder.', (SELECT id_genre FROM wm_genres WHERE name = 'Fantasía oscura')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788418326592', 2020, 240, (SELECT id_editorial FROM wm_editorials WHERE name = 'ECC Ediciones'), 'Biblioteca Sandman vol. 01, segunda edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788996800/edition/lbtrgwihqaoaxgov9vmx.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) SELECT v_edit_id, id_format FROM wm_formats WHERE name IN ('Cómic', 'Tapa dura');
+  INSERT INTO wm_book_author (id_book, id_author) SELECT v_book_id, id_author FROM wm_authors WHERE name IN ('Neil Gaiman', 'Sam Kieth', 'Mike Dringenberg');
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Cómic', 'Sueños', 'Mitología', 'Horror', 'DC Comics');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Batman: El regreso del caballero oscuro', 'Un Bruce Wayne envejecido vuelve del retiro para enfrentar la violencia de Gotham y un orden político que cuestiona su papel como Batman.', (SELECT id_genre FROM wm_genres WHERE name = 'Superhéroes')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788467433197', 2008, 192, (SELECT id_editorial FROM wm_editorials WHERE name = 'Planeta DeAgostini Cómics'), 'Absolute, primera edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788996474/edition/dva49z1qfnqvazmrk4mw.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) SELECT v_edit_id, id_format FROM wm_formats WHERE name IN ('Cómic', 'Tapa dura');
+  INSERT INTO wm_book_author (id_book, id_author) SELECT v_book_id, id_author FROM wm_authors WHERE name IN ('Frank Miller', 'Klaus Janson', 'Lynn Varley');
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Batman', 'Gotham City', 'Superhéroes', 'Distopías', 'Cómic');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Flashpoint', 'Barry Allen despierta en una línea temporal alterada y debe restaurar la realidad original.', (SELECT id_genre FROM wm_genres WHERE name = 'Superhéroes')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9789878191676', 2023, 240, (SELECT id_editorial FROM wm_editorials WHERE name = 'OVNI Press'), 'Primera edición argentina', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788996625/edition/nto4wkvxlpatid2ofgap.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) SELECT v_edit_id, id_format FROM wm_formats WHERE name IN ('Cómic', 'Tapa blanda');
+  INSERT INTO wm_book_author (id_book, id_author) SELECT v_book_id, id_author FROM wm_authors WHERE name IN ('Geoff Johns', 'Andy Kubert', 'Sandra Hope');
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Flash', 'Viajes en el tiempo', 'Universos alternativos', 'Superhéroes', 'DC Comics');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Álgebra', 'Manual de álgebra elemental con teoría, ejemplos, ejercicios y problemas resueltos.', (SELECT id_genre FROM wm_genres WHERE name = 'Educación')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9789708170000', 2007, 576, (SELECT id_editorial FROM wm_editorials WHERE name = 'Grupo Editorial Patria'), 'Segunda edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788998070/edition/jhe4f2hwtey3tqouosyd.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Libro impreso con CD-ROM'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Aurelio Baldor'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Álgebra', 'Matemáticas', 'Ejercicios', 'Enseñanza media');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('El perfume: historia de un asesino', 'Jean-Baptiste Grenouille persigue la esencia perfecta hasta convertir su obsesión en una serie de asesinatos.', (SELECT id_genre FROM wm_genres WHERE name = 'Thriller')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788432251146', 2011, 320, (SELECT id_editorial FROM wm_editorials WHERE name = 'Booket'), 'Colección Bestseller', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788996578/edition/dr4o0cagiu3vgk4ypss8.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica de bolsillo'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Patrick Süskind'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Francia del siglo XVIII', 'Perfumería', 'Obsesión', 'Asesinato', 'Identidad');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Metafísica 4 en 1, volumen I', 'Reúne cuatro textos de divulgación metafísica orientados a presentar principios espirituales y prácticas de transformación personal.', (SELECT id_genre FROM wm_genres WHERE name = 'Espiritualidad')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9789806329478', 2021, 331, (SELECT id_editorial FROM wm_editorials WHERE name = 'Giluz'), 'Volumen I', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788998194/edition/bj1riz7fxqpgr1ymbhfl.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Conny Méndez'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Metafísica cristiana', 'Desarrollo personal', 'Pensamiento positivo', 'Espiritualidad', 'Saint Germain');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Caballo de Troya 1: Jerusalén', 'Un proyecto secreto permite a un militar viajar a la Palestina del siglo I para observar los últimos días de Jesús de Nazaret.', (SELECT id_genre FROM wm_genres WHERE name = 'Ciencia ficción')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9789875806993', 2014, 736, (SELECT id_editorial FROM wm_editorials WHERE name = 'Booket'), 'Edición especial 30 aniversario', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788996537/edition/fzychwcxs3lafexgs1kt.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica con solapas'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'J. J. Benítez'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Viajes en el tiempo', 'Jesús de Nazaret', 'Jerusalén', 'Misterio', 'Religión');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('El Señor de los Anillos: La Comunidad del Anillo', 'Frodo recibe el Anillo Único y parte de la Comarca para impedir que Sauron recupere su poder.', (SELECT id_genre FROM wm_genres WHERE name = 'Fantasía')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788445009598', 2022, 488, (SELECT id_editorial FROM wm_editorials WHERE name = 'Minotauro'), 'Nueva edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788996757/edition/mmnfrv7rwg1ttz7jelas.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa dura con sobrecubierta'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'J. R. R. Tolkien'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Tierra Media', 'Hobbits', 'Anillos de poder', 'Viaje heroico', 'Magia');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('El Señor de los Anillos: Las Dos Torres', 'Frodo y Sam siguen hacia Mordor mientras sus aliados enfrentan la guerra que amenaza la Tierra Media.', (SELECT id_genre FROM wm_genres WHERE name = 'Fantasía')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788445009604', 2022, 408, (SELECT id_editorial FROM wm_editorials WHERE name = 'Minotauro'), 'Nueva edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788996721/edition/qhghwipp2qwvrdlkfuic.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa dura con sobrecubierta'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'J. R. R. Tolkien'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Tierra Media', 'Guerra', 'Rohan', 'Hobbits', 'Anillos de poder');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('El Señor de los Anillos: El Retorno del Rey', 'Mientras los pueblos libres se enfrentan a Sauron, Frodo y Sam se internan en Mordor para destruir el Anillo Único.', (SELECT id_genre FROM wm_genres WHERE name = 'Fantasía')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788445009611', 2022, 520, (SELECT id_editorial FROM wm_editorials WHERE name = 'Minotauro'), 'Nueva edición', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788996689/edition/aoaenddnn0dtfbbndgtr.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa dura con sobrecubierta'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'J. R. R. Tolkien'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Tierra Media', 'Mordor', 'Sauron', 'Guerra', 'Anillos de poder');
+END $$;
+
+-- === LOTE 3: 34 LIBROS AGREGADOS ===
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Cien años de soledad', 'La historia de la familia Buendía a lo largo de siete generaciones en el pueblo ficticio de Macondo, donde los destinos individuales se entrelazan con la historia de Colombia en una narrativa cíclica de realismo mágico.', (SELECT id_genre FROM wm_genres WHERE name = 'Novela')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788497592208', 2003, 496, (SELECT id_editorial FROM wm_editorials WHERE name = 'Debolsillo'), 'Colección Contemporánea', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788998297/edition/ulevcmdy5pk5zr5957ld.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Gabriel García Márquez'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Realismo mágico', 'Saga familiar', 'Soledad', 'Destino', 'América Latina');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Don Quijote de la Mancha', 'Un hidalgo manchego enloquece de tanto leer libros de caballería y, convertido en Don Quijote, recorre los caminos acompañado de su escudero Sancho Panza en busca de aventuras y justicia.', (SELECT id_genre FROM wm_genres WHERE name = 'Literatura clásica')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788423355235', 2019, 1040, (SELECT id_editorial FROM wm_editorials WHERE name = 'Austral'), 'Puesto en castellano actual por Andrés Trapiello', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788998382/edition/vg4ctywqgw0l0ihk5fle.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica de bolsillo'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Miguel de Cervantes Saavedra'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Caballería andante', 'Locura', 'Idealismo', 'Sátira', 'Novela picaresca');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Crónica de una muerte anunciada', 'Un cronista reconstruye los hechos que llevaron al asesinato de Santiago Nasar por los gemelos Vicario, explorando la paradoja de que nadie impidió una muerte que todo el pueblo sabía que iba a ocurrir.', (SELECT id_genre FROM wm_genres WHERE name = 'Novela')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788497592437', 2003, 144, (SELECT id_editorial FROM wm_editorials WHERE name = 'Debolsillo'), 'Colección Contemporánea', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788998447/edition/qymyf81wmozrdpknftew.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Gabriel García Márquez'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Honor', 'Crimen', 'Destino', 'Pueblo', 'Honorabilidad');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('La casa de los espíritus', 'La saga de la familia Trueba a lo largo de cuatro generaciones en un país latinoamericano, donde el despotismo del patriarca Esteban Trueba choca con las fuerzas del cambio social y la resistencia espiritual de las mujeres del linaje.', (SELECT id_genre FROM wm_genres WHERE name = 'Novela')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788483462034', 2006, 464, (SELECT id_editorial FROM wm_editorials WHERE name = 'Debolsillo'), 'Colección Contemporánea', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788998521/edition/ifnizopqbf0izxx5wns6.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Isabel Allende'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Realismo mágico', 'Saga familiar', 'Política', 'Amor', 'Chile');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Pedro Páramo', 'Juan Preciado viaja a Comala en cumplimiento de la promesa hecha a su madre moribunda de encontrar a su padre, Pedro Páramo, y descubre un pueblo poblado por murmullos y almas en pena que le revelan la historia del caudillo.', (SELECT id_genre FROM wm_genres WHERE name = 'Novela')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788493442606', 2016, 136, (SELECT id_editorial FROM wm_editorials WHERE name = 'RM Verlag'), 'Edición corregida por la Fundación Juan Rulfo', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788998635/edition/rz0lelw4ujhckxnhcref.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Juan Rulfo'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Realismo mágico', 'Muerte', 'Pueblo fantasma', 'Voz', 'Memoria');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('El túnel', 'El pintor Juan Pablo Castel narra desde la cárcel su obsesión por María Iribarne, la única persona que comprendió una de sus obras, hasta el crimen que consuma su aislamiento definitivo del mundo.', (SELECT id_genre FROM wm_genres WHERE name = 'Novela')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788432248368', 2011, 160, (SELECT id_editorial FROM wm_editorials WHERE name = 'Austral'), 'Narrativa Austral', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788998712/edition/qwsbhoirjgzwnssxejzv.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica de bolsillo'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Ernesto Sabato'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Existencialismo', 'Obsesión', 'Incomunicación', 'Pintura', 'Crimen');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('La metamorfosis', 'Gregorio Samsa despierta convertido en un enorme insecto y, mientras su familia enfrenta la repulsión y el rechazo, sufre una progresiva degradación física y emocional.', (SELECT id_genre FROM wm_genres WHERE name = 'Novela')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788466367813', 2023, 144, (SELECT id_editorial FROM wm_editorials WHERE name = 'Debolsillo'), 'Ediciones Conmemorativas', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788998854/edition/yyyaktiy2x2vzuu0ii45.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa dura'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Franz Kafka'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Alienación', 'Familia', 'Identidad', 'Absurdo', 'Transformación');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('El Principito', 'Un piloto varado en el desierto del Sahara conoce a un pequeño príncipe que viaja por distintos mundos y le enseña que lo esencial es invisible a los ojos.', (SELECT id_genre FROM wm_genres WHERE name = 'Literatura infantil')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788498381498', 2015, 96, (SELECT id_editorial FROM wm_editorials WHERE name = 'Salamandra'), 'Edición oficial con acuarelas originales', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788998940/edition/vty6gz9hc6mwqcsertjn.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Antoine de Saint-Exupéry'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Amistad', 'Amor', 'Infancia', 'Sabiduría', 'Viaje');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Rayuela', 'Una novela que puede leerse de muchas formas sigue a Horacio Oliveira entre París y Buenos Aires en su búsqueda del sentido de la existencia y del amor de La Maga, planteada como un vasto collage de reflexiones filosóficas y literarias.', (SELECT id_genre FROM wm_genres WHERE name = 'Novela')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788466331906', 2016, 736, (SELECT id_editorial FROM wm_editorials WHERE name = 'Debolsillo'), 'Colección Contemporánea', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788999010/edition/y0uxuku9nrjlttuxxhlf.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Julio Cortázar'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Experimentalismo', 'Jazz', 'París', 'Buenos Aires', 'Juego narrativo');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('1984', 'En un Londres distópico vigilado por el Gran Hermano, Winston Smith trabaja reescribiendo la historia para el Partido y, al cuestionar el sistema, se enfrenta a la represión del régimen totalitario.', (SELECT id_genre FROM wm_genres WHERE name = 'Novela')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788499890944', 2013, 352, (SELECT id_editorial FROM wm_editorials WHERE name = 'Debolsillo'), 'Edición definitiva avalada por The Orwell Estate', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788999106/edition/psajcpvflxc4xqv1c42e.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica de bolsillo'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'George Orwell'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Distopías', 'Totalitarismo', 'Vigilancia', 'Control social', 'Política');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Fahrenheit 451', 'Guy Montag es un bombero en un futuro que quema libros en lugar de apagar incendios; tras cuestionar su labor, se une a un grupo clandestino dedicado a preservar el conocimiento literario.', (SELECT id_genre FROM wm_genres WHERE name = 'Ciencia ficción')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788491058151', 2026, 192, (SELECT id_editorial FROM wm_editorials WHERE name = 'Penguin Clásicos'), 'Ediciones Icónicas', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788999367/edition/y2shrmmatiovuji2xnva.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica de bolsillo'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Ray Bradbury'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Distopías', 'Censura', 'Libros', 'Conformismo', 'Rebeldía');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Un mundo feliz', 'En un futuro donde los seres humanos son creados en laboratorio y mantenidos dóciles mediante drogas y entretenimiento constante, uno de ellos cuestiona la perfecta estabilidad del sistema.', (SELECT id_genre FROM wm_genres WHERE name = 'Ciencia ficción')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788466350945', 2020, 256, (SELECT id_editorial FROM wm_editorials WHERE name = 'Debolsillo'), 'Colección Contemporánea', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788999429/edition/ls4vmtauwjej1soov4ah.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa dura con sobrecubierta'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Aldous Huxley'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Distopías', 'Sociedad', 'Manipulación', 'Felicidad artificial', 'Tecnología');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('El señor de las moscas', 'Un grupo de niños queda varado en una isla desierta y organiza su propia sociedad, pero el orden se desmorona cuando afloran los instintos más primitivos y violentos.', (SELECT id_genre FROM wm_genres WHERE name = 'Novela')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788420674179', 2010, 288, (SELECT id_editorial FROM wm_editorials WHERE name = 'Alianza Editorial'), 'El libro de bolsillo — Bibliotecas de autor', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788999505/edition/x5wqywqxexcwdsbo2qnz.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica de bolsillo'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'William Golding'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Supervivencia', 'Instinto', 'Naturaleza humana', 'Isla', 'Civilización');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Harry Potter y la piedra filosofal', 'Harry Potter descubre en su undécimo cumpleaños que es un mago y es aceptado en el Colegio Hogwarts de Magia y Hechicería, donde vivirá increíbles aventuras.', (SELECT id_genre FROM wm_genres WHERE name = 'Fantasía')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788498382662', 2010, 256, (SELECT id_editorial FROM wm_editorials WHERE name = 'Salamandra'), 'Edición clásica con portada ilustrada', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788999614/edition/wdzfz2x0ahe1jgnoifjg.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica de bolsillo'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'J. K. Rowling'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Magia', 'Escuela', 'Aventura', 'Amistad', 'Brujería');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Dune', 'En el planeta desértico Arrakis, Paul Atreides se ve envuelto en una lucha por el control de la melange, la especia más valiosa del universo que decide el destino de imperios enteros.', (SELECT id_genre FROM wm_genres WHERE name = 'Ciencia ficción')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788466353779', 2021, 784, (SELECT id_editorial FROM wm_editorials WHERE name = 'Debolsillo'), 'Las crónicas de Dune, traducción corregida', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788999690/edition/suprncn0dl60xc0aa6xn.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica de bolsillo'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Frank Herbert'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Espacio', 'Ecología', 'Política', 'Imperio', 'Especia');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Fundación', 'El psicohistoriador Hari Seldon prevé la caída del Imperio Galáctico y funda una colonia en el planeta Terminus para preservar el conocimiento y acortar el período de barbarie.' ,(SELECT id_genre FROM wm_genres WHERE name = 'Ciencia ficción')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788497599245', 2003, 264, (SELECT id_editorial FROM wm_editorials WHERE name = 'Debolsillo'), 'Ciclo de la Fundación', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788999748/edition/sntstt9dztpwbt2wrgj4.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica de bolsillo'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Isaac Asimov'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Imperio galáctico', 'Psicohistoria', 'Conocimiento', 'Civilización', 'Poder');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('El león, la bruja y el armario', 'Cuatro hermanos descubren un armario que los transporta a Narnia, un reino mágico sumido en un invierno eterno por la malvada Bruja Blanca y del que solo el león Aslan podrá liberarlo.', (SELECT id_genre FROM wm_genres WHERE name = 'Fantasía')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788420445649', 2000, 168, (SELECT id_editorial FROM wm_editorials WHERE name = 'Alfaguara'), 'Las Crónicas de Narnia', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788999880/edition/usjweporxstdqgcht4wb.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica de bolsillo'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'C. S. Lewis'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Magia', 'Aventura', 'Narnia', 'Hadas', 'Infancia');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Juego de tronos', 'En los continentes de Poniente y Essos, las grandes familias nobles libran guerras por el control del Trono de Hierro mientras en el extremo norte una amenaza milenaria despierta.', (SELECT id_genre FROM wm_genres WHERE name = 'Fantasía')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788401032424', 2023, 800, (SELECT id_editorial FROM wm_editorials WHERE name = 'Plaza & Janés'), 'Los libros que inspiraron la serie de HBO', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1789000034/edition/fbs8lfyr1anaswtdmym6.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa dura con sobrecubierta'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'George R. R. Martin'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Reinos', 'Dragones', 'Guerras', 'Traición', 'Poder');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Los juegos del hambre', 'En una nación distópica, doce chicos y doce chicas son obligados a participar en un reality show donde solo hay una regla: matar o morir. Cuando Katniss Everdeen se ofrece como voluntaria, su instinto de supervivencia la convertirá en un símbolo de esperanza.', (SELECT id_genre FROM wm_genres WHERE name = 'Fantasía')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788427202122', 2012, 400, (SELECT id_editorial FROM wm_editorials WHERE name = 'Molino'), 'Colección Juegos del Hambre', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1789000126/edition/iskmpmxnzlyvpxtpmmj1.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Suzanne Collins'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Distopías', 'Supervivencia', 'Futuros oscuros', 'Televisión', 'Rebelión');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('La brújula dorada', 'Lyra, una niña de once años en un mundo donde los humanos tienen daimonion, viaja al Polo Norte para rescatar a los niños secuestrados y descubrir los secretos de la Autoridad.', (SELECT id_genre FROM wm_genres WHERE name = 'Fantasía')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788416859320', 2019, 400, (SELECT id_editorial FROM wm_editorials WHERE name = 'Roca Bolsillo'), 'La Materia Oscura', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1789000203/edition/qoxxaeigdily2yhjpr4l.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Philip Pullman'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Aventura', 'Universos paralelos', 'Daimonion', 'Infancia', 'Polo Norte');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('El nombre del viento', 'En una posada apartada, un hombre llamado Kvothe accede a contar la auténtica historia de su vida: su infancia como músico itinerante, su paso por una gran ciudad y su llegada a una universidad donde buscaba todas las respuestas.', (SELECT id_genre FROM wm_genres WHERE name = 'Fantasía')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788401337208', 2009, 880, (SELECT id_editorial FROM wm_editorials WHERE name = 'Plaza & Janés'), 'Crónica del asesino de reyes, primer día', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1789000263/edition/ptbftpp1tn3lfgksis6d.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Patrick Rothfuss'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Magia', 'Aventura', 'Música', 'Universidad', 'Leyenda');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Ready Player One', 'En 2044, Wade Watts prefiere el universo virtual de OASIS al sombrío mundo real. Cuando el creador de OASIS muere y deja una fortuna tras una serie de acertijos de los años ochenta, Wade descifra la primera pista y debe competir contra miles de rivales.', (SELECT id_genre FROM wm_genres WHERE name = 'Ciencia ficción')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788466663069', 2018, 476, (SELECT id_editorial FROM wm_editorials WHERE name = 'Nova'), 'Colección Nova 231', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1789000329/edition/jjukq5ernujtx5ddy8p3.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica con solapas'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Ernest Cline'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Realidad virtual', 'Videojuegos', 'Nostalgia', 'Competencia', 'Futuro distópico');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('El resplandor', 'Jack Torrance acepta el cargo de cuidador invernal del aislado Hotel Overlook junto a su esposa y su hijo Danny, que posee el don sobrenatural llamado "el resplandor". Poco a poco, las fuerzas malignas del hotel se apoderan de él.', (SELECT id_genre FROM wm_genres WHERE name = 'Terror')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788466357319', 2021, 656, (SELECT id_editorial FROM wm_editorials WHERE name = 'Debolsillo'), 'Best Seller Debolsillo', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1789000423/edition/sc1egrtkjnm5b1de7gmm.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Stephen King'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Hotel embrujado', 'Alcoholismo', 'Familia', 'Psicología', 'Aislamiento');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('It (Eso)', 'En el pueblo de Derry, siete niños son aterrados por una entidad que adopta la forma de un payaso siniestro; veintisiete años después, una antigua promesa los hace regresar para enfrentarse a la amenaza que los marcó.', (SELECT id_genre FROM wm_genres WHERE name = 'Terror')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788466345347', 2017, 1030, (SELECT id_editorial FROM wm_editorials WHERE name = 'Punto de Lectura'), 'Colección Bestseller 26200', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1789000528/edition/qgw41hopwaybgwc9fuhc.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Stephen King'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Payaso siniestro', 'Infancia', 'Pueblo maldito', 'Grupo de amigos', 'Miedo ancestral');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Charlie y la fábrica de chocolate', 'Charlie Bucket, un niño de familia pobre, encuentra uno de los cinco billetes de oro escondidos en las chocolatinas de Willy Wonka y gana una visita a su misteriosa fábrica de chocolate.', (SELECT id_genre FROM wm_genres WHERE name = 'Literatura infantil')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788491221166', 2016, 240, (SELECT id_editorial FROM wm_editorials WHERE name = 'Alfaguara'), 'Colección Alfaguara Clásicos', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788997944/edition/nqgq3n066mxwtdeubcyz.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Roald Dahl'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Chocolate', 'Fábrica', 'Aventura', 'Imaginación', 'Niños');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Matilda', 'Matilda es una niña de cinco años extraordinariamente inteligente, despreciada por sus padres mediocres, que descubre poseer poderes telequinéticos y los emplea contra su abominable directora para cambiar su historia.', (SELECT id_genre FROM wm_genres WHERE name = 'Literatura infantil')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788491221364', 2016, 288, (SELECT id_editorial FROM wm_editorials WHERE name = 'Alfaguara'), 'Colección Alfaguara Clásicos', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788997858/edition/nikmndfr7uo8wiasnvdd.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Roald Dahl'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Genio precoz', 'Lectura', 'Poderes telequinéticos', 'Escuela', 'Justicia infantil');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Pippi Calzaslargas', 'Pippi Calzaslargas es una niña de nueve años que vive sola en Villa Villekulla con un mono y un caballo; posee una fuerza sobrehumana y un espíritu indomable con el que vive aventuras junto a sus amigos Tommy y Annika.', (SELECT id_genre FROM wm_genres WHERE name = 'Literatura infantil')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788416290543', 2015, 285, (SELECT id_editorial FROM wm_editorials WHERE name = 'Blackie Books'), 'Todas las historias', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788997757/edition/ye01iupx7cmcf19h0dhx.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa dura'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Astrid Lindgren'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Infancia', 'Aventura', 'Imaginación', 'Independencia', 'Libertad');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Watchmen', 'En un mundo donde los superhéroes han sido prohibidos, un asesinato desencadena una conspiración global; Rorschach, Búho Nocturno, Espectro de Seda, Dr. Manhattan y Ozymandias investigan una trama que cuestiona la naturaleza del poder.', (SELECT id_genre FROM wm_genres WHERE name = 'Superhéroes')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788490946299', 2018, 416, (SELECT id_editorial FROM wm_editorials WHERE name = 'ECC Ediciones'), 'Novela gráfica', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788997544/edition/jskmavepxec7mcfvx91g.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) SELECT v_edit_id, id_format FROM wm_formats WHERE name IN ('Cómic', 'Tapa dura con sobrecubierta');
+  INSERT INTO wm_book_author (id_book, id_author) SELECT v_book_id, id_author FROM wm_authors WHERE name IN ('Alan Moore', 'Dave Gibbons');
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Superhéroes', 'Distopías', 'Crítica social', 'Poder', 'Moralidad');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('V de Vendetta', 'En una Inglaterra futura gobernada por un régimen fascista, un misterioso enmascarado llamado V desafía al Estado con actos de terrorismo simbólico; la joven Evey Hammond será testigo y cómplice de su guerra por la libertad.', (SELECT id_genre FROM wm_genres WHERE name = 'Superhéroes')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788467420920', 2006, 296, (SELECT id_editorial FROM wm_editorials WHERE name = 'Planeta DeAgostini Cómics'), 'Novela gráfica', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788997449/edition/e8abx57zxs6hq8ttmjhz.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) SELECT v_edit_id, id_format FROM wm_formats WHERE name IN ('Cómic', 'Tapa blanda');
+  INSERT INTO wm_book_author (id_book, id_author) SELECT v_book_id, id_author FROM wm_authors WHERE name IN ('Alan Moore', 'David Lloyd');
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Distopías', 'Anarquismo', 'Totalitarismo', 'Libertad', 'Identidad');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Naruto, vol. 1', 'Naruto Uzumaki es un ninja problemático que sueña con convertirse en Hokage, el líder de su aldea; el poder de un zorro de nueve colas está sellado dentro de él, lo que lo convierte en un paria que anhela ser reconocido.', (SELECT id_genre FROM wm_genres WHERE name = 'Manga')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788484492757', 2002, 192, (SELECT id_editorial FROM wm_editorials WHERE name = 'Planeta Cómic'), 'Manga Shonen', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788997325/edition/x8cyum6vay7lypzaxsf2.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Masashi Kishimoto'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Ninjas', 'Amistad', 'Superación', 'Aventura', 'Combate');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('One Piece, vol. 1', 'Monkey D. Luffy, un chico que se comió la Fruta del Diablo y puede estirarse como goma, zarpa al mar buscando el legendario tesoro "One Piece" para convertirse en el Rey de los Piratas.', (SELECT id_genre FROM wm_genres WHERE name = 'Manga')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788468471525', 2011, 192, (SELECT id_editorial FROM wm_editorials WHERE name = 'Planeta DeAgostini Cómics'), 'Manga', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788997235/edition/hqeaq957brysdxkgzdgg.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Eiichiro Oda'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Piratas', 'Aventura', 'Tesoro', 'Amistad', 'Sueños');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Sapiens. De animales a dioses', 'Yuval Noah Harari traza la historia de la humanidad desde el Homo sapiens hasta la era del capitalismo, analizando las revoluciones cognitiva, agrícola y científica, y cuestiona si hemos ganado en felicidad.', (SELECT id_genre FROM wm_genres WHERE name = 'Ensayo')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788499926223', 2016, 496, (SELECT id_editorial FROM wm_editorials WHERE name = 'Debate'), 'Ensayo', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788997156/edition/ceseyydzb4szpkh53glx.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Yuval Noah Harari'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Evolución', 'Historia humana', 'Cultura', 'Civilización', 'Antropología');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('Veinte poemas de amor y una canción desesperada', 'Publicado en 1924 cuando Neruda tenía diecinueve años, este poemario revolucionó la poesía amorosa con versos de intenso erotismo que exploran el amor, el deseo y la pérdida.', (SELECT id_genre FROM wm_genres WHERE name = 'Poesía')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788497933056', 2004, 96, (SELECT id_editorial FROM wm_editorials WHERE name = 'Debolsillo'), 'Contemporánea', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788997087/edition/pj9i3y7cg7nhhip4pizx.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Rústica de bolsillo'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Pablo Neruda'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Amor', 'Pasión', 'Erotismo', 'Melancolía', 'Naturaleza');
+END $$;
+
+DO $$
+DECLARE v_book_id INTEGER; v_edit_id INTEGER;
+BEGIN
+  INSERT INTO wm_books (title, summary, genre_id) VALUES
+  ('El arte de la guerra', 'Tratado de estrategia militar atribuido al general chino Sun Tzu, compuesto por trece capítulos sobre planificación, engaño, terreno y espionaje, con alcance de filosofía del liderazgo.', (SELECT id_genre FROM wm_genres WHERE name = 'Literatura clásica')) RETURNING id_book INTO v_book_id;
+  INSERT INTO wm_editions (book_id, isbn, publication_year, pages, editorial_id, edition, cover_image) VALUES
+  (v_book_id, '9788491056652', 2026, 472, (SELECT id_editorial FROM wm_editorials WHERE name = 'Penguin Clásicos'), 'Bilingüe chino-español', 'https://res.cloudinary.com/dsvkbe0mc/image/upload/v1788996951/edition/ixgw38d7xis0cwznbvu0.webp') RETURNING id_edition INTO v_edit_id;
+  INSERT INTO wm_edition_format (id_edition, id_format) VALUES (v_edit_id, (SELECT id_format FROM wm_formats WHERE name = 'Tapa blanda'));
+  INSERT INTO wm_book_author (id_book, id_author) VALUES (v_book_id, (SELECT id_author FROM wm_authors WHERE name = 'Sun Tzu'));
+  INSERT INTO wm_book_subject (id_book, id_subject) SELECT v_book_id, id_subject FROM wm_subjects WHERE name IN ('Estrategia', 'Milicia', 'Filosofía', 'Liderazgo', 'Conflicto');
 END $$;
 
 -- === COPIAS (ejemplares conservados del xlsx) ===
@@ -906,10 +1665,65 @@ INSERT INTO wm_copies (barcode, signature_topography, copy_number, edition_id, s
 VALUES ('SEPhij-c1-1960', 'SEPhij-c1-1960', 1, 14, 1)
 ON CONFLICT (barcode) DO NOTHING;
 INSERT INTO wm_copies (barcode, signature_topography, copy_number, edition_id, status_id)
+VALUES ('ROJsom', 'ROJsom', 1, 15, 1)
+ON CONFLICT (barcode) DO NOTHING;
+INSERT INTO wm_copies (barcode, signature_topography, copy_number, edition_id, status_id)
 VALUES ('CORcro-c1', 'CORcro-c1', 2, 16, 1)
 ON CONFLICT (barcode) DO NOTHING;
 INSERT INTO wm_copies (barcode, signature_topography, copy_number, edition_id, status_id)
 VALUES ('CORcro', 'CORcro', 1, 16, 3)
+ON CONFLICT (barcode) DO NOTHING;
+
+-- === COPIAS DE lista.txt ===
+INSERT INTO wm_copies (barcode, signature_topography, copy_number, edition_id, status_id) VALUES
+('GAIpre', 'GAIpre', 1, 17, 1),
+('MILreg', 'MILreg', 1, 18, 1),
+('JOHfla', 'JOHfla', 1, 19, 1),
+('BALalg', 'BALalg', 1, 20, 1),
+('SUSper', 'SUSper', 1, 21, 1),
+('MENmet', 'MENmet', 1, 22, 1),
+('BENcab', 'BENcab', 1, 23, 1),
+('TOLcom', 'TOLcom', 1, 24, 1),
+('TOLtor', 'TOLtor', 1, 25, 1),
+('TOLret', 'TOLret', 1, 26, 1)
+ON CONFLICT (barcode) DO NOTHING;
+
+-- === COPIAS LOTE 3 (34 libros agregados) ===
+INSERT INTO wm_copies (barcode, signature_topography, copy_number, edition_id, status_id) VALUES
+('GARcie', 'GARcie', 1, 27, 1),
+('CERqui', 'CERqui', 1, 28, 1),
+('GARcro', 'GARcro', 1, 29, 1),
+('ALLcas', 'ALLcas', 1, 30, 1),
+('RULped', 'RULped', 1, 31, 1),
+('SABtun', 'SABtun', 1, 32, 1),
+('KAFmet', 'KAFmet', 1, 33, 1),
+('SAIpri', 'SAIpri', 1, 34, 1),
+('CORray', 'CORray', 1, 35, 1),
+('ORW198', 'ORW198', 1, 36, 1),
+('BRAfah', 'BRAfah', 1, 37, 1),
+('HUXmun', 'HUXmun', 1, 38, 1),
+('GOLsen', 'GOLsen', 1, 39, 1),
+('ROWhar', 'ROWhar', 1, 40, 1),
+('HERdun', 'HERdun', 1, 41, 1),
+('ASIfun', 'ASIfun', 1, 42, 1),
+('LEWleo', 'LEWleo', 1, 43, 1),
+('MARjue', 'MARjue', 1, 44, 1),
+('COLjue', 'COLjue', 1, 45, 1),
+('PULbru', 'PULbru', 1, 46, 1),
+('ROTnom', 'ROTnom', 1, 47, 1),
+('CLIrea', 'CLIrea', 1, 48, 1),
+('KINres', 'KINres', 1, 49, 1),
+('KINeso', 'KINeso', 1, 50, 1),
+('DAHcha', 'DAHcha', 1, 51, 1),
+('DAHmat', 'DAHmat', 1, 52, 1),
+('LINpip', 'LINpip', 1, 53, 1),
+('MOOwat', 'MOOwat', 1, 54, 1),
+('MOOvde', 'MOOvde', 1, 55, 1),
+('KISnar', 'KISnar', 1, 56, 1),
+('ODAone', 'ODAone', 1, 57, 1),
+('HARsap', 'HARsap', 1, 58, 1),
+('NERvei', 'NERvei', 1, 59, 1),
+('SUNart', 'SUNart', 1, 60, 1)
 ON CONFLICT (barcode) DO NOTHING;
 
 -- === NOTICIAS ====
