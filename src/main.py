@@ -50,7 +50,7 @@ start_time = time.time()
 app = FastAPI(
   title="Biblioteca Wallmapu API", 
   description="In production", 
-  version="1.1.270"
+  version="1.1.272"
 )
 
 app.add_middleware(
